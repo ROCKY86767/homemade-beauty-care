@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+  --color-primary: #7A9B76;
+  --color-primary-dark: #5C7A58;
+  --color-primary-light: #9BBA97;
+  --color-dark: #34483A;
+  --color-cream: #F7F3EA;
+  --color-light-green: #E8EFE5;
+  --color-accent: #B88765;
+  --color-accent-dark: #9C6F4F;
+  --color-accent-light: #D4A584;
+  --color-ink: #292929;
+
+  --font-sans: 'Hind Siliguri', sans-serif;
+  --font-display: 'Playfair Display', serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    color: #292929;
+    background-color: #FFFFFF;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-white font-medium transition-all duration-300 hover:bg-primary-dark hover:shadow-lg active:scale-95;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-primary px-8 py-3 text-primary font-medium transition-all duration-300 hover:bg-primary hover:text-white active:scale-95;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-8 py-3 text-white font-medium transition-all duration-300 hover:bg-accent-dark hover:shadow-lg active:scale-95;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-sm transition-all duration-300;
+  }
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
+  }
+  .input-field {
+    @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-ink outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

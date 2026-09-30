@@ -16,6 +16,7 @@ import CartPage from '@/pages/CartPage';
 import CheckoutPage from '@/pages/CheckoutPage';
 import OrderSuccessPage from '@/pages/OrderSuccessPage';
 import OrderTrackingPage from '@/pages/OrderTrackingPage';
+import MyOrdersPage from '@/pages/MyOrdersPage';
 import AboutPage from '@/pages/AboutPage';
 import ContactPage from '@/pages/ContactPage';
 import WishlistPage from '@/pages/WishlistPage';
@@ -100,27 +101,39 @@ function AppContent() {
                 <Route path="/shop" element={<ShopPage />} />
                 <Route path="/category/:slug" element={<ShopPage />} />
                 <Route path="/offers" element={<ShopPage isOffers />} />
+
                 <Route
                   path="/new-arrivals"
                   element={<ShopPage isNewArrivals />}
                 />
+
                 <Route
                   path="/product/:slug"
                   element={<ProductDetailPage />}
                 />
+
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
+
                 <Route
                   path="/order-success/:orderNumber"
                   element={<OrderSuccessPage />}
                 />
+
                 <Route
                   path="/track-order"
                   element={<OrderTrackingPage />}
                 />
+
+                <Route
+                  path="/my-orders"
+                  element={<MyOrdersPage />}
+                />
+
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
+
                 <Route
                   path="/account"
                   element={<WishlistPage />}

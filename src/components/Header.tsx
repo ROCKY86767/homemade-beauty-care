@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, User, Heart, ShoppingCart, Menu, X, ChevronDown } from 'lucide-react';
+import {
+  Search,
+  User,
+  Heart,
+  ShoppingCart,
+  Menu,
+  X,
+  ChevronDown,
+} from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { getSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
@@ -37,11 +45,14 @@ export default function Header() {
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [mobileOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (search.trim()) {
       navigate(`/shop?q=${encodeURIComponent(search.trim())}`);
       setSearch('');
@@ -55,7 +66,8 @@ export default function Header() {
       <div className="bg-dark text-white text-sm">
         <div className="section-padding flex items-center justify-center py-2 text-center">
           <p className="font-medium">
-            {settings?.announcement_bn || 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | অর্ডার করতে কল করুন: 01999478203'}
+            {settings?.announcement_bn ||
+              'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | অর্ডার করতে কল করুন: 01999478203'}
           </p>
         </div>
       </div>
@@ -79,31 +91,38 @@ export default function Header() {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0">
-<img
-  src="/new-homemade-logo.png"
-  alt="Homemade Beauty Care"
-  className="h-16 w-16 object-contain"
-/>
+              <img
+                src="/new-homemade-logo.png"
+                alt="Homemade Beauty Care"
+                className="h-16 w-16 object-contain"
+              />
+
               <div className="hidden sm:block">
                 <h1 className="font-display text-lg font-bold leading-tight text-dark">
                   {settings?.brand_name || 'Homemade Beauty Care'}
                 </h1>
+
                 <p className="text-xs text-primary leading-tight">
-                  {settings?.brand_tagline_bn || 'প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া'}
+                  {settings?.brand_tagline_bn ||
+                    'প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া'}
                 </p>
               </div>
             </Link>
 
             {/* Search bar */}
-            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-auto">
+            <form
+              onSubmit={handleSearch}
+              className="hidden md:flex flex-1 max-w-xl mx-auto"
+            >
               <div className="relative w-full">
                 <input
                   type="text"
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
                   className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
                 />
+
                 <button
                   type="submit"
                   className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-dark"
@@ -116,31 +135,41 @@ export default function Header() {
 
             {/* Icons */}
             <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+              {/* My Orders */}
               <Link
-                to="/track-order"
+                to="/my-orders"
                 className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary"
-                aria-label="Track Order"
+                aria-label="My Orders"
+                title="My Orders"
               >
                 <User size={22} />
               </Link>
+
+              {/* Wishlist */}
               <Link
                 to="/wishlist"
                 className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary"
                 aria-label="Wishlist"
+                title="Wishlist"
               >
                 <Heart size={22} />
+
                 {wishlist.length > 0 && (
                   <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-semibold text-white">
                     {wishlist.length}
                   </span>
                 )}
               </Link>
+
+              {/* Cart */}
               <Link
                 to="/cart"
                 className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary"
                 aria-label="Cart"
+                title="Cart"
               >
                 <ShoppingCart size={22} />
+
                 {cartCount > 0 && (
                   <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-white">
                     {cartCount}
@@ -156,10 +185,11 @@ export default function Header() {
               <input
                 type="text"
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
                 className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white"
               />
+
               <button
                 type="submit"
                 className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white"
@@ -175,7 +205,7 @@ export default function Header() {
         <nav className="hidden lg:block border-t border-gray-100">
           <div className="section-padding">
             <ul className="flex items-center gap-1 py-2">
-              {NAV_LINKS.map(link => (
+              {NAV_LINKS.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
@@ -197,9 +227,13 @@ export default function Header() {
             className="absolute inset-0 bg-black/40 animate-fade-in"
             onClick={() => setMobileOpen(false)}
           />
+
           <div className="absolute left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl animate-slide-in overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <span className="font-display text-lg font-bold text-dark">Menu</span>
+              <span className="font-display text-lg font-bold text-dark">
+                Menu
+              </span>
+
               <button
                 onClick={() => setMobileOpen(false)}
                 className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-cream"
@@ -208,8 +242,9 @@ export default function Header() {
                 <X size={22} />
               </button>
             </div>
+
             <ul className="py-2">
-              {NAV_LINKS.map(link => (
+              {NAV_LINKS.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
@@ -217,11 +252,64 @@ export default function Header() {
                     className="flex items-center justify-between px-5 py-3 text-base font-medium text-ink transition-colors hover:bg-cream hover:text-primary"
                   >
                     {link.label}
-                    <ChevronDown size={16} className="-rotate-90 text-gray-400" />
+
+                    <ChevronDown
+                      size={16}
+                      className="-rotate-90 text-gray-400"
+                    />
                   </Link>
                 </li>
               ))}
+
+              {/* My Orders */}
+              <li>
+                <Link
+                  to="/my-orders"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between px-5 py-3 text-base font-medium text-ink transition-colors hover:bg-cream hover:text-primary"
+                >
+                  My Orders
+
+                  <ChevronDown
+                    size={16}
+                    className="-rotate-90 text-gray-400"
+                  />
+                </Link>
+              </li>
+
+              {/* Track Order */}
+              <li>
+                <Link
+                  to="/track-order"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between px-5 py-3 text-base font-medium text-ink transition-colors hover:bg-cream hover:text-primary"
+                >
+                  Track Order
+
+                  <ChevronDown
+                    size={16}
+                    className="-rotate-90 text-gray-400"
+                  />
+                </Link>
+              </li>
+
+              {/* Wishlist */}
+              <li>
+                <Link
+                  to="/wishlist"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between px-5 py-3 text-base font-medium text-ink transition-colors hover:bg-cream hover:text-primary"
+                >
+                  Wishlist
+
+                  <ChevronDown
+                    size={16}
+                    className="-rotate-90 text-gray-400"
+                  />
+                </Link>
+              </li>
             </ul>
+
             <div className="p-4 border-t border-gray-100">
               <Link
                 to="/admin"

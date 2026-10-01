@@ -1,19 +1,132 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Tag, X, CheckCircle2 } from 'lucide-react';
+import {
+  ChevronRight,
+  Tag,
+  X,
+  CheckCircle2,
+  MapPin,
+  Plus,
+} from 'lucide-react';
+
 import { useCart } from '@/lib/cart-context';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
-import type { Coupon } from '@/lib/types';
-import SEO from '@/components/SEO';
 import {
-  DISTRICTS,
-  getThanasByDistrict,
-} from '@/data/district-thanas';
+  getSettings,
+  getDeliveryCharge,
+} from '@/lib/settings';
+
+import type {
+  SiteSettings,
+  Coupon,
+} from '@/lib/types';
+
+import SEO from '@/components/SEO';
+
+const DISTRICTS = [
+  'ঢাকা',
+  'চট্টগ্রাম',
+  'রাজশাহী',
+  'খুলনা',
+  'বরিশাল',
+  'সিলেট',
+  'রংপুর',
+  'ময়মনসিংহ',
+  'গাজীপুর',
+  'নারায়ণগঞ্জ',
+  'কুমিল্লা',
+  'নোয়াখালী',
+  'জামালপুর',
+  'শেরপুর',
+  'নেত্রকোনা',
+  'বগুড়া',
+  'দিনাজপুর',
+  'পাবনা',
+  'যশোর',
+  'কুষ্টিয়া',
+  'মাগুরা',
+  'ফরিদপুর',
+  'মাদারীপুর',
+  'গোপালগঞ্জ',
+  'ব্রাহ্মণবাড়িয়া',
+  'চাঁদপুর',
+  'লক্ষ্মীপুর',
+  'ফেনী',
+  'খাগড়াছড়ি',
+  'রাঙ্গামাটি',
+  'বান্দরবান',
+  'সাতক্ষীরা',
+  'মেহেরপুর',
+  'চুয়াডাঙ্গা',
+  'ঝিনাইদহ',
+  'নড়াইল',
+  'পিরোজপুর',
+  'ঝালকাঠি',
+  'পটুয়াখালী',
+  'ভোলা',
+  'বরগুনা',
+  'সিরাজগঞ্জ',
+  'নাটোর',
+  'চাঁপাইনবাবগঞ্জ',
+  'জয়পুরহাট',
+  'কুড়িগ্রাম',
+  'লালমনিরহাট',
+  'নীলফামারী',
+  'গাইবান্ধা',
+  'ঠাকুরগাঁও',
+  'পঞ্চগড়',
+  'হবিগঞ্জ',
+  'মৌলভীবাজার',
+  'সুনামগঞ্জ',
+  'টাঙ্গাইল',
+  'কিশোরগঞ্জ',
+  'মানিকগঞ্জ',
+  'মুন্সিগঞ্জ',
+];
+
+type SavedAddress = {
+  id: string;
+  user_id: string;
+  mobile: string;
+  name: string;
+  alt_mobile: string | null;
+  email: string | null;
+  district: string;
+  area: string;
+  address: string;
+  is_default: boolean;
+};
 
 export default function CheckoutPage() {
-  const { items, subtotal, clearCart } = useCart();
+  const {
+    items,
+    subtotal,
+    clearCart,
+  } = useCart();
+
   const navigate = useNavigate();
+
+  const [settings, setSettings] =
+    useState<SiteSettings | null>(null);
+
+  const [userId, setUserId] =
+    useState<string | null>(null);
+
+  const [accountEmail, setAccountEmail] =
+    useState('');
+
+  const [accountLoading, setAccountLoading] =
+    useState(true);
+
+  const [savedAddresses, setSavedAddresses] =
+    useState<SavedAddress[]>([]);
+
+  const [savedAddressLoading, setSavedAddressLoading] =
+    useState(false);
+
+  const [selectedAddressId, setSelectedAddressId] =
+    useState('');
 
   const [form, setForm] = useState({
     name: '',
@@ -29,108 +142,242 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] =
     useState('Cash on Delivery');
 
-  const [couponCode, setCouponCode] = useState('');
+  const [couponCode, setCouponCode] =
+    useState('');
+
   const [appliedCoupon, setAppliedCoupon] =
     useState<Coupon | null>(null);
 
-  const [couponError, setCouponError] = useState('');
-  const [couponSuccess, setCouponSuccess] = useState('');
+  const [couponError, setCouponError] =
+    useState('');
 
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [couponSuccess, setCouponSuccess] =
+    useState('');
 
-  /*
-   * CURRENT DISTRICT'S THANA / UPAZILA
-   */
-  const availableThanas = getThanasByDistrict(
-    form.district
-  );
+  const [submitting, setSubmitting] =
+    useState(false);
 
-  /*
-   * DELIVERY CHARGE SYSTEM
-   */
-  const getCheckoutDeliveryCharge = (
-    district: string,
-    area: string
-  ): number => {
-    const districtText = district
-      .trim()
-      .toLowerCase();
+  const [error, setError] =
+    useState('');
 
-    const areaText = area
-      .trim()
-      .toLowerCase();
+  useEffect(() => {
+    getSettings().then(setSettings);
+  }, []);
 
-    const suburbanAreas = [
-      'সাভার',
-      'savar',
-      'কেরানীগঞ্জ',
-      'keraniganj',
-      'নবাবগঞ্জ',
-      'nawabganj',
-    ];
+  useEffect(() => {
+    async function loadAccount() {
+      setAccountLoading(true);
 
-    const isSuburbanArea =
-      suburbanAreas.some(item =>
-        areaText.includes(item.toLowerCase())
+      const { data } =
+        await supabase.auth.getSession();
+
+      const session = data.session;
+
+      if (session?.user) {
+        setUserId(session.user.id);
+
+        const email =
+          session.user.email || '';
+
+        setAccountEmail(email);
+
+        setForm(prev => ({
+          ...prev,
+          email,
+        }));
+      } else {
+        setUserId(null);
+        setAccountEmail('');
+      }
+
+      setAccountLoading(false);
+    }
+
+    loadAccount();
+  }, []);
+
+  async function loadSavedAddresses(
+    mobile: string,
+    activeUserId: string
+  ) {
+    const cleanMobile =
+      mobile.replace(/\s/g, '').trim();
+
+    if (!cleanMobile) {
+      setSavedAddresses([]);
+      return;
+    }
+
+    setSavedAddressLoading(true);
+
+    const { data, error: addressError } =
+      await supabase
+        .from('customer_addresses')
+        .select('*')
+        .eq('user_id', activeUserId)
+        .eq('mobile', cleanMobile)
+        .order('is_default', {
+          ascending: false,
+        })
+        .order('created_at', {
+          ascending: false,
+        });
+
+    if (addressError) {
+      console.error(addressError);
+      setSavedAddresses([]);
+    } else {
+      setSavedAddresses(
+        (data || []) as SavedAddress[]
       );
-
-    if (isSuburbanArea) {
-      return 100;
     }
 
-    const suburbanDistricts = [
-      'গাজীপুর',
-      'gazipur',
-      'নারায়ণগঞ্জ',
-      'নারায়ণগঞ্জ',
-      'narayanganj',
-    ];
+    setSavedAddressLoading(false);
+  }
 
-    const isSuburbanDistrict =
-      suburbanDistricts.includes(
-        districtText
-      );
-
-    if (isSuburbanDistrict) {
-      return 100;
+  useEffect(() => {
+    if (!userId) {
+      setSavedAddresses([]);
+      return;
     }
 
-    if (districtText === 'ঢাকা') {
-      return 70;
+    const cleanMobile =
+      form.mobile.replace(/\s/g, '').trim();
+
+    if (!/^(01)[0-9]{9}$/.test(cleanMobile)) {
+      setSavedAddresses([]);
+      return;
     }
 
-    return 120;
-  };
+    loadSavedAddresses(
+      cleanMobile,
+      userId
+    );
+  }, [form.mobile, userId]);
 
-  const deliveryCharge =
-    getCheckoutDeliveryCharge(
-      form.district,
-      form.area
+  function applySavedAddress(
+    savedAddress: SavedAddress
+  ) {
+    if (
+      !userId ||
+      savedAddress.user_id !== userId
+    ) {
+      return;
+    }
+
+    setSelectedAddressId(
+      savedAddress.id
     );
 
-  /*
-   * COUPON DISCOUNT CALCULATION
-   */
+    setForm(prev => ({
+      ...prev,
+      name: savedAddress.name,
+      mobile: savedAddress.mobile,
+      altMobile:
+        savedAddress.alt_mobile || '',
+      email:
+        accountEmail ||
+        savedAddress.email ||
+        '',
+      district: savedAddress.district,
+      area: savedAddress.area,
+      address: savedAddress.address,
+    }));
+  }
+
+  async function saveCustomerAddress() {
+    if (!userId) {
+      return;
+    }
+
+    const cleanMobile =
+      form.mobile.replace(/\s/g, '').trim();
+
+    if (
+      !form.name ||
+      !cleanMobile ||
+      !form.district ||
+      !form.area ||
+      !form.address
+    ) {
+      return;
+    }
+
+    if (
+      !/^(01)[0-9]{9}$/.test(cleanMobile)
+    ) {
+      return;
+    }
+
+    const { data: existing } =
+      await supabase
+        .from('customer_addresses')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('mobile', cleanMobile)
+        .eq('district', form.district)
+        .eq('area', form.area)
+        .eq('address', form.address)
+        .maybeSingle();
+
+    if (existing) {
+      setSelectedAddressId(existing.id);
+      return;
+    }
+
+    const { data, error: insertError } =
+      await supabase
+        .from('customer_addresses')
+        .insert({
+          user_id: userId,
+          mobile: cleanMobile,
+          name: form.name,
+          alt_mobile:
+            form.altMobile || null,
+          email:
+            accountEmail || null,
+          district: form.district,
+          area: form.area,
+          address: form.address,
+          is_default:
+            savedAddresses.length === 0,
+        })
+        .select()
+        .single();
+
+    if (insertError) {
+      console.error(insertError);
+      return;
+    }
+
+    if (data) {
+      setSavedAddresses(prev => [
+        data as SavedAddress,
+        ...prev,
+      ]);
+
+      setSelectedAddressId(data.id);
+    }
+  }
+
   function calculateCouponDiscount(
-    coupon: Coupon,
+    coupon: any,
     sub: number
   ): number {
-    const minimumOrder = Number(
-      coupon.minimum_order || 0
-    );
+    const minimumOrder =
+      Number(coupon.minimum_order || 0);
 
     if (sub < minimumOrder) {
       return 0;
     }
 
-    let discountAmount = 0;
+    let disc = 0;
 
     if (
       coupon.discount_type ===
       'percentage'
     ) {
-      discountAmount =
+      disc =
         (sub *
           Number(
             coupon.discount_value || 0
@@ -139,26 +386,30 @@ export default function CheckoutPage() {
 
       if (
         coupon.maximum_discount != null &&
-        discountAmount >
-          Number(
-            coupon.maximum_discount
-          )
+        disc >
+          Number(coupon.maximum_discount)
       ) {
-        discountAmount = Number(
-          coupon.maximum_discount
-        );
+        disc =
+          Number(coupon.maximum_discount);
       }
     } else {
-      discountAmount = Number(
+      disc = Number(
         coupon.discount_value || 0
       );
     }
 
-    return Math.min(
-      discountAmount,
-      sub
-    );
+    return Math.min(disc, sub);
   }
+
+  const deliveryCharge = settings
+    ? getDeliveryCharge(
+        settings,
+        form.district,
+        subtotal
+      )
+    : subtotal > 1000
+      ? 0
+      : 60;
 
   const discount = appliedCoupon
     ? calculateCouponDiscount(
@@ -174,41 +425,40 @@ export default function CheckoutPage() {
       discount
   );
 
-  /*
-   * APPLY COUPON
-   */
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       setCouponError(
         'কুপন কোড লিখুন।'
       );
+
       setCouponSuccess('');
+
       return;
     }
 
     setCouponError('');
     setCouponSuccess('');
 
-    const {
-      data: coupon,
-      error: queryError,
-    } = await supabase
-      .from('coupons')
-      .select('*')
-      .eq(
-        'code',
-        couponCode
-          .trim()
-          .toUpperCase()
-      )
-      .eq('is_active', true)
-      .maybeSingle();
+    const { data: coupon, error: queryError } =
+      await supabase
+        .from('coupons')
+        .select('*')
+        .eq(
+          'code',
+          couponCode
+            .trim()
+            .toUpperCase()
+        )
+        .eq('is_active', true)
+        .maybeSingle();
 
     if (queryError) {
       setCouponError(
         'কুপন যাচাই করতে সমস্যা হয়েছে।'
       );
+
       setAppliedCoupon(null);
+
       return;
     }
 
@@ -216,13 +466,12 @@ export default function CheckoutPage() {
       setCouponError(
         'কুপন কোড সঠিক নয় বা বর্তমানে সক্রিয় নয়।'
       );
+
       setAppliedCoupon(null);
+
       return;
     }
 
-    /*
-     * Start date
-     */
     if (
       coupon.starts_at &&
       new Date(coupon.starts_at) >
@@ -231,13 +480,12 @@ export default function CheckoutPage() {
       setCouponError(
         'এই কুপনটি এখনো চালু হয়নি।'
       );
+
       setAppliedCoupon(null);
+
       return;
     }
 
-    /*
-     * Expiry date
-     */
     if (
       coupon.expires_at &&
       new Date(coupon.expires_at) <
@@ -246,32 +494,26 @@ export default function CheckoutPage() {
       setCouponError(
         'এই কুপন কোডের মেয়াদ শেষ হয়ে গেছে।'
       );
+
       setAppliedCoupon(null);
+
       return;
     }
 
-    /*
-     * Usage limit
-     */
     if (
       coupon.usage_limit != null &&
-      Number(
-        coupon.used_count || 0
-      ) >=
-        Number(
-          coupon.usage_limit
-        )
+      Number(coupon.used_count || 0) >=
+        Number(coupon.usage_limit)
     ) {
       setCouponError(
         'এই কুপন কোডের ব্যবহারের সীমা শেষ হয়ে গেছে।'
       );
+
       setAppliedCoupon(null);
+
       return;
     }
 
-    /*
-     * Minimum order
-     */
     if (
       subtotal <
       Number(
@@ -285,17 +527,29 @@ export default function CheckoutPage() {
           )
         )}।`
       );
+
       setAppliedCoupon(null);
+
       return;
     }
-
-    setAppliedCoupon(coupon);
 
     const couponDiscount =
       calculateCouponDiscount(
         coupon,
         subtotal
       );
+
+    if (couponDiscount <= 0) {
+      setCouponError(
+        'এই অর্ডারে কুপনটি প্রযোজ্য নয়।'
+      );
+
+      setAppliedCoupon(null);
+
+      return;
+    }
+
+    setAppliedCoupon(coupon);
 
     setCouponSuccess(
       `কুপন প্রয়োগ করা হয়েছে! আপনি ${formatPrice(
@@ -304,9 +558,6 @@ export default function CheckoutPage() {
     );
   };
 
-  /*
-   * REMOVE COUPON
-   */
   const removeCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode('');
@@ -314,22 +565,6 @@ export default function CheckoutPage() {
     setCouponSuccess('');
   };
 
-  /*
-   * CHANGE DISTRICT
-   */
-  const handleDistrictChange = (
-    district: string
-  ) => {
-    setForm({
-      ...form,
-      district,
-      area: '',
-    });
-  };
-
-  /*
-   * SUBMIT ORDER
-   */
   const handleSubmit = async (
     e: React.FormEvent
   ) => {
@@ -337,9 +572,12 @@ export default function CheckoutPage() {
 
     setError('');
 
+    const cleanMobile =
+      form.mobile.replace(/\s/g, '').trim();
+
     if (
       !form.name ||
-      !form.mobile ||
+      !cleanMobile ||
       !form.district ||
       !form.area ||
       !form.address
@@ -347,17 +585,19 @@ export default function CheckoutPage() {
       setError(
         'অনুগ্রহ করে সকল প্রয়োজনীয় তথ্য পূরণ করুন।'
       );
+
       return;
     }
 
     if (
       !/^(01)[0-9]{9}$/.test(
-        form.mobile.replace(/\s/g, '')
+        cleanMobile
       )
     ) {
       setError(
         'সঠিক মোবাইল নম্বর দিন (যেমন: 01*********)'
       );
+
       return;
     }
 
@@ -366,160 +606,134 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (
+      paymentMethod ===
+      'Online Payment'
+    ) {
+      setError(
+        'Online Payment এখনো চালু হয়নি। Cash on Delivery নির্বাচন করুন।'
+      );
+
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       /*
-       * Generate Order Number
+       * Secure Order ID
+       *
+       * Database sequence/function থেকে
+       * Order ID তৈরি হবে।
+       *
+       * Example:
+       * HBC-000007
+       * HBC-000008
        */
       const {
-        data: lastOrder,
-      } = await supabase
-        .from('orders')
-        .select('order_number')
-        .order(
-          'order_number',
-          {
-            ascending: false,
-          }
-        )
-        .limit(1)
-        .maybeSingle();
-
-      let nextNum = 1;
+        data: generatedOrderNumber,
+        error: orderNumberError,
+      } = await supabase.rpc(
+        'generate_order_number'
+      );
 
       if (
-        lastOrder?.order_number
+        orderNumberError ||
+        !generatedOrderNumber
       ) {
-        const match =
-          lastOrder.order_number.match(
-            /HBC-(\d+)/
-          );
-
-        if (match) {
-          nextNum =
-            parseInt(
-              match[1],
-              10
-            ) + 1;
-        }
+        throw new Error(
+          'Order number generation failed.'
+        );
       }
 
       const orderNumber =
-        `HBC-${String(
-          nextNum
-        ).padStart(6, '0')}`;
+        generatedOrderNumber;
 
       /*
-       * Create Order
+       * Create order
        */
-      const {
-        data: order,
-        error: orderError,
-      } = await supabase
-        .from('orders')
-        .insert({
-          order_number:
-            orderNumber,
+      const { data: order, error: orderError } =
+        await supabase
+          .from('orders')
+          .insert({
+            order_number: orderNumber,
+            user_id: userId || null,
 
-          customer_name:
-            form.name,
+            customer_name: form.name,
+            mobile: cleanMobile,
+            alt_phone:
+              form.altMobile || null,
 
-          mobile:
-            form.mobile,
+            email:
+              userId
+                ? accountEmail || null
+                : form.email || null,
 
-          alt_phone:
-            form.altMobile ||
-            null,
+            district: form.district,
+            area: form.area,
+            address: form.address,
 
-          email:
-            form.email ||
-            null,
+            order_note:
+              form.note || null,
 
-          district:
-            form.district,
+            payment_method:
+              paymentMethod,
 
-          area:
-            form.area,
+            subtotal,
 
-          address:
-            form.address,
+            delivery_charge:
+              deliveryCharge,
 
-          order_note:
-            form.note ||
-            null,
+            discount,
 
-          payment_method:
-            paymentMethod,
+            grand_total:
+              grandTotal,
 
-          subtotal,
-
-          delivery_charge:
-            deliveryCharge,
-
-          discount,
-
-          grand_total:
-            grandTotal,
-
-          status:
-            'Pending',
-
-          payment_status:
-            'Unpaid',
-        })
-        .select()
-        .single();
+            status: 'Pending',
+            payment_status: 'Unpaid',
+          })
+          .select()
+          .single();
 
       if (orderError) {
         throw orderError;
       }
 
       /*
-       * Create Order Items
+       * Create order items
        */
-      const orderItems =
-        items.map(item => ({
-          order_id:
-            order.id,
-
+      const orderItems = items.map(
+        item => ({
+          order_id: order.id,
           product_id:
             item.product.id,
-
           product_name:
             item.product.name_bn,
-
           price:
             item.product.price,
-
           quantity:
             item.quantity,
-
           image_url:
             item.product.image_url,
-        }));
+        })
+      );
 
       const {
         error: itemsError,
       } = await supabase
         .from('order_items')
-        .insert(
-          orderItems
-        );
+        .insert(orderItems);
 
       if (itemsError) {
         throw itemsError;
       }
 
       /*
-       * SECURE COUPON USAGE
-       *
-       * Coupon থাকলে secure RPC-এর মাধ্যমে
-       * used_count একবার বাড়ানো হবে।
+       * Coupon usage
        */
       if (appliedCoupon) {
         const {
-          data: couponResult,
+          data: couponUsage,
           error: couponUsageError,
         } = await supabase.rpc(
           'use_coupon',
@@ -531,39 +745,27 @@ export default function CheckoutPage() {
 
         if (couponUsageError) {
           console.error(
-            'Coupon usage RPC error:',
+            'Coupon usage update failed:',
             couponUsageError
           );
-
-          throw new Error(
-            'কুপনের ব্যবহার গণনা করতে সমস্যা হয়েছে।'
-          );
-        }
-
-        if (
-          !couponResult?.success
+        } else if (
+          couponUsage &&
+          couponUsage.success === false
         ) {
           console.error(
             'Coupon usage rejected:',
-            couponResult
-          );
-
-          throw new Error(
-            couponResult?.message ||
-              'কুপন ব্যবহার করা যায়নি।'
+            couponUsage.message
           );
         }
       }
 
       /*
-       * DECREASE STOCK
+       * Decrement stock
        *
-       * গুরুত্বপূর্ণ:
-       * Stock শুধুমাত্র secure RPC-এর মাধ্যমে
-       * একবার কমানো হবে।
-       *
-       * এখানে আর দ্বিতীয়বার products.update()
+       * Direct products.update()
        * করা হচ্ছে না।
+       *
+       * শুধুমাত্র secure RPC ব্যবহার করা হচ্ছে।
        */
       for (const item of items) {
         const {
@@ -573,27 +775,28 @@ export default function CheckoutPage() {
           {
             product_id:
               item.product.id,
-
-            qty:
-              item.quantity,
+            qty: item.quantity,
           }
         );
 
         if (stockError) {
           console.error(
-            'Stock decrement error:',
+            'Stock decrement failed:',
             stockError
-          );
-
-          throw new Error(
-            'পণ্যের stock update করতে সমস্যা হয়েছে।'
           );
         }
       }
 
       /*
-       * Complete
+       * Save customer address
+       *
+       * Logged-in customer হলে
+       * address account-এর সাথে save হবে।
        */
+      if (userId) {
+        await saveCustomerAddress();
+      }
+
       clearCart();
 
       navigate(
@@ -603,28 +806,23 @@ export default function CheckoutPage() {
       console.error(err);
 
       setError(
-        err instanceof Error
-          ? err.message
-          : 'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।'
+        'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।'
       );
 
       setSubmitting(false);
     }
   };
 
-  /*
-   * EMPTY CART
-   */
   if (items.length === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
         <SEO title="Checkout - Homemade Beauty Care" />
 
         <h2 className="font-display text-2xl font-bold text-dark mb-2">
           আপনার কার্ট খালি
         </h2>
 
-        <p className="text-gray-500 mb-6">
+        <p className="text-gray-500 mb-6 text-center">
           অর্ডার করতে প্রথমে কার্টে পণ্য যোগ করুন।
         </p>
 
@@ -638,9 +836,6 @@ export default function CheckoutPage() {
     );
   }
 
-  /*
-   * CHECKOUT PAGE
-   */
   return (
     <div className="min-h-screen bg-cream">
       <SEO title="Checkout - Homemade Beauty Care" />
@@ -672,12 +867,11 @@ export default function CheckoutPage() {
           className="grid lg:grid-cols-3 gap-6"
         >
 
-          {/* LEFT SIDE */}
+          {/* LEFT */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* Customer Information */}
+            {/* Customer Info */}
             <div className="card p-6 border border-gray-50">
-
               <h2 className="font-display text-lg font-semibold text-ink mb-4">
                 আপনার তথ্য
               </h2>
@@ -736,9 +930,7 @@ export default function CheckoutPage() {
 
                   <input
                     type="tel"
-                    value={
-                      form.altMobile
-                    }
+                    value={form.altMobile}
                     onChange={e =>
                       setForm({
                         ...form,
@@ -760,6 +952,7 @@ export default function CheckoutPage() {
                   <input
                     type="email"
                     value={form.email}
+                    readOnly={!!userId}
                     onChange={e =>
                       setForm({
                         ...form,
@@ -767,9 +960,19 @@ export default function CheckoutPage() {
                           e.target.value,
                       })
                     }
-                    className="input-field"
+                    className={`input-field ${
+                      userId
+                        ? 'bg-gray-50'
+                        : ''
+                    }`}
                     placeholder="আপনার ইমেইল"
                   />
+
+                  {userId && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      আপনার verified account email
+                    </p>
+                  )}
                 </div>
 
                 {/* District */}
@@ -780,25 +983,21 @@ export default function CheckoutPage() {
 
                   <select
                     required
-                    value={
-                      form.district
-                    }
+                    value={form.district}
                     onChange={e =>
-                      handleDistrictChange(
-                        e.target.value
-                      )
+                      setForm({
+                        ...form,
+                        district:
+                          e.target.value,
+                      })
                     }
                     className="input-field"
                   >
                     {DISTRICTS.map(
                       district => (
                         <option
-                          key={
-                            district
-                          }
-                          value={
-                            district
-                          }
+                          key={district}
+                          value={district}
                         >
                           {district}
                         </option>
@@ -807,13 +1006,14 @@ export default function CheckoutPage() {
                   </select>
                 </div>
 
-                {/* Thana / Upazila */}
+                {/* Area */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    থানা / উপজেলা *
+                    এলাকা/থানা *
                   </label>
 
-                  <select
+                  <input
+                    type="text"
                     required
                     value={form.area}
                     onChange={e =>
@@ -824,22 +1024,8 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field"
-                  >
-                    <option value="">
-                      থানা / উপজেলা নির্বাচন করুন
-                    </option>
-
-                    {availableThanas.map(
-                      thana => (
-                        <option
-                          key={thana}
-                          value={thana}
-                        >
-                          {thana}
-                        </option>
-                      )
-                    )}
-                  </select>
+                    placeholder="এলাকার নাম"
+                  />
                 </div>
 
                 {/* Address */}
@@ -851,9 +1037,7 @@ export default function CheckoutPage() {
                   <textarea
                     required
                     rows={3}
-                    value={
-                      form.address
-                    }
+                    value={form.address}
                     onChange={e =>
                       setForm({
                         ...form,
@@ -862,7 +1046,7 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field resize-none"
-                    placeholder="বাসা/হোল্ডিং নম্বর, রোড, মহল্লা/গ্রাম, বিস্তারিত ঠিকানা"
+                    placeholder="বাসা/হোল্ডিং নম্বর, রোড, থানা/পুলিশ স্টেশন"
                   />
                 </div>
 
@@ -889,6 +1073,134 @@ export default function CheckoutPage() {
 
               </div>
             </div>
+
+            {/* Saved Addresses */}
+            {userId && (
+              <div className="card p-6 border border-gray-50">
+
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h2 className="font-display text-lg font-semibold text-ink">
+                      Saved Addresses
+                    </h2>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      এই account-এর saved address
+                    </p>
+                  </div>
+
+                  <MapPin
+                    size={20}
+                    className="text-primary"
+                  />
+                </div>
+
+                {savedAddressLoading ? (
+                  <p className="text-sm text-gray-400">
+                    Address খোঁজা হচ্ছে...
+                  </p>
+                ) : savedAddresses.length > 0 ? (
+                  <div className="space-y-3">
+
+                    {savedAddresses.map(
+                      savedAddress => (
+                        <button
+                          key={
+                            savedAddress.id
+                          }
+                          type="button"
+                          onClick={() =>
+                            applySavedAddress(
+                              savedAddress
+                            )
+                          }
+                          className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                            selectedAddressId ===
+                            savedAddress.id
+                              ? 'border-primary bg-primary/5'
+                              : 'border-gray-100 hover:border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+
+                            <div>
+                              <p className="font-medium text-ink">
+                                {
+                                  savedAddress.name
+                                }
+                              </p>
+
+                              <p className="text-sm text-gray-500 mt-1">
+                                {
+                                  savedAddress.mobile
+                                }
+                              </p>
+
+                              <p className="text-sm text-gray-500 mt-1">
+                                {
+                                  savedAddress.area
+                                }
+                                ,{' '}
+                                {
+                                  savedAddress.district
+                                }
+                              </p>
+
+                              <p className="text-sm text-gray-500 mt-1">
+                                {
+                                  savedAddress.address
+                                }
+                              </p>
+                            </div>
+
+                            {savedAddress.is_default && (
+                              <span className="shrink-0 rounded-full bg-primary/10 text-primary text-xs px-2.5 py-1">
+                                Default
+                              </span>
+                            )}
+
+                          </div>
+                        </button>
+                      )
+                    )}
+
+                  </div>
+                ) : (
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500">
+                      এই মোবাইল নম্বরের কোনো saved address পাওয়া যায়নি।
+                    </p>
+                  </div>
+                )}
+
+                <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
+                  <Plus size={14} />
+                  অর্ডার করার সময় নতুন address account-এর সাথে save হবে।
+                </div>
+
+              </div>
+            )}
+
+            {/* Guest Address Notice */}
+            {!accountLoading &&
+              !userId && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                  <p className="text-sm text-gray-600">
+                    Saved Address ব্যবহার করতে{' '}
+                    <Link
+                      to="/login"
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      Login করুন
+                    </Link>
+                    ।
+                  </p>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    Login না করেও Guest Checkout করা যাবে।
+                  </p>
+                </div>
+              )}
 
             {/* Payment */}
             <div className="card p-6 border border-gray-50">
@@ -934,7 +1246,7 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                {/* Online Payment */}
+                {/* Online */}
                 <label
                   className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     paymentMethod ===
@@ -974,7 +1286,7 @@ export default function CheckoutPage() {
 
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT */}
           <div className="lg:col-span-1">
 
             <div className="card p-6 border border-gray-50 sticky top-44">
@@ -988,9 +1300,7 @@ export default function CheckoutPage() {
 
                 {items.map(item => (
                   <div
-                    key={
-                      item.product.id
-                    }
+                    key={item.product.id}
                     className="flex gap-3"
                   >
                     <img
@@ -1003,6 +1313,7 @@ export default function CheckoutPage() {
                     />
 
                     <div className="flex-1 min-w-0">
+
                       <p className="text-sm font-medium text-ink line-clamp-1">
                         {
                           item.product
@@ -1011,9 +1322,9 @@ export default function CheckoutPage() {
                       </p>
 
                       <p className="text-xs text-gray-400">
-                        Qty:{' '}
-                        {item.quantity}
+                        Qty: {item.quantity}
                       </p>
+
                     </div>
 
                     <span className="text-sm font-semibold text-ink">
@@ -1023,6 +1334,7 @@ export default function CheckoutPage() {
                           item.quantity
                       )}
                     </span>
+
                   </div>
                 ))}
 
@@ -1065,9 +1377,7 @@ export default function CheckoutPage() {
 
                     <input
                       type="text"
-                      value={
-                        couponCode
-                      }
+                      value={couponCode}
                       onChange={e =>
                         setCouponCode(
                           e.target.value
@@ -1101,17 +1411,15 @@ export default function CheckoutPage() {
                     <CheckCircle2
                       size={14}
                     />
-
                     {couponSuccess}
                   </p>
                 )}
 
               </div>
 
-              {/* Price Summary */}
+              {/* Summary */}
               <div className="space-y-2 py-4 border-b border-gray-100">
 
-                {/* Subtotal */}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">
                     Subtotal
@@ -1124,22 +1432,24 @@ export default function CheckoutPage() {
                   </span>
                 </div>
 
-                {/* Delivery */}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">
                     Delivery Charge
                   </span>
 
                   <span className="font-medium">
-                    {formatPrice(
-                      deliveryCharge
-                    )}
+                    {deliveryCharge ===
+                    0
+                      ? 'Free'
+                      : formatPrice(
+                          deliveryCharge
+                        )}
                   </span>
                 </div>
 
-                {/* Discount */}
                 {discount > 0 && (
                   <div className="flex justify-between text-sm">
+
                     <span className="text-gray-500">
                       Discount
                     </span>
@@ -1150,12 +1460,13 @@ export default function CheckoutPage() {
                         discount
                       )}
                     </span>
+
                   </div>
                 )}
 
               </div>
 
-              {/* Grand Total */}
+              {/* Total */}
               <div className="flex justify-between items-center py-5">
 
                 <span className="font-display text-lg font-bold text-dark">
@@ -1194,6 +1505,7 @@ export default function CheckoutPage() {
               </p>
 
             </div>
+
           </div>
 
         </form>

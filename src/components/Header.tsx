@@ -135,12 +135,12 @@ export default function Header() {
 
             {/* Icons */}
             <div className="flex items-center gap-1 sm:gap-2 ml-auto">
-              {/* My Orders */}
+              {/* My Account */}
               <Link
-                to="/my-orders"
+                to="/account"
                 className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary"
-                aria-label="My Orders"
-                title="My Orders"
+                aria-label="My Account"
+                title="My Account"
               >
                 <User size={22} />
               </Link>
@@ -260,6 +260,22 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+
+              {/* My Account */}
+              <li>
+                <Link
+                  to="/account"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between px-5 py-3 text-base font-medium text-ink transition-colors hover:bg-cream hover:text-primary"
+                >
+                  My Account
+
+                  <ChevronDown
+                    size={16}
+                    className="-rotate-90 text-gray-400"
+                  />
+                </Link>
+              </li>
 
               {/* My Orders */}
               <li>

@@ -20,9 +20,12 @@ import MyOrdersPage from '@/pages/MyOrdersPage';
 import AboutPage from '@/pages/AboutPage';
 import ContactPage from '@/pages/ContactPage';
 import WishlistPage from '@/pages/WishlistPage';
+import AccountPage from '@/pages/AccountPage';
+import SavedAddressPage from '@/pages/SavedAddressPage';
 
 import AdminPage from '@/pages/AdminPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import LoginPage from '@/pages/LoginPage';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -88,6 +91,11 @@ function AppContent() {
         <Route path="/admin" element={<AdminPage />} />
 
         <Route
+  path="/login"
+  element={<LoginPage />}
+/>
+
+        <Route
           path="/reset-password"
           element={<ResetPasswordPage />}
         />
@@ -136,7 +144,12 @@ function AppContent() {
 
                 <Route
                   path="/account"
-                  element={<WishlistPage />}
+                  element={<AccountPage />}
+                />
+
+                <Route
+                  path="/account/address"
+                  element={<SavedAddressPage />}
                 />
               </Routes>
             </Layout>

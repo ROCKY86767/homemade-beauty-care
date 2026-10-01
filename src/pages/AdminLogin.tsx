@@ -9,7 +9,9 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
 
   const handleForgotPassword = async () => {
-    if (!email) {
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail) {
       setError('Please enter your email address first.');
       return;
     }
@@ -17,12 +19,13 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/reset-password',
-    });
+    const { error: resetError } =
+      await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
 
-    if (error) {
-      setError(error.message);
+    if (resetError) {
+      setError(resetError.message);
     } else {
       alert('Password reset link has been sent to your email.');
     }
@@ -33,16 +36,45 @@ export default function AdminLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      setError('Please enter your email and password.');
+      return;
+    }
+
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error: loginError } =
+      await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
 
-    if (error) {
+    if (loginError || !data.user) {
       setError('Email or password is incorrect.');
+      setLoading(false);
+      return;
+    }
+
+    const { data: adminUser, error: adminError } =
+      await supabase
+        .from('admin_users')
+        .select('user_id')
+        .eq('user_id', data.user.id)
+        .maybeSingle();
+
+    if (
+      adminError ||
+      !adminUser ||
+      adminUser.user_id !== data.user.id
+    ) {
+      await supabase.auth.signOut();
+
+      setError('এই account-এর Admin access নেই.');
+      setLoading(false);
+      return;
     }
 
     setLoading(false);
@@ -85,6 +117,7 @@ export default function AdminLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@gmail.com"
                 required
+                autoComplete="email"
                 className="w-full border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-primary"
               />
             </div>
@@ -107,6 +140,7 @@ export default function AdminLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                autoComplete="current-password"
                 className="w-full border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-primary"
               />
             </div>
@@ -135,6 +169,7 @@ export default function AdminLogin() {
             className="w-full bg-primary text-white rounded-xl py-3 font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <LogIn size={18} />
+
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>

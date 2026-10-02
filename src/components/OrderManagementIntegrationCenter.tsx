@@ -20,6 +20,10 @@ type Integration = {
   external_order_id_path: string;
   external_invoice_url_path: string;
   webhook_secret_set?: boolean;
+  api_key_set?: boolean;
+  api_secret_set?: boolean;
+  username_set?: boolean;
+  password_set?: boolean;
   last_tested_at?: string;
   last_test_status?: string;
   last_test_message?: string;
@@ -85,8 +89,11 @@ function Secret({ label, value, setValue, saved, save, busy }: any) {
 export default function OrderManagementIntegrationCenter() {
   const [items, setItems] = useState<Integration[]>([]);
   const [current, setCurrent] = useState<Integration | null>(null);
-  const [secret, setSecret] = useState('');
-  const [secretName, setSecretName] = useState('API_KEY');
+  const [apiKey, setApiKey] = useState('');
+  const [apiSecret, setApiSecret] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [webhookSecret, setWebhookSecret] = useState('');
   const [secretSaved, setSecretSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [busySecret, setBusySecret] = useState(false);
@@ -106,7 +113,7 @@ export default function OrderManagementIntegrationCenter() {
 
   const edit = (x: Integration) => {
     setCurrent({ ...x, request_headers: x.request_headers || {}, create_order_template: x.create_order_template || {} });
-    setSecret('');
+    setApiKey(''); setApiSecret(''); setUsername(''); setPassword(''); setWebhookSecret('');
     setSecretSaved(false);
     setMessage('');
     setError('');
@@ -139,14 +146,14 @@ export default function OrderManagementIntegrationCenter() {
     setBusy(false);
   };
 
-  const saveSecret = async () => {
-    if (!current?.id || !secret.trim()) return;
+  const saveSecret = async (name: string, value: string) => {
+    if (!current?.id || !value.trim()) return;
     setBusySecret(true); setError(''); setMessage('');
     const { error: e } = await supabase.rpc('save_order_management_secret', {
-      p_integration_id: current.id, p_name: secretName, p_secret: secret
+      p_integration_id: current.id, p_name: name, p_secret: value
     });
     if (e) setError(e.message);
-    else { setSecret(''); setSecretSaved(true); setMessage('Secret saved securely.'); }
+    else { setSecretSaved(true); setMessage('Secret saved securely.'); await load(); }
     setBusySecret(false);
   };
 
@@ -233,10 +240,12 @@ export default function OrderManagementIntegrationCenter() {
           API secret কখনো website code-এ যাবে না। Save করলে Supabase Vault-এ থাকবে। Order create হলে external Order ID ও Invoice URL আলাদাভাবে সংরক্ষণ করা হবে।
         </div>
         {current.id && <div className="grid sm:grid-cols-2 gap-4">
-          <Secret label="API Key" value={secretName==='API_KEY'?secret:''} setValue={v=>{setSecretName('API_KEY');setSecret(v)}} saved={false} save={saveSecret} busy={busySecret} />
-          <Secret label="API Secret / Password" value={secretName==='API_SECRET'?secret:''} setValue={v=>{setSecretName('API_SECRET');setSecret(v)}} saved={false} save={saveSecret} busy={busySecret} />
-        </div>}
-      </section>
+          <Secret label="API Key" value={apiKey} setValue={setApiKey} saved={!!current.api_key_set} save={() => saveSecret('API_KEY', apiKey)} busy={busySecret} />
+          <Secret label="API Secret" value={apiSecret} setValue={setApiSecret} saved={!!current.api_secret_set} save={() => saveSecret('API_SECRET', apiSecret)} busy={busySecret} />
+          <Secret label="Username / Email" value={username} setValue={setUsername} saved={!!current.username_set} save={() => saveSecret('USERNAME', username)} busy={busySecret} />
+          <Secret label="Password" value={password} setValue={setPassword} saved={!!current.password_set} save={() => saveSecret('PASSWORD', password)} busy={busySecret} />
+          <Secret label="Webhook Secret" value={webhookSecret} setValue={setWebhookSecret} saved={!!current.webhook_secret_set} save={() => saveSecret('WEBHOOK_SECRET', webhookSecret)} busy={busySecret} />
+        </div>}      </section>
     </div>
 
     <div className="mt-5 flex flex-wrap gap-2">

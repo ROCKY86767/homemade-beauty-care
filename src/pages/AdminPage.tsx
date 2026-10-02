@@ -2580,6 +2580,45 @@ function OrdersView() {
         )
       );
 
+      // When an admin confirms an order, send it to every enabled
+      // order-management connector configured in Admin > Settings.
+      if (status === 'Confirmed' && order.status !== 'Confirmed') {
+        try {
+          const { data: connectors, error: connectorError } =
+            await supabase.rpc('get_admin_order_management_integrations');
+
+          if (!connectorError) {
+            const enabledIds = (connectors || [])
+              .filter((item: any) => item.enabled && item.id)
+              .map((item: any) => item.id);
+
+            if (enabledIds.length > 0) {
+              const { data: transferResult, error: transferError } =
+                await supabase.functions.invoke('order-management', {
+                  body: {
+                    action: 'create',
+                    order_id: order.id,
+                    integration_ids: enabledIds,
+                  },
+                });
+
+              if (transferError) {
+                console.error('Order Management integration error:', transferError);
+              } else if (transferResult?.results) {
+                const failed = transferResult.results.filter((item: any) => item.success === false);
+                if (failed.length) {
+                  console.error('Order Management transfer failed:', failed);
+                }
+              }
+            }
+          } else {
+            console.error('Order Management connector load failed:', connectorError);
+          }
+        } catch (integrationError) {
+          console.error('Order Management integration error:', integrationError);
+        }
+      }
+
       // When an admin confirms an order, create its Pathao shipment
       // automatically if Pathao is enabled in Admin > Integrations.
       if (status === 'Confirmed' && order.status !== 'Confirmed') {

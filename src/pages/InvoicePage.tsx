@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Printer, Search, Home, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
@@ -13,11 +13,38 @@ export default function InvoicePage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
     getSettings().then(setSettings);
   }, []);
+
+  useEffect(() => {
+    const id = searchParams.get('id');
+    if (!id) return;
+    setOrderNumber(id);
+    void loadInvoice(id);
+  }, [searchParams]);
+
+  async function loadInvoice(id: string) {
+    setError('');
+    setResult(null);
+    setLoading(true);
+
+    const { data, error: rpcError } = await supabase.rpc('track_order', {
+      p_order_number: id.trim().toUpperCase(),
+    });
+
+    setLoading(false);
+
+    if (rpcError || !data?.success) {
+      setError('Invoice পাওয়া যায়নি। Order ID ঠিক আছে কিনা দেখুন।');
+      return;
+    }
+
+    setResult(data);
+  }
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
@@ -25,24 +52,7 @@ export default function InvoicePage() {
     setResult(null);
     setLoading(true);
 
-    const { data, error: rpcError } = await supabase.rpc('track_order', {
-      p_order_number: orderNumber.trim().toUpperCase(),
-    });
-
-    setLoading(false);
-
-    if (rpcError) {
-      console.error(rpcError);
-      setError('ইনভয়েস তথ্য পাওয়া যায়নি। আবার চেষ্টা করুন।');
-      return;
-    }
-
-    if (!data?.success) {
-      setError('Order ID অথবা মোবাইল নম্বর সঠিক নয়।');
-      return;
-    }
-
-    setResult(data);
+    await loadInvoice(orderNumber);
   };
 
   return (

@@ -12,11 +12,18 @@ export default function ContactPage() {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) return;
     setSubmitting(true);
-    await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       name: form.name,
       email: form.email,
       message: form.message,
     });
+
+    if (error) {
+      console.error('Contact message error:', error);
+      setSubmitting(false);
+      return;
+    }
+
     setSubmitted(true);
     setForm({ name: '', email: '', message: '' });
     setSubmitting(false);
@@ -107,7 +114,7 @@ export default function ContactPage() {
       </a>
 
       <a
-        href="01999478203"
+        href="https://wa.me/8801999478203"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"

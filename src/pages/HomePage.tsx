@@ -67,48 +67,6 @@ const HOW_TO_ORDER = [
   { num: '04', title: 'অর্ডার কনফার্ম করুন' },
 ];
 
-const SAMPLE_REVIEWS: Review[] = [
-  {
-    id: 's1',
-    product_id: '',
-    customer_name: 'নুসরাত জাহান',
-    location: 'ঢাকা',
-    rating: 5,
-    review_bn:
-      'প্রাকৃতিক উপাদানে তৈরি পণ্যগুলো দারুণ! চুল ও ত্বক অনেক ভালো হয়েছে। নিয়মিত ব্যবহার করছি।',
-    is_verified: true,
-    image_url:
-      'https://images.pexels.com/photos/5069474/pexels-photo-5069474.jpeg?auto=compress&cs=tinysrgb&h=200&w=200',
-    sort_order: 0,
-  },
-  {
-    id: 's2',
-    product_id: '',
-    customer_name: 'সাবরিনা আক্তার',
-    location: 'চট্টগ্রাম',
-    rating: 5,
-    review_bn:
-      'হেয়ার অয়েলটা জাদুর মতো কাজ করেছে। চুল পড়া অনেক কমে গেছে। সবাইকে সুপারিশ করছি।',
-    is_verified: true,
-    image_url:
-      'https://images.pexels.com/photos/9774854/pexels-photo-9774854.jpeg?auto=compress&cs=tinysrgb&h=200&w=200',
-    sort_order: 1,
-  },
-  {
-    id: 's3',
-    product_id: '',
-    customer_name: 'রিয়া হোসেন',
-    location: 'ঢাকা',
-    rating: 5,
-    review_bn:
-      'ফেস প্যাকটা অসাধারণ! ত্বক উজ্জ্বল ও মসৃণ হয়েছে। প্যাকেজিংও খুব সুন্দর।',
-    is_verified: true,
-    image_url:
-      'https://images.pexels.com/photos/10159331/pexels-photo-10159331.jpeg?auto=compress&cs=tinysrgb&h=200&w=200',
-    sort_order: 2,
-  },
-];
-
 export default function HomePage() {
   const [banners, setBanners] = useState<Banner[]>([]);
 
@@ -828,11 +786,9 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {(reviews.length > 0
-              ? reviews.slice(0, 3)
-              : SAMPLE_REVIEWS
-            ).map((review, idx) => (
+          {reviews.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-6">
+              {reviews.slice(0, 3).map((review, idx) => (
               <div
                 key={idx}
                 className="card p-6 border border-gray-50"
@@ -887,8 +843,13 @@ export default function HomePage() {
                   Verified Purchase
                 </span>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-500">
+              এখনো কোনো কাস্টমার রিভিউ প্রকাশ করা হয়নি।
+            </div>
+          )}
         </div>
       </section>
 
@@ -925,7 +886,9 @@ export default function HomePage() {
             ].map(social => (
               <a
                 key={social.name}
-                href="#"
+                href={social.name === 'Facebook' ? 'https://www.facebook.com/share/1CEEDr7xAk/' : '#'}
+                target={social.name === 'Facebook' ? '_blank' : undefined}
+                rel={social.name === 'Facebook' ? 'noopener noreferrer' : undefined}
                 className={`group flex flex-col items-center gap-3 rounded-2xl ${social.color} p-8 text-white transition-all hover:scale-105 hover:shadow-xl`}
               >
                 <svg

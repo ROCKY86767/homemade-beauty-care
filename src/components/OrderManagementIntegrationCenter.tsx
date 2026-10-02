@@ -19,6 +19,12 @@ type Integration = {
   status_response_path: string;
   external_order_id_path: string;
   external_invoice_url_path: string;
+  status_request_method: string;
+  status_request_template: Record<string, any>;
+  webhook_order_id_path: string;
+  webhook_status_path: string;
+  webhook_payment_status_path: string;
+  webhook_secret_header: string;
   webhook_secret_set?: boolean;
   api_key_set?: boolean;
   api_secret_set?: boolean;
@@ -60,7 +66,13 @@ const blank = (): Integration => ({
   },
   status_response_path: '',
   external_order_id_path: '',
-  external_invoice_url_path: ''
+  external_invoice_url_path: '',
+  status_request_method: 'GET',
+  status_request_template: {},
+  webhook_order_id_path: '',
+  webhook_status_path: '',
+  webhook_payment_status_path: '',
+  webhook_secret_header: 'x-webhook-secret'
 });
 
 function Secret({ label, value, setValue, saved, save, busy }: any) {
@@ -121,7 +133,7 @@ export default function OrderManagementIntegrationCenter() {
 
   const add = () => {
     setCurrent(blank());
-    setSecret('');
+    setApiKey(''); setApiSecret(''); setUsername(''); setPassword(''); setWebhookSecret('');
     setSecretSaved(false);
     setMessage('');
     setError('');
@@ -236,7 +248,22 @@ export default function OrderManagementIntegrationCenter() {
           <div><label className="block text-sm font-medium mb-1.5">Invoice URL Path</label><input value={current.external_invoice_url_path} onChange={e=>setCurrent({...current,external_invoice_url_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.invoice_url" /></div>
           <div><label className="block text-sm font-medium mb-1.5">Status Response Path</label><input value={current.status_response_path} onChange={e=>setCurrent({...current,status_response_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.status" /></div>
         </div>
-        <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">
+        <div className="grid sm:grid-cols-2 gap-4">
+  <div><label className="block text-sm font-medium mb-1.5">Status Request Method</label><select value={current.status_request_method || 'GET'} onChange={e=>setCurrent({...current,status_request_method:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option></select></div>
+  <div><label className="block text-sm font-medium mb-1.5">Status API Path</label><input value={current.status_path} onChange={e=>setCurrent({...current,status_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="/orders/{id}" /></div>
+</div>
+<div><label className="block text-sm font-medium mb-1.5">Status Request Template (JSON, for POST/PUT)</label><textarea rows={4} value={JSON.stringify(current.status_request_template || {}, null, 2)} onChange={e=>{try{setCurrent({...current,status_request_template:JSON.parse(e.target.value)})}catch{}}} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-mono" /></div>
+<div className="rounded-lg border border-amber-100 bg-amber-50 p-4">
+  <p className="font-medium text-sm text-amber-900 mb-2">Two-way status sync / Webhook mapping</p>
+  <div className="grid sm:grid-cols-2 gap-4">
+    <div><label className="block text-sm font-medium mb-1.5">Webhook External Order ID Path</label><input value={current.webhook_order_id_path || ''} onChange={e=>setCurrent({...current,webhook_order_id_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.order_id" /></div>
+    <div><label className="block text-sm font-medium mb-1.5">Webhook Status Path</label><input value={current.webhook_status_path || ''} onChange={e=>setCurrent({...current,webhook_status_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.status" /></div>
+    <div><label className="block text-sm font-medium mb-1.5">Webhook Payment Status Path</label><input value={current.webhook_payment_status_path || ''} onChange={e=>setCurrent({...current,webhook_payment_status_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.payment_status" /></div>
+    <div><label className="block text-sm font-medium mb-1.5">Webhook Secret Header</label><input value={current.webhook_secret_header || 'x-webhook-secret'} onChange={e=>setCurrent({...current,webhook_secret_header:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" /></div>
+  </div>
+  <p className="text-xs text-amber-800 mt-2">Webhook endpoint: /functions/v1/order-management — integration_id query/body এবং saved Webhook Secret ব্যবহার করবে।</p>
+</div>
+<div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">
           API secret কখনো website code-এ যাবে না। Save করলে Supabase Vault-এ থাকবে। Order create হলে external Order ID ও Invoice URL আলাদাভাবে সংরক্ষণ করা হবে।
         </div>
         {current.id && <div className="grid sm:grid-cols-2 gap-4">

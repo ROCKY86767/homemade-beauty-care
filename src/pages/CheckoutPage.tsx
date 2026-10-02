@@ -607,38 +607,19 @@ export default function CheckoutPage() {
 
     try {
       /*
-       * Secure Order ID
+       * Secure checkout
        *
-       * Database sequence/function থেকে
-       * Order ID তৈরি হবে।
+       * Database function একসাথে:
+       * - Order ID তৈরি করে
+       * - DB price থেকে subtotal হিসাব করে
+       * - delivery charge যাচাই করে
+       * - coupon যাচাই/ব্যবহার করে
+       * - order items তৈরি করে
+       * - stock কমায়
        *
-       * Example:
-       * HBC-000007
-       * HBC-000008
+       * ফলে browser-side price/stock manipulation করা যায় না।
        */
-      const {
-        data: generatedOrderNumber,
-        error: orderNumberError,
-      } = await supabase.rpc(
-        'generate_order_number'
-      );
-
-      if (
-        orderNumberError ||
-        !generatedOrderNumber
-      ) {
-        throw new Error(
-          'Order number generation failed.'
-        );
-      }
-
-      const orderNumber =
-        generatedOrderNumber;
-
-      /*
-       * Create order
-       */
-      const { data: orderId, error: orderError } =
+      const { data: orderNumber, error: orderError } =
         await supabase.rpc(
           'create_guest_order',
           {
@@ -665,7 +646,7 @@ export default function CheckoutPage() {
           },
         );
 
-      if (orderError || !orderId) {
+      if (orderError || !orderNumber) {
         throw orderError || new Error('Order creation failed.');
       }
 

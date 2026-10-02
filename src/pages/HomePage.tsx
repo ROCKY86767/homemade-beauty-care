@@ -10,7 +10,8 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { Banner, Product, Category, Review } from '@/lib/types';
+import type { Banner, Product, Category, Review, SiteSettings } from '@/lib/types';
+import { getSettings } from '@/lib/settings';
 import ProductCard from '@/components/ProductCard';
 import StarRating from '@/components/StarRating';
 
@@ -82,8 +83,11 @@ export default function HomePage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
+    getSettings().then(setSettings);
+
     const loadHomePageData = async () => {
       try {
         /*
@@ -854,68 +858,46 @@ export default function HomePage() {
       </section>
 
       {/* Social Section */}
-      <section className="py-16">
-        <div className="section-padding">
-          <div className="text-center mb-10">
-            <h2 className="font-display text-3xl font-bold text-dark">
-              আমাদের সাথে যুক্ত থাকুন
-            </h2>
+      {[
+        { name: 'Facebook', url: settings?.facebook_url, icon: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z', color: 'bg-[#1877F2]' },
+        { name: 'Instagram', url: settings?.instagram_url, icon: 'M16 11.37A4 4 0 1 1 7.63 8 4 4 0 0 1 16 11.37z M17.5 6.5h.01 M3 11.37A8.37 8.37 0 0 1 11.37 3h1.26A8.37 8.37 0 0 1 21 11.37v1.26A8.37 8.37 0 0 1 12.63 21h-1.26A8.37 8.37 0 0 1 3 12.63z', color: 'bg-gradient-to-br from-[#E4405F] to-[#F77737]' },
+        { name: 'TikTok', url: settings?.tiktok_url, icon: 'M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5', color: 'bg-dark' },
+      ].filter(social => social.url).length > 0 && (
+        <section className="py-16">
+          <div className="section-padding">
+            <div className="text-center mb-10">
+              <h2 className="font-display text-3xl font-bold text-dark">
+                আমাদের সাথে যুক্ত থাকুন
+              </h2>
+              <p className="mt-2 text-gray-500">
+                নতুন পণ্য, beauty tips এবং special offers পেতে আমাদের follow করুন।
+              </p>
+            </div>
 
-            <p className="mt-2 text-gray-500">
-              নতুন পণ্য, beauty tips এবং special offers পেতে আমাদের follow করুন।
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            {[
-              {
-                name: 'Facebook',
-                icon: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z',
-                color: 'bg-[#1877F2]',
-              },
-              {
-                name: 'Instagram',
-                icon: 'M16 11.37A4 4 0 1 1 7.63 8 4 4 0 0 1 16 11.37z M17.5 6.5h.01 M3 11.37A8.37 8.37 0 0 1 11.37 3h1.26A8.37 8.37 0 0 1 21 11.37v1.26A8.37 8.37 0 0 1 12.63 21h-1.26A8.37 8.37 0 0 1 3 12.63z',
-                color: 'bg-gradient-to-br from-[#E4405F] to-[#F77737]',
-              },
-              {
-                name: 'TikTok',
-                icon: 'M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5',
-                color: 'bg-dark',
-              },
-            ].map(social => (
-              <a
-                key={social.name}
-                href={social.name === 'Facebook' ? 'https://www.facebook.com/share/1CEEDr7xAk/' : '#'}
-                target={social.name === 'Facebook' ? '_blank' : undefined}
-                rel={social.name === 'Facebook' ? 'noopener noreferrer' : undefined}
-                className={`group flex flex-col items-center gap-3 rounded-2xl ${social.color} p-8 text-white transition-all hover:scale-105 hover:shadow-xl`}
-              >
-                <svg
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+              {[
+                { name: 'Facebook', url: settings?.facebook_url, icon: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z', color: 'bg-[#1877F2]' },
+                { name: 'Instagram', url: settings?.instagram_url, icon: 'M16 11.37A4 4 0 1 1 7.63 8 4 4 0 0 1 16 11.37z M17.5 6.5h.01 M3 11.37A8.37 8.37 0 0 1 11.37 3h1.26A8.37 8.37 0 0 1 21 11.37v1.26A8.37 8.37 0 0 1 12.63 21h-1.26A8.37 8.37 0 0 1 3 12.63z', color: 'bg-gradient-to-br from-[#E4405F] to-[#F77737]' },
+                { name: 'TikTok', url: settings?.tiktok_url, icon: 'M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5', color: 'bg-dark' },
+              ].filter(social => social.url).map(social => (
+                <a
+                  key={social.name}
+                  href={social.url || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`group flex flex-col items-center gap-3 rounded-2xl ${social.color} p-8 text-white transition-all hover:scale-105 hover:shadow-xl`}
                 >
-                  <path d={social.icon} />
-                </svg>
-
-                <span className="font-display text-lg font-semibold">
-                  {social.name}
-                </span>
-
-                <span className="text-sm text-white/80">
-                  Follow Us
-                </span>
-              </a>
-            ))}
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={social.icon} />
+                  </svg>
+                  <span className="font-display text-lg font-semibold">{social.name}</span>
+                  <span className="text-sm text-white/80">Follow Us</span>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

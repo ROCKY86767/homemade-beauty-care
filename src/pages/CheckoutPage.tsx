@@ -638,51 +638,36 @@ export default function CheckoutPage() {
       /*
        * Create order
        */
-      const { data: order, error: orderError } =
-        await supabase
-          .from('orders')
-          .insert({
-            order_number: orderNumber,
-            user_id: userId || null,
-
-            customer_name: form.name,
-            mobile: cleanMobile,
-            alt_phone:
-              form.altMobile || null,
-
-            email:
-              userId
+      const { data: orderId, error: orderError } =
+        await supabase.rpc(
+          'create_guest_order',
+          {
+            p_order: {
+              order_number: orderNumber,
+              user_id: userId || null,
+              customer_name: form.name,
+              mobile: cleanMobile,
+              alt_phone: form.altMobile || null,
+              email: userId
                 ? accountEmail || null
                 : form.email || null,
+              district: form.district,
+              area: form.area,
+              address: form.address,
+              order_note: form.note || null,
+              payment_method: paymentMethod,
+              subtotal,
+              delivery_charge: deliveryCharge,
+              discount,
+              grand_total: grandTotal,
+              status: 'Pending',
+              payment_status: 'Unpaid',
+            },
+          },
+        );
 
-            district: form.district,
-            area: form.area,
-            address: form.address,
-
-            order_note:
-              form.note || null,
-
-            payment_method:
-              paymentMethod,
-
-            subtotal,
-
-            delivery_charge:
-              deliveryCharge,
-
-            discount,
-
-            grand_total:
-              grandTotal,
-
-            status: 'Pending',
-            payment_status: 'Unpaid',
-          })
-          .select()
-          .single();
-
-      if (orderError) {
-        throw orderError;
+      if (orderError || !orderId) {
+        throw orderError || new Error('Order creation failed.');
       }
 
       /*
@@ -690,7 +675,7 @@ export default function CheckoutPage() {
        */
       const orderItems = items.map(
         item => ({
-          order_id: order.id,
+          order_id: orderId,
           product_id:
             item.product.id,
           product_name:

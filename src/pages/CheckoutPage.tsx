@@ -624,7 +624,6 @@ export default function CheckoutPage() {
           'create_guest_order',
           {
             p_order: {
-              order_number: orderNumber,
               user_id: userId || null,
               customer_name: form.name,
               mobile: cleanMobile,

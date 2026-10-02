@@ -1,9 +1,11 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Printer, Search, Home, MapPin, CreditCard } from 'lucide-react';
+import { Printer, Search, Home, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
 import SEO from '@/components/SEO';
+import { getSettings } from '@/lib/settings';
+import type { SiteSettings } from '@/lib/types';
 
 export default function InvoicePage() {
   const [orderNumber, setOrderNumber] = useState('');
@@ -11,6 +13,11 @@ export default function InvoicePage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    getSettings().then(setSettings);
+  }, []);
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
@@ -20,7 +27,6 @@ export default function InvoicePage() {
 
     const { data, error: rpcError } = await supabase.rpc('track_order', {
       p_order_number: orderNumber.trim().toUpperCase(),
-      p_mobile: mobile.replace(/\s/g, '').trim(),
     });
 
     setLoading(false);
@@ -48,7 +54,7 @@ export default function InvoicePage() {
           <div className="card p-6 sm:p-8">
             <div className="text-center mb-6">
               <h1 className="font-display text-3xl font-bold text-dark">Invoice</h1>
-              <p className="text-gray-500 mt-2">Order ID ও মোবাইল নম্বর দিয়ে ইনভয়েস দেখুন ও প্রিন্ট করুন।</p>
+              <p className="text-gray-500 mt-2">শুধু Order ID দিয়ে ইনভয়েস দেখুন ও প্রিন্ট করুন।</p>
             </div>
 
             <form onSubmit={handleSearch} className="space-y-4 max-w-md mx-auto">
@@ -58,13 +64,6 @@ export default function InvoicePage() {
                 onChange={e => setOrderNumber(e.target.value)}
                 className="input-field"
                 placeholder="Order ID (যেমন HBC-000021)"
-              />
-              <input
-                required
-                value={mobile}
-                onChange={e => setMobile(e.target.value)}
-                className="input-field"
-                placeholder="মোবাইল নম্বর"
               />
 
               {error && <p className="rounded-lg bg-red-50 text-red-600 px-4 py-3 text-sm">{error}</p>}

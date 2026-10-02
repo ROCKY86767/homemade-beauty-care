@@ -32,6 +32,7 @@ export default function ProductDetailPage() {
   const [cartMessage, setCartMessage] = useState('');
   const [reviewForm, setReviewForm] = useState({ name: '', rating: 5, text: '' });
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [reviewError, setReviewError] = useState('');
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const navigate = useNavigate();
 
@@ -121,18 +122,28 @@ export default function ProductDetailPage() {
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setReviewError('');
+
     if (!reviewForm.name.trim() || !reviewForm.text.trim()) return;
-    await supabase.from('reviews').insert({
+
+    const { error } = await supabase.from('reviews').insert({
       product_id: product.id,
-      customer_name: reviewForm.name,
+      customer_name: reviewForm.name.trim(),
       rating: reviewForm.rating,
-      review_bn: reviewForm.text,
+      review_bn: reviewForm.text.trim(),
       is_approved: false,
       is_verified: false,
     });
+
+    if (error) {
+      console.error('Review submission error:', error);
+      setReviewError('রিভিউ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      return;
+    }
+
     setReviewSubmitted(true);
     setReviewForm({ name: '', rating: 5, text: '' });
-    setTimeout(() => setReviewSubmitted(false), 4000);
+    setTimeout(() => setReviewSubmitted(false), 5000);
   };
 
   return (
@@ -449,6 +460,9 @@ export default function ProductDetailPage() {
                           placeholder="আপনার অভিজ্ঞতা শেয়ার করুন..."
                         />
                       </div>
+                      {reviewError && (
+                        <p className="text-sm text-red-500">{reviewError}</p>
+                      )}
                       <button type="submit" className="btn-primary text-sm py-2.5 px-6">রিভিউ জমা দিন</button>
                     </form>
                   )}

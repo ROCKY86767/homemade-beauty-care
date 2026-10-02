@@ -6,6 +6,12 @@ import type { Order, OrderItem } from '@/lib/types';
 import { formatPrice } from '@/lib/format';
 import SEO from '@/components/SEO';
 
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
+
 export default function OrderSuccessPage() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const [order, setOrder] = useState<Order | null>(null);
@@ -27,6 +33,52 @@ export default function OrderSuccessPage() {
           .select('*')
           .eq('order_id', orderData.id);
         setItems(itemData || []);
+
+        // Browser Pixel Purchase + server-side CAPI use the same event ID
+        // so Meta can deduplicate the conversion.
+        if (window.fbq) {
+          window.fbq(
+            'track',
+            'Purchase',
+            {
+              value: Number(orderData.grand_total || 0),
+              currency: 'BDT',
+              content_ids: (itemData || [])
+                .map((item: any) => item.product_id || item.product_name)
+                .filter(Boolean),
+              content_type: 'product',
+              num_items: (itemData || []).reduce(
+                (sum: number, item: any) => sum + Number(item.quantity || 0),
+                0
+              ),
+            },
+            {
+              eventID: orderData.order_number,
+            }
+          );
+        }
+
+        const fbp = document.cookie
+          .split('; ')
+          .find((row) => row.startsWith('_fbp='))
+          ?.split('=')[1] || '';
+        const fbc = document.cookie
+          .split('; ')
+          .find((row) => row.startsWith('_fbc='))
+          ?.split('=')[1] || '';
+
+        supabase.functions
+          .invoke('integrations', {
+            body: {
+              action: 'send_meta_purchase',
+              order_number: orderData.order_number,
+              fbp,
+              fbc,
+            },
+          })
+          .catch((integrationError) => {
+            console.error('Meta CAPI error:', integrationError);
+          });
       }
       setLoading(false);
     })();

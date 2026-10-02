@@ -100,7 +100,7 @@ export default function ContactPage() {
       ))}
 
       <a
-        href="https://wa.me/8801999478203"
+        href={`https://wa.me/${(settings?.whatsapp_number || settings?.phone || '01999478203').replace(/\D/g, '').replace(/^0/, '88')}`}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
@@ -113,11 +113,25 @@ export default function ContactPage() {
 </div>
               <div className="flex items-start gap-4 p-5 rounded-2xl bg-cream">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
+                  <Phone size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-ink">Phone</h3>
+                  <a
+                    href={`tel:${settings?.phone || '01999478203'}`}
+                    className="text-gray-500 text-sm mt-1 inline-block hover:text-primary"
+                  >
+                    {settings?.phone || '01999478203'}
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-5 rounded-2xl bg-cream">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
                   <Mail size={24} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-ink">Email</h3>
-                  <p className="text-gray-500 text-sm mt-1">support.ghrcha@gmail.com</p>
+                  <p className="text-gray-500 text-sm mt-1">{settings?.email || 'support.ghrcha@gmail.com'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-4 p-5 rounded-2xl bg-cream">
@@ -126,7 +140,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-ink">Address</h3>
-                  <p className="text-gray-500 text-sm mt-1">Dhaka, Bangladesh</p>
+                  <p className="text-gray-500 text-sm mt-1">{settings?.address_bn || 'Dhaka, Bangladesh'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-4 p-5 rounded-2xl bg-cream">

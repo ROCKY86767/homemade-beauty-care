@@ -12,10 +12,11 @@ import {
 import { useCart } from '@/lib/cart-context';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
+import { getSettings, getDeliveryCharge } from '@/lib/settings';
 import {
-  getSettings,
-  getDeliveryCharge,
-} from '@/lib/settings';
+  getDistricts,
+  getThanas,
+} from '@/lib/bangladeshLocations';
 
 import type {
   SiteSettings,
@@ -24,66 +25,7 @@ import type {
 
 import SEO from '@/components/SEO';
 
-const DISTRICTS = [
-  'ঢাকা',
-  'চট্টগ্রাম',
-  'রাজশাহী',
-  'খুলনা',
-  'বরিশাল',
-  'সিলেট',
-  'রংপুর',
-  'ময়মনসিংহ',
-  'গাজীপুর',
-  'নারায়ণগঞ্জ',
-  'কুমিল্লা',
-  'নোয়াখালী',
-  'জামালপুর',
-  'শেরপুর',
-  'নেত্রকোনা',
-  'বগুড়া',
-  'দিনাজপুর',
-  'পাবনা',
-  'যশোর',
-  'কুষ্টিয়া',
-  'মাগুরা',
-  'ফরিদপুর',
-  'মাদারীপুর',
-  'গোপালগঞ্জ',
-  'ব্রাহ্মণবাড়িয়া',
-  'চাঁদপুর',
-  'লক্ষ্মীপুর',
-  'ফেনী',
-  'খাগড়াছড়ি',
-  'রাঙ্গামাটি',
-  'বান্দরবান',
-  'সাতক্ষীরা',
-  'মেহেরপুর',
-  'চুয়াডাঙ্গা',
-  'ঝিনাইদহ',
-  'নড়াইল',
-  'পিরোজপুর',
-  'ঝালকাঠি',
-  'পটুয়াখালী',
-  'ভোলা',
-  'বরগুনা',
-  'সিরাজগঞ্জ',
-  'নাটোর',
-  'চাঁপাইনবাবগঞ্জ',
-  'জয়পুরহাট',
-  'কুড়িগ্রাম',
-  'লালমনিরহাট',
-  'নীলফামারী',
-  'গাইবান্ধা',
-  'ঠাকুরগাঁও',
-  'পঞ্চগড়',
-  'হবিগঞ্জ',
-  'মৌলভীবাজার',
-  'সুনামগঞ্জ',
-  'টাঙ্গাইল',
-  'কিশোরগঞ্জ',
-  'মানিকগঞ্জ',
-  'মুন্সিগঞ্জ',
-];
+
 
 type SavedAddress = {
   id: string;
@@ -109,6 +51,15 @@ export default function CheckoutPage() {
 
   const [settings, setSettings] =
     useState<SiteSettings | null>(null);
+
+  const [districts, setDistricts] =
+    useState<{ id: string; name: string; bn_name: string }[]>([]);
+
+  const [thanas, setThanas] =
+    useState<{ id: string; name: string; bn_name: string }[]>([]);
+
+  const [locationLoading, setLocationLoading] =
+    useState(true);
 
   const [userId, setUserId] =
     useState<string | null>(null);
@@ -162,7 +113,23 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     getSettings().then(setSettings);
+    getDistricts().then(data => {
+      setDistricts(data);
+      setLocationLoading(false);
+    });
   }, []);
+
+  useEffect(() => {
+    if (!form.district || districts.length === 0) return;
+    const selected = districts.find(item => item.bn_name === form.district);
+    if (!selected) return;
+    getThanas(selected.id).then(data => {
+      setThanas(data);
+      if (!data.some(item => item.bn_name === form.area)) {
+        setForm(prev => ({ ...prev, area: '' }));
+      }
+    });
+  }, [form.district, districts]);
 
   useEffect(() => {
     async function loadAccount() {
@@ -405,11 +372,10 @@ export default function CheckoutPage() {
     ? getDeliveryCharge(
         settings,
         form.district,
-        subtotal
+        subtotal,
+        form.area
       )
-    : subtotal > 1000
-      ? 0
-      : 60;
+    : 120;
 
   const discount = appliedCoupon
     ? calculateCouponDiscount(
@@ -984,48 +950,64 @@ export default function CheckoutPage() {
                   <select
                     required
                     value={form.district}
+                    disabled={locationLoading}
                     onChange={e =>
-                      setForm({
-                        ...form,
-                        district:
-                          e.target.value,
-                      })
+                      setForm(prev => ({
+                        ...prev,
+                        district: e.target.value,
+                        area: '',
+                      }))
                     }
                     className="input-field"
                   >
-                    {DISTRICTS.map(
-                      district => (
-                        <option
-                          key={district}
-                          value={district}
-                        >
-                          {district}
-                        </option>
-                      )
+                    {districts.length === 0 && (
+                      <option value="ঢাকা">ঢাকা</option>
                     )}
+                    {districts.map(district => (
+                      <option
+                        key={district.id}
+                        value={district.bn_name}
+                      >
+                        {district.bn_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* Area */}
+                {/* Thana / Upazila */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    এলাকা/থানা *
+                    থানা / উপজেলা *
                   </label>
 
-                  <input
-                    type="text"
+                  <select
                     required
                     value={form.area}
+                    disabled={locationLoading || thanas.length === 0}
                     onChange={e =>
-                      setForm({
-                        ...form,
-                        area:
-                          e.target.value,
-                      })
+                      setForm(prev => ({
+                        ...prev,
+                        area: e.target.value,
+                      }))
                     }
                     className="input-field"
-                    placeholder="এলাকার নাম"
-                  />
+                  >
+                    <option value="">
+                      {locationLoading
+                        ? 'লোকেশন লোড হচ্ছে...'
+                        : thanas.length === 0
+                          ? 'থানা/উপজেলা পাওয়া যায়নি'
+                          : 'থানা / উপজেলা নির্বাচন করুন'}
+                    </option>
+                    {thanas.map(thana => (
+                      <option
+                        key={thana.id}
+                        value={thana.bn_name}
+                      >
+                        {thana.bn_name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Address */}

@@ -789,10 +789,15 @@ export default function CheckoutPage() {
         `/order-success/${orderNumber}`
       );
     } catch (err) {
-      console.error(err);
+      console.error('Checkout order creation failed:', err);
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Unknown checkout error';
 
       setError(
-        'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।'
+        `অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন। (${message})`
       );
 
       setSubmitting(false);

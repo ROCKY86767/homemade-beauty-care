@@ -14,9 +14,9 @@ const FOOTER_LINKS = {
   ],
   'CUSTOMER SERVICE': [
     { label: 'Track Order', path: '/track-order' },
-    { label: 'Returns and Refunds', path: '/track-order' },
-    { label: 'Delivery Information', path: '/track-order' },
-    { label: 'Privacy Policy', path: '/track-order' },
+    { label: 'Returns and Refunds', path: '/returns-refunds' },
+    { label: 'Delivery Information', path: '/delivery-information' },
+    { label: 'Privacy Policy', path: '/privacy-policy' },
   ],
   CATEGORIES: [
     { label: 'Hair Care', path: '/category/hair-care' },

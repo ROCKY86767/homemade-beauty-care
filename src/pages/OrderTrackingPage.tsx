@@ -362,13 +362,6 @@ export default function OrderTrackingPage() {
                   </p>
 
 
-                    <p>
-                    <span className="font-medium text-ink">
-                      পেমেন্ট:
-                    </span>{' '}
-                    {order.payment_method}
-                  </p>
-
                   <p>
                     <span className="font-medium text-ink">
                       পেমেন্ট:

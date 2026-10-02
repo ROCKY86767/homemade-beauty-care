@@ -85,7 +85,37 @@ export default function OrderTrackingPage() {
         return;
       }
 
-      setOrder(result.order);
+      let trackedOrder = result.order;
+
+      // If this order has a Pathao shipment, refresh the courier status
+      // before showing the customer the latest tracking state.
+      if ((result.order as any).pathao_consignment_id) {
+        try {
+          const { data: pathaoResult } =
+            await supabase.functions.invoke('integrations', {
+              body: {
+                action: 'refresh_pathao',
+                order_number: result.order.order_number,
+                mobile: cleanMobile,
+              },
+            });
+
+          if (pathaoResult?.success) {
+            const { data: refreshed } =
+              await supabase.rpc('track_order', {
+                p_mobile_number: cleanMobile,
+              });
+
+            if (refreshed?.success && refreshed.order) {
+              trackedOrder = refreshed.order as Order;
+            }
+          }
+        } catch (pathaoError) {
+          console.error('Pathao tracking refresh error:', pathaoError);
+        }
+      }
+
+      setOrder(trackedOrder);
       setItems(result.items || []);
     } catch (err) {
       console.error('Order tracking error:', err);
@@ -343,6 +373,44 @@ export default function OrderTrackingPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Pathao Tracking */}
+              {((order as any).pathao_tracking_code ||
+                (order as any).pathao_consignment_id ||
+                (order as any).pathao_status) && (
+                <div className="card p-6 border border-gray-50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Truck size={20} className="text-primary" />
+                    <h2 className="font-display text-lg font-semibold text-ink">
+                      Courier Tracking
+                    </h2>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                    {(order as any).pathao_tracking_code && (
+                      <div className="rounded-lg bg-gray-50 p-3">
+                        <p className="text-xs text-gray-400">Tracking Code</p>
+                        <p className="font-semibold text-ink mt-1">
+                          {(order as any).pathao_tracking_code}
+                        </p>
+                      </div>
+                    )}
+
+                    {(order as any).pathao_status && (
+                      <div className="rounded-lg bg-gray-50 p-3">
+                        <p className="text-xs text-gray-400">Courier Status</p>
+                        <p className="font-semibold text-primary mt-1">
+                          {(order as any).pathao_status}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-400 mt-3">
+                    Courier status সর্বশেষ অর্ডার ট্র্যাক করার সময় আপডেট হয়।
+                  </p>
+                </div>
+              )}
 
               {/* Delivery Info */}
               <div className="card p-6 border border-gray-50">

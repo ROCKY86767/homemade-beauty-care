@@ -2928,7 +2928,7 @@ function OrdersView() {
               {filtered.length}
             </span>{' '}
             of{' '}
-            <span className="font-semibold text-gray-900">
+            <span className="text-sm font-semibold text-gray-900">
               {orders.length}
             </span>{' '}
             orders
@@ -2964,8 +2964,8 @@ function OrdersView() {
               key={order.id}
               className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
             >
-              <div className="px-3 py-2.5">
-                <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
+              <div className="px-3 py-2">
+                <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
                   {/* Order */}
                   <div className="min-w-0 flex-1">
                     <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
@@ -2987,7 +2987,7 @@ function OrdersView() {
 
                   {/* Customer */}
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900">
                       {order.customer_name || '—'}
                     </p>
 
@@ -3006,7 +3006,7 @@ function OrdersView() {
 
                   {/* Amount */}
                   <div className="min-w-[130px]">
-                    <p className="text-base font-bold text-gray-900">
+                    <p className="text-sm font-bold text-gray-900">
                       {formatPrice(
                         Number(
                           order.grand_total ??
@@ -5899,7 +5899,7 @@ function IntegrationSettingsView() {
   return (
     <div>
       <PageHeader
-        title="Settings & Integrations"
+        title="Pathao + Meta CAPI"
         description="Pathao Courier ও Meta Conversion API পরে নিজে সেটআপ করার জন্য প্রস্তুত জায়গা।"
       />
 

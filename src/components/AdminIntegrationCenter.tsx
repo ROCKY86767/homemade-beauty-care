@@ -17,9 +17,12 @@ type IntegrationSettings = {
   pathao_client_id: string;
   pathao_client_secret_set: boolean;
   pathao_access_token_set: boolean;
+  pathao_username_set: boolean;
+  pathao_password_set: boolean;
   meta_capi_enabled: boolean;
   meta_pixel_id: string;
   meta_dataset_id: string;
+  meta_graph_version: string;
   meta_capi_access_token_set: boolean;
   updated_at?: string;
 };
@@ -30,9 +33,12 @@ const EMPTY: IntegrationSettings = {
   pathao_client_id: '',
   pathao_client_secret_set: false,
   pathao_access_token_set: false,
+  pathao_username_set: false,
+  pathao_password_set: false,
   meta_capi_enabled: false,
   meta_pixel_id: '',
   meta_dataset_id: '',
+  meta_graph_version: 'v26.0',
   meta_capi_access_token_set: false,
 };
 
@@ -100,6 +106,8 @@ export default function AdminIntegrationCenter() {
   const [settings, setSettings] = useState<IntegrationSettings>(EMPTY);
   const [pathaoSecret, setPathaoSecret] = useState('');
   const [pathaoToken, setPathaoToken] = useState('');
+  const [pathaoUsername, setPathaoUsername] = useState('');
+  const [pathaoPassword, setPathaoPassword] = useState('');
   const [metaToken, setMetaToken] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -158,6 +166,8 @@ export default function AdminIntegrationCenter() {
     } else {
       if (name === 'PATHAO_CLIENT_SECRET') setPathaoSecret('');
       if (name === 'PATHAO_ACCESS_TOKEN') setPathaoToken('');
+      if (name === 'PATHAO_USERNAME') setPathaoUsername('');
+      if (name === 'PATHAO_PASSWORD') setPathaoPassword('');
       if (name === 'META_CAPI_ACCESS_TOKEN') setMetaToken('');
       await load();
       setMessage('Secret saved securely.');
@@ -178,7 +188,8 @@ export default function AdminIntegrationCenter() {
     Boolean(settings.pathao_store_id.trim()) &&
     Boolean(settings.pathao_client_id.trim()) &&
     settings.pathao_client_secret_set &&
-    settings.pathao_access_token_set;
+    (settings.pathao_access_token_set ||
+      (settings.pathao_username_set && settings.pathao_password_set));
 
   const metaReady =
     Boolean(settings.meta_pixel_id.trim() || settings.meta_dataset_id.trim()) &&
@@ -269,6 +280,25 @@ export default function AdminIntegrationCenter() {
               saving={savingSecret === 'PATHAO_CLIENT_SECRET'}
             />
 
+            <div className="grid sm:grid-cols-2 gap-4">
+              <SecretField
+                label="Merchant Username / Email"
+                value={pathaoUsername}
+                onChange={setPathaoUsername}
+                onSave={() => saveSecret('PATHAO_USERNAME', pathaoUsername)}
+                saved={settings.pathao_username_set}
+                saving={savingSecret === 'PATHAO_USERNAME'}
+              />
+              <SecretField
+                label="Merchant Password"
+                value={pathaoPassword}
+                onChange={setPathaoPassword}
+                onSave={() => saveSecret('PATHAO_PASSWORD', pathaoPassword)}
+                saved={settings.pathao_password_set}
+                saving={savingSecret === 'PATHAO_PASSWORD'}
+              />
+            </div>
+
             <SecretField
               label="Access Token"
               value={pathaoToken}
@@ -279,15 +309,33 @@ export default function AdminIntegrationCenter() {
             />
           </div>
 
-          <button
-            type="button"
-            onClick={saveSettings}
-            disabled={saving}
-            className="mt-5 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-medium inline-flex items-center gap-2 disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Pathao Settings
-          </button>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={saveSettings}
+              disabled={saving}
+              className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-medium inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Pathao Settings
+            </button>
+            <button
+              type="button"
+              disabled={!pathaoReady || savingSecret === 'PATHAO_TEST'}
+              onClick={async () => {
+                setSavingSecret('PATHAO_TEST');
+                setError('');
+                setMessage('');
+                const { data, error: fnError } = await supabase.functions.invoke('integrations', { body: { action: 'test_pathao' } });
+                if (fnError || !data?.success) setError(fnError?.message || data?.message || 'Pathao connection test failed.');
+                else setMessage('Pathao connection successful.');
+                setSavingSecret('');
+              }}
+              className="px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-medium inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              <CheckCircle2 className="w-4 h-4" /> Test Pathao Connection
+            </button>
+          </div>
 
           <div className="mt-4 rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-800 flex gap-2">
             <ShieldCheck className="w-4 h-4 shrink-0" />
@@ -340,6 +388,17 @@ export default function AdminIntegrationCenter() {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Graph API Version</label>
+              <input
+                value={settings.meta_graph_version}
+                onChange={(e) => setSettings({ ...settings, meta_graph_version: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
+                placeholder="v26.0"
+              />
+              <p className="mt-1 text-xs text-gray-400">বর্তমান Meta Graph API-এর জন্য v26.0 রাখা আছে।</p>
+            </div>
+
             <SecretField
               label="CAPI Access Token"
               value={metaToken}
@@ -368,14 +427,14 @@ export default function AdminIntegrationCenter() {
       </div>
 
       <div className="mt-5 rounded-xl border border-gray-200 bg-white p-5">
-        <h3 className="font-bold text-gray-900">পরের ধাপে কী হবে</h3>
+        <h3 className="font-bold text-gray-900">Integration Status</h3>
         <div className="grid md:grid-cols-3 gap-3 mt-4 text-sm text-gray-700">
-          <div className="rounded-lg bg-gray-50 p-3">1. Credentials save → secure storage</div>
-          <div className="rounded-lg bg-gray-50 p-3">2. Pathao API connect/test → automatic courier order</div>
-          <div className="rounded-lg bg-gray-50 p-3">3. Meta event send/test → Purchase/CAPI tracking</div>
+          <div className="rounded-lg bg-gray-50 p-3">1. Pathao credentials save → secure storage</div>
+          <div className="rounded-lg bg-gray-50 p-3">2. Confirmed order → automatic Pathao shipment</div>
+          <div className="rounded-lg bg-gray-50 p-3">3. Successful order → Meta Purchase CAPI</div>
         </div>
         <p className="text-xs text-gray-500 mt-4">
-          এখনো কোনো real Pathao shipment বা Meta Purchase event পাঠানো হচ্ছে না। Credentials save করার UI ও secure storage প্রস্তুত করা হয়েছে; actual API connection পরের ধাপে চালু করা যাবে।
+          Credentials একবার Admin থেকে save করলে automation code আলাদাভাবে edit করার দরকার নেই। Pathao shipment status customer tracking-এ sync হবে এবং Meta Purchase event server-side পাঠানো হবে।
         </p>
       </div>
     </div>

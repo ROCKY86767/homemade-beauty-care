@@ -794,7 +794,9 @@ export default function CheckoutPage() {
       const message =
         err instanceof Error
           ? err.message
-          : 'Unknown checkout error';
+          : typeof err === 'object' && err !== null
+            ? JSON.stringify(err)
+            : String(err);
 
       setError(
         `অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন। (${message})`

@@ -656,106 +656,17 @@ export default function CheckoutPage() {
               address: form.address,
               order_note: form.note || null,
               payment_method: paymentMethod,
-              subtotal,
-              delivery_charge: deliveryCharge,
-              discount,
-              grand_total: grandTotal,
-              status: 'Pending',
-              payment_status: 'Unpaid',
             },
+            p_items: items.map(item => ({
+              product_id: item.product.id,
+              quantity: item.quantity,
+            })),
+            p_coupon_id: appliedCoupon?.id || null,
           },
         );
 
       if (orderError || !orderId) {
         throw orderError || new Error('Order creation failed.');
-      }
-
-      /*
-       * Create order items
-       */
-      const orderItems = items.map(
-        item => ({
-          order_id: orderId,
-          product_id:
-            item.product.id,
-          product_name:
-            item.product.name_bn,
-          price:
-            item.product.price,
-          quantity:
-            item.quantity,
-          image_url:
-            item.product.image_url,
-        })
-      );
-
-      const {
-        error: itemsError,
-      } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) {
-        throw itemsError;
-      }
-
-      /*
-       * Coupon usage
-       */
-      if (appliedCoupon) {
-        const {
-          data: couponUsage,
-          error: couponUsageError,
-        } = await supabase.rpc(
-          'use_coupon',
-          {
-            p_coupon_id:
-              appliedCoupon.id,
-          }
-        );
-
-        if (couponUsageError) {
-          console.error(
-            'Coupon usage update failed:',
-            couponUsageError
-          );
-        } else if (
-          couponUsage &&
-          couponUsage.success === false
-        ) {
-          console.error(
-            'Coupon usage rejected:',
-            couponUsage.message
-          );
-        }
-      }
-
-      /*
-       * Decrement stock
-       *
-       * Direct products.update()
-       * করা হচ্ছে না।
-       *
-       * শুধুমাত্র secure RPC ব্যবহার করা হচ্ছে।
-       */
-      for (const item of items) {
-        const {
-          error: stockError,
-        } = await supabase.rpc(
-          'decrement_stock',
-          {
-            product_id:
-              item.product.id,
-            qty: item.quantity,
-          }
-        );
-
-        if (stockError) {
-          console.error(
-            'Stock decrement failed:',
-            stockError
-          );
-        }
       }
 
       /*

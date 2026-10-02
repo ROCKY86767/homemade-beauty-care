@@ -465,11 +465,7 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'settings' && (
-              <PlaceholderView
-                title="Settings"
-                description="Store settings, payment, courier, notification and other configurations will be managed here."
-                icon={Settings}
-              />
+              <IntegrationSettingsView />
             )}
           </div>
         </main>
@@ -2928,7 +2924,7 @@ function OrdersView() {
         <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-600">
             Showing{' '}
-            <span className="font-semibold text-gray-900">
+            <span className="text-sm font-semibold text-gray-900">
               {filtered.length}
             </span>{' '}
             of{' '}
@@ -2966,13 +2962,13 @@ function OrdersView() {
           return (
             <div
               key={order.id}
-              className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
             >
-              <div className="p-5">
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+              <div className="px-3 py-2.5">
+                <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
                   {/* Order */}
                   <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
                       <h3 className="font-semibold text-gray-900">
                         #
                         {order.order_number ||
@@ -3002,7 +2998,7 @@ function OrdersView() {
                     </p>
 
                     {order.email && (
-                      <p className="break-all text-xs text-gray-500">
+                      <p className="break-all text-[11px] text-gray-500">
                         {order.email}
                       </p>
                     )}
@@ -3010,7 +3006,7 @@ function OrdersView() {
 
                   {/* Amount */}
                   <div className="min-w-[130px]">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-base font-bold text-gray-900">
                       {formatPrice(
                         Number(
                           order.grand_total ??
@@ -3037,7 +3033,7 @@ function OrdersView() {
                           e.target.value
                         )
                       }
-                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-500 disabled:bg-gray-100"
+                      className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-gray-500 disabled:bg-gray-100"
                     >
                       {knownStatuses.map(
                         (status) => (
@@ -3069,7 +3065,7 @@ function OrdersView() {
                             : order.id
                         )
                       }
-                      className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                     >
                       <Eye className="h-4 w-4" />
 
@@ -3081,7 +3077,7 @@ function OrdersView() {
                     <Link
                       to={`/invoice?id=${encodeURIComponent(order.order_number || '')}`}
                       target="_blank"
-                      className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
                     >
                       Invoice
                     </Link>
@@ -3094,7 +3090,7 @@ function OrdersView() {
                           onClick={() =>
                             cancelOrder(order)
                           }
-                          className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
                         >
                           <XCircle className="h-4 w-4" />
                           Cancel
@@ -5890,6 +5886,105 @@ function ReportsView() {
           Pending বা Processing orders-কে
           completed revenue হিসেবে ধরা হচ্ছে না।
         </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   INTEGRATION SETUP
+========================================================= */
+
+function IntegrationSettingsView() {
+  return (
+    <div>
+      <PageHeader
+        title="Settings & Integrations"
+        description="Pathao Courier ও Meta Conversion API পরে নিজে সেটআপ করার জন্য প্রস্তুত জায়গা।"
+      />
+
+      <div className="grid xl:grid-cols-2 gap-5">
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-bold text-lg text-gray-900">
+                Pathao Courier
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Automatic courier order creation ও tracking sync-এর জন্য।
+              </p>
+            </div>
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+              Setup Pending
+            </span>
+          </div>
+
+          <div className="mt-5 space-y-2.5 text-sm text-gray-700">
+            <p>☐ Pathao Merchant account</p>
+            <p>☐ Developer API access</p>
+            <p>☐ API client ID / secret / access token</p>
+            <p>☐ Store ID</p>
+            <p>☐ Website server-side Edge Function</p>
+            <p>☐ Order create + tracking status sync</p>
+          </div>
+
+          <div className="mt-5 rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs text-gray-600">
+            API secret এখানে বা frontend code-এ রাখবে না। পরে Supabase Edge Function-এর server secret হিসেবে সেট করতে হবে।
+          </div>
+
+          <a
+            href="https://merchant.pathao.com/"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            Pathao Merchant Panel
+          </a>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-bold text-lg text-gray-900">
+                Meta Conversion API
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Browser Pixel-এর পাশাপাশি server-side Purchase/Checkout events পাঠানোর জন্য।
+              </p>
+            </div>
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+              Setup Pending
+            </span>
+          </div>
+
+          <div className="mt-5 space-y-2.5 text-sm text-gray-700">
+            <p>☐ Meta Pixel / Dataset ID</p>
+            <p>☐ Events Manager access</p>
+            <p>☐ Conversions API access token</p>
+            <p>☐ Supabase Edge Function</p>
+            <p>☐ Purchase + InitiateCheckout events</p>
+            <p>☐ Browser/server event_id deduplication</p>
+          </div>
+
+          <div className="mt-5 rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs text-gray-600">
+            CAPI access token কখনো GitHub, React code বা Vercel frontend variable-এ রাখবে না। Server secret হিসেবে রাখতে হবে।
+          </div>
+
+          <div className="mt-4 text-xs text-gray-500">
+            Frontend Pixel ID পরে Vercel Environment Variables-এ:
+            <span className="font-mono text-gray-700"> VITE_META_PIXEL_ID</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-5">
+        <h3 className="font-bold text-gray-900">যখন সেটআপ করবে — এই Admin Panel থেকেই মনে রাখবে</h3>
+        <ol className="mt-3 list-decimal pl-5 space-y-1.5 text-sm text-gray-700">
+          <li>Pathao credentials → Supabase Edge Function secrets</li>
+          <li>Meta CAPI token → Supabase Edge Function secret</li>
+          <li>Pixel ID / GA4 ID → Vercel Environment Variables</li>
+          <li>তারপর test order দিয়ে event ও courier order verify</li>
+        </ol>
       </div>
     </div>
   );

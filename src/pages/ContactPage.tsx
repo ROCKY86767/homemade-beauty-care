@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, Send, MessageCircle, Facebook, Instagram, Youtube, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { getSettings } from '@/lib/settings';
+import type { SiteSettings } from '@/lib/types';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [showSocial, setShowSocial] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    getSettings().then(setSettings);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,44 +81,23 @@ export default function ContactPage() {
 
   {showSocial && (
     <div className="mt-4 ml-16 space-y-2">
-      <a
-        href="https://www.facebook.com/share/1CEEDr7xAk/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
-      >
-        <Facebook size={18} />
-        Facebook
-      </a>
-
-      <a
-        href="https://www.facebook.com/share/1CEEDr7xAk/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
-      >
-        <Instagram size={18} />
-        Instagram
-      </a>
-
-      <a
-        href="https://www.facebook.com/share/1CEEDr7xAk/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
-      >
-        TikTok
-      </a>
-
-      <a
-        href="https://www.facebook.com/share/1CEEDr7xAk/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
-      >
-        <Youtube size={18} />
-        YouTube
-      </a>
+      {[
+        { label: 'Facebook', url: settings?.facebook_url, icon: Facebook },
+        { label: 'Instagram', url: settings?.instagram_url, icon: Instagram },
+        { label: 'TikTok', url: settings?.tiktok_url, icon: null },
+        { label: 'YouTube', url: settings?.youtube_url, icon: Youtube },
+      ].filter(item => item.url).map(item => (
+        <a
+          key={item.label}
+          href={item.url || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
+        >
+          {item.icon ? <item.icon size={18} /> : <MessageCircle size={18} />}
+          {item.label}
+        </a>
+      ))}
 
       <a
         href="https://wa.me/8801999478203"

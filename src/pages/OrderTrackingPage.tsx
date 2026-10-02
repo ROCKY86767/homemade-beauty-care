@@ -106,7 +106,12 @@ export default function OrderTrackingPage() {
 
   const currentStepIndex = order
     ? TIMELINE_STEPS.findIndex(
-        step => step.key === order.status
+        step =>
+          step.key === (
+            order.status === 'Order Placed'
+              ? 'Pending'
+              : order.status
+          )
       )
     : -1;
 

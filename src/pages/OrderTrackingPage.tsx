@@ -36,7 +36,6 @@ export default function OrderTrackingPage() {
     searchParams.get('id') || ''
   );
 
-  const [mobile, setMobile] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,10 +46,8 @@ export default function OrderTrackingPage() {
     e.preventDefault();
 
     const cleanOrderId = orderId.trim();
-    const cleanMobile = mobile.trim();
-
-    if (!cleanOrderId || !cleanMobile) {
-      setError('অর্ডার ID এবং মোবাইল নম্বর দিন।');
+    if (!cleanOrderId) {
+      setError('Order ID দিন।');
       setOrder(null);
       setItems([]);
       setSearched(true);
@@ -67,7 +64,6 @@ export default function OrderTrackingPage() {
       const { data, error: queryError } =
         await supabase.rpc('track_order', {
           p_order_number: cleanOrderId,
-          p_mobile: cleanMobile,
         });
 
       if (queryError) {
@@ -83,7 +79,7 @@ export default function OrderTrackingPage() {
         !result.order
       ) {
         setError(
-          'এই তথ্যের সাথে কোনো অর্ডার পাওয়া যায়নি। অর্ডার ID এবং মোবাইল নম্বর ঠিক আছে কিনা দেখুন।'
+          'এই Order ID-এর কোনো অর্ডার পাওয়া যায়নি। Order ID ঠিক আছে কিনা দেখুন।'
         );
         return;
       }
@@ -133,38 +129,22 @@ export default function OrderTrackingPage() {
             onSubmit={handleTrack}
             className="card p-6 border border-gray-50 mb-6"
           >
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-ink mb-1.5 block">
-                  Order ID
-                </label>
+            <div>
+              <label className="text-sm font-medium text-ink mb-1.5 block">
+                Order ID
+              </label>
 
-                <input
-                  type="text"
-                  value={orderId}
-                  onChange={e =>
-                    setOrderId(e.target.value)
-                  }
-                  className="input-field"
-                  placeholder="HBC-000001"
-                />
-              </div>
+              <input
+                type="text"
+                value={orderId}
+                onChange={e => setOrderId(e.target.value)}
+                className="input-field"
+                placeholder="HBC-000001"
+              />
 
-              <div>
-                <label className="text-sm font-medium text-ink mb-1.5 block">
-                  Mobile Number
-                </label>
-
-                <input
-                  type="tel"
-                  value={mobile}
-                  onChange={e =>
-                    setMobile(e.target.value)
-                  }
-                  className="input-field"
-                  placeholder="01999478203"
-                />
-              </div>
+              <p className="text-xs text-gray-400 mt-1.5">
+                শুধু Order ID দিয়েই অর্ডার ট্র্যাক করা যাবে।
+              </p>
             </div>
 
             {error && (
@@ -381,14 +361,7 @@ export default function OrderTrackingPage() {
                     {order.customer_name}
                   </p>
 
-                  <p>
-                    <span className="font-medium text-ink">
-                      মোবাইল:
-                    </span>{' '}
-                    {order.mobile}
-                  </p>
 
-                  {order.alt_phone && (
                     <p>
                       <span className="font-medium text-ink">
                         বিকল্প নম্বর:
@@ -396,15 +369,6 @@ export default function OrderTrackingPage() {
                       {order.alt_phone}
                     </p>
                   )}
-
-                  <p>
-                    <span className="font-medium text-ink">
-                      ঠিকানা:
-                    </span>{' '}
-                    {order.address},{' '}
-                    {order.area},{' '}
-                    {order.district}
-                  </p>
 
                   <p>
                     <span className="font-medium text-ink">

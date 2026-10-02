@@ -95,3 +95,91 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+/* Mobile-first layout safeguards */
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  max-width: 100%;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 639px) {
+  .section-padding {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .card {
+    border-radius: 14px;
+  }
+
+  .input-field {
+    min-height: 46px;
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  h1 {
+    line-height: 1.18;
+  }
+
+  h2 {
+    line-height: 1.22;
+  }
+
+  /* Prevent long product/order/customer text from breaking the viewport. */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  a {
+    overflow-wrap: anywhere;
+  }
+
+  /* Horizontal tab/carousel areas should scroll instead of widening the page. */
+  .overflow-x-auto {
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+  }
+}
+
+/* Safe-area support for phones with gesture/navigation bars. */
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}

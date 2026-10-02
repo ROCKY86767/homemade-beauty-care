@@ -131,6 +131,9 @@ export default function OrderSuccessPage() {
           <Link to={`/track-order?id=${orderNumber}`} className="btn-primary">
             অর্ডার ট্র্যাক করুন
           </Link>
+          <Link to="/invoice" className="btn-secondary">
+            Invoice
+          </Link>
           <Link to="/" className="btn-secondary">
             <Home size={18} /> হোমে ফিরে যান
           </Link>

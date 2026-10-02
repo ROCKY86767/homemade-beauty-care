@@ -22,6 +22,9 @@ import ContactPage from '@/pages/ContactPage';
 import WishlistPage from '@/pages/WishlistPage';
 import AccountPage from '@/pages/AccountPage';
 import SavedAddressPage from '@/pages/SavedAddressPage';
+import ReturnsRefundsPage from '@/pages/ReturnsRefundsPage';
+import DeliveryInformationPage from '@/pages/DeliveryInformationPage';
+import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
 
 import AdminPage from '@/pages/AdminPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
@@ -137,6 +140,10 @@ function AppContent() {
                   path="/my-orders"
                   element={<MyOrdersPage />}
                 />
+
+                <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
+                <Route path="/delivery-information" element={<DeliveryInformationPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />

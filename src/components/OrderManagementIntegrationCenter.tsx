@@ -222,7 +222,7 @@ export default function OrderManagementIntegrationCenter() {
       </section>
       <section className="space-y-4">
         <div><label className="block text-sm font-medium mb-1.5">Order JSON Template</label><textarea rows={18} value={JSON.stringify(current.create_order_template || {}, null, 2)} onChange={e=>{try{setCurrent({...current,create_order_template:JSON.parse(e.target.value)})}catch{}}} className="w-full border rounded-lg px-3 py-2.5 text-xs font-mono" />
-          <p className="text-xs text-gray-500 mt-1">Use placeholders like {{order.order_number}}, {{order.customer_name}}, {{order.mobile}}, {{order.address}}, {{totals.grand_total}}, {{items}}.</p>
+          <p className="text-xs text-gray-500 mt-1">Use placeholders like {'{{order.order_number}}'}, {'{{order.customer_name}}'}, {'{{order.mobile}}'}, {'{{order.address}}'}, {'{{totals.grand_total}}'}, {'{{items}}'}.</p>
         </div>
         <div className="grid sm:grid-cols-3 gap-4">
           <div><label className="block text-sm font-medium mb-1.5">Response Order ID Path</label><input value={current.external_order_id_path} onChange={e=>setCurrent({...current,external_order_id_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.id" /></div>

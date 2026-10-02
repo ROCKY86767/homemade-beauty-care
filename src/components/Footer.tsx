@@ -40,7 +40,13 @@ export default function Footer() {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    await supabase.from('newsletter').insert({ email: email.trim() });
+    const { error } = await supabase.from('newsletter').insert({ email: email.trim() });
+
+    if (error) {
+      console.error('Newsletter subscription error:', error);
+      return;
+    }
+
     setSubscribed(true);
     setEmail('');
     setTimeout(() => setSubscribed(false), 3000);

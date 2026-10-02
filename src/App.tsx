@@ -8,6 +8,7 @@ import { CartProvider } from '@/lib/cart-context';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
+import Analytics from '@/components/Analytics';
 
 import HomePage from '@/pages/HomePage';
 import ShopPage from '@/pages/ShopPage';
@@ -172,6 +173,7 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
+      <Analytics />
       <CartProvider>
         <AppContent />
       </CartProvider>

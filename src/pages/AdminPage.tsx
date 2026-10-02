@@ -3078,6 +3078,14 @@ function OrdersView() {
                         : `View Items (${orderItems.length})`}
                     </button>
 
+                    <Link
+                      to={`/invoice?id=${encodeURIComponent(order.order_number || '')}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+                    >
+                      Invoice
+                    </Link>
+
                     {order.status !==
                       'Cancelled' &&
                       order.status !==

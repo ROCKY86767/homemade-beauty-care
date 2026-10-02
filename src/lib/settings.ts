@@ -52,8 +52,20 @@ export function clearSettingsCache() {
   cachedSettings = null;
 }
 
-export function getDeliveryCharge(settings: SiteSettings, district: string, subtotal: number): number {
-  if (subtotal >= settings.free_delivery_threshold) return 0;
-  const isDhaka = district === 'ঢাকা' || district.toLowerCase().includes('dhaka');
-  return isDhaka ? settings.delivery_inside_dhaka : settings.delivery_outside_dhaka;
+export function getDeliveryCharge(_settings: SiteSettings, district: string, _subtotal: number, thana = ''): number {
+  if (district === 'ঢাকা') {
+    const cityThanas = new Set([
+      'আদাবর','এয়ারপোর্ট','বাড্ডা','বনানী','বংশাল','ক্যান্টনমেন্ট','চকবাজার','দারুস সালাম',
+      'দক্ষিণখান','ডেমরা','ধানমন্ডি','গুলশান','হাজারীবাগ','যাত্রাবাড়ী','কদমতলী','কাফরুল',
+      'কলাবাগান','কামরাঙ্গীরচর','খিলগাঁও','খিলক্ষেত','কোতোয়ালি','লালবাগ','মিরপুর','মোহাম্মদপুর',
+      'মতিঝিল','মুগদা','নিউমার্কেট','পল্লবী','পল্টন','রমনা','রামপুরা','সবুজবাগ','শাহ আলী',
+      'শাহবাগ','শ্যামপুর','শেরেবাংলা নগর','সূত্রাপুর','তেজগাঁও','তেজগাঁও শিল্পাঞ্চল','তুরাগ',
+      'উত্তরা পূর্ব','উত্তরা পশ্চিম','ভাটারা','ওয়ারী'
+    ]);
+    if (cityThanas.has(thana.trim())) return 70;
+    if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ'].includes(thana.trim())) return 100;
+  }
+  if (district === 'গাজীপুর' || district === 'নারায়ণগঞ্জ') return 100;
+  if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ'].includes(thana.trim())) return 100;
+  return 120;
 }

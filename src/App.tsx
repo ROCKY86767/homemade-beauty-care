@@ -25,6 +25,7 @@ import SavedAddressPage from '@/pages/SavedAddressPage';
 import ReturnsRefundsPage from '@/pages/ReturnsRefundsPage';
 import DeliveryInformationPage from '@/pages/DeliveryInformationPage';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
+import InvoicePage from '@/pages/InvoicePage';
 
 import AdminPage from '@/pages/AdminPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
@@ -144,6 +145,7 @@ function AppContent() {
                 <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
                 <Route path="/delivery-information" element={<DeliveryInformationPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/invoice" element={<InvoicePage />} />
 
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />

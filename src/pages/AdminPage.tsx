@@ -2578,6 +2578,24 @@ function OrdersView() {
             : item
         )
       );
+
+      // When an admin confirms an order, create its Pathao shipment
+      // automatically if Pathao is enabled in Admin > Integrations.
+      if (status === 'Confirmed' && order.status !== 'Confirmed') {
+        const { data: integrationResult, error: integrationError } =
+          await supabase.functions.invoke('integrations', {
+            body: {
+              action: 'create_pathao_order',
+              order_id: order.id,
+            },
+          });
+
+        if (integrationError) {
+          console.error('Pathao integration error:', integrationError);
+        } else if (integrationResult?.success === false && !integrationResult?.skipped) {
+          console.error('Pathao integration error:', integrationResult.message);
+        }
+      }
     } catch (err: any) {
       setError(err.message || 'Status update failed.');
     } finally {

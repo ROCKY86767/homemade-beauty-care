@@ -39,6 +39,7 @@ import {
 
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
+import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import { formatPrice } from '../lib/format';
 
 /* =========================================================
@@ -5896,98 +5897,7 @@ function ReportsView() {
 ========================================================= */
 
 function IntegrationSettingsView() {
-  return (
-    <div>
-      <PageHeader
-        title="Pathao + Meta CAPI"
-        description="Pathao Courier ও Meta Conversion API পরে নিজে সেটআপ করার জন্য প্রস্তুত জায়গা।"
-      />
-
-      <div className="grid xl:grid-cols-2 gap-5">
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-bold text-lg text-gray-900">
-                Pathao Courier
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Automatic courier order creation ও tracking sync-এর জন্য।
-              </p>
-            </div>
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
-              Setup Pending
-            </span>
-          </div>
-
-          <div className="mt-5 space-y-2.5 text-sm text-gray-700">
-            <p>☐ Pathao Merchant account</p>
-            <p>☐ Developer API access</p>
-            <p>☐ API client ID / secret / access token</p>
-            <p>☐ Store ID</p>
-            <p>☐ Website server-side Edge Function</p>
-            <p>☐ Order create + tracking status sync</p>
-          </div>
-
-          <div className="mt-5 rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs text-gray-600">
-            API secret এখানে বা frontend code-এ রাখবে না। পরে Supabase Edge Function-এর server secret হিসেবে সেট করতে হবে।
-          </div>
-
-          <a
-            href="https://merchant.pathao.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-          >
-            Pathao Merchant Panel
-          </a>
-        </div>
-
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-bold text-lg text-gray-900">
-                Meta Conversion API
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Browser Pixel-এর পাশাপাশি server-side Purchase/Checkout events পাঠানোর জন্য।
-              </p>
-            </div>
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
-              Setup Pending
-            </span>
-          </div>
-
-          <div className="mt-5 space-y-2.5 text-sm text-gray-700">
-            <p>☐ Meta Pixel / Dataset ID</p>
-            <p>☐ Events Manager access</p>
-            <p>☐ Conversions API access token</p>
-            <p>☐ Supabase Edge Function</p>
-            <p>☐ Purchase + InitiateCheckout events</p>
-            <p>☐ Browser/server event_id deduplication</p>
-          </div>
-
-          <div className="mt-5 rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs text-gray-600">
-            CAPI access token কখনো GitHub, React code বা Vercel frontend variable-এ রাখবে না। Server secret হিসেবে রাখতে হবে।
-          </div>
-
-          <div className="mt-4 text-xs text-gray-500">
-            Frontend Pixel ID পরে Vercel Environment Variables-এ:
-            <span className="font-mono text-gray-700"> VITE_META_PIXEL_ID</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-5">
-        <h3 className="font-bold text-gray-900">যখন সেটআপ করবে — এই Admin Panel থেকেই মনে রাখবে</h3>
-        <ol className="mt-3 list-decimal pl-5 space-y-1.5 text-sm text-gray-700">
-          <li>Pathao credentials → Supabase Edge Function secrets</li>
-          <li>Meta CAPI token → Supabase Edge Function secret</li>
-          <li>Pixel ID / GA4 ID → Vercel Environment Variables</li>
-          <li>তারপর test order দিয়ে event ও courier order verify</li>
-        </ol>
-      </div>
-    </div>
-  );
+  return <AdminIntegrationCenter />;
 }
 
 /* =========================================================

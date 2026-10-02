@@ -16,6 +16,7 @@ import { getSettings, getDeliveryCharge } from '@/lib/settings';
 import {
   getDistricts,
   getThanas,
+  DHAKA_CITY_THANAS,
 } from '@/lib/bangladeshLocations';
 
 import type {
@@ -115,6 +116,12 @@ export default function CheckoutPage() {
     getSettings().then(setSettings);
     getDistricts().then(data => {
       setDistricts(data);
+      const dhaka = data.find(item => item.bn_name === 'ঢাকা');
+      setForm(prev => ({
+        ...prev,
+        district: dhaka?.bn_name || prev.district,
+        area: '',
+      }));
       setLocationLoading(false);
     });
   }, []);
@@ -124,8 +131,21 @@ export default function CheckoutPage() {
     const selected = districts.find(item => item.bn_name === form.district);
     if (!selected) return;
     getThanas(selected.id).then(data => {
-      setThanas(data);
-      if (!data.some(item => item.bn_name === form.area)) {
+      const locationList =
+        form.district === 'ঢাকা'
+          ? [
+              ...DHAKA_CITY_THANAS.map((name, index) => ({
+                id: `dhaka-city-${index}`,
+                name,
+                bn_name: name,
+              })),
+              ...data,
+            ]
+          : data;
+
+      setThanas(locationList);
+
+      if (!locationList.some(item => item.bn_name === form.area)) {
         setForm(prev => ({ ...prev, area: '' }));
       }
     });

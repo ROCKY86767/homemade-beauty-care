@@ -79,22 +79,22 @@ export default function Header() {
         }`}
       >
         <div className="section-padding">
-          <div className="flex items-center gap-4 py-4">
+          <div className="flex items-center gap-2 sm:gap-4 py-3 sm:py-4">
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden flex items-center justify-center text-ink"
+              className="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink hover:bg-cream"
               aria-label="Open menu"
             >
               <Menu size={26} />
             </button>
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 shrink-0">
+            <Link to="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0">
               <img
                 src="/new-homemade-logo.png"
                 alt="Homemade Beauty Care"
-                className="h-16 w-16 object-contain"
+                className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
               />
 
               <div className="hidden sm:block">
@@ -134,7 +134,7 @@ export default function Header() {
             </form>
 
             {/* Icons */}
-            <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+            <div className="flex items-center gap-0 sm:gap-2 ml-auto shrink-0">
               {/* My Account */}
               <Link
                 to="/account"

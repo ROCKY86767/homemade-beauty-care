@@ -5,19 +5,19 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#7A9B76',
-          dark: '#5C7A58',
-          light: '#9BBA97',
+          DEFAULT: '#5F7448',
+          dark: '#3F5732',
+          light: '#8FA36F',
         },
-        dark: '#34483A',
-        cream: '#F7F3EA',
-        'light-green': '#E8EFE5',
+        dark: '#263A2D',
+        cream: '#F7F4EA',
+        'light-green': '#E8EEDF',
         accent: {
-          DEFAULT: '#B88765',
-          dark: '#9C6F4F',
-          light: '#D4A584',
+          DEFAULT: '#B46F4F',
+          dark: '#8F5138',
+          light: '#D09A7D',
         },
-        ink: '#292929',
+        ink: '#29332D',
       },
       fontFamily: {
         sans: ['Hind Siliguri', 'sans-serif'],

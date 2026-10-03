@@ -5,7 +5,7 @@ interface SEOProps {
   description?: string;
   image?: string;
   canonical?: string;
-  structuredData?: Record<string, unknown> | Record<string, unknown>[];
+  structuredData?: unknown;
 }
 
 export default function SEO({

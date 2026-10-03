@@ -34,9 +34,9 @@ import LoginPage from '@/pages/LoginPage';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="w-full min-w-0 min-h-screen flex flex-col overflow-x-hidden">
       <Header />
-      <main className="flex-1 pb-16 lg:pb-0">{children}</main>
+      <main className="w-full min-w-0 flex-1 pb-16 lg:pb-0">{children}</main>
       <Footer />
       <MobileNav />
     </div>
@@ -94,16 +94,8 @@ function AppContent() {
 
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
-
-        <Route
-  path="/login"
-  element={<LoginPage />}
-/>
-
-        <Route
-          path="/reset-password"
-          element={<ResetPasswordPage />}
-        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route
           path="*"
@@ -114,53 +106,22 @@ function AppContent() {
                 <Route path="/shop" element={<ShopPage />} />
                 <Route path="/category/:slug" element={<ShopPage />} />
                 <Route path="/offers" element={<ShopPage isOffers />} />
-
-                <Route
-                  path="/new-arrivals"
-                  element={<ShopPage isNewArrivals />}
-                />
-
-                <Route
-                  path="/product/:slug"
-                  element={<ProductDetailPage />}
-                />
-
+                <Route path="/new-arrivals" element={<ShopPage isNewArrivals />} />
+                <Route path="/product/:slug" element={<ProductDetailPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
-
-                <Route
-                  path="/order-success/:orderNumber"
-                  element={<OrderSuccessPage />}
-                />
-
-                <Route
-                  path="/track-order"
-                  element={<OrderTrackingPage />}
-                />
-
-                <Route
-                  path="/my-orders"
-                  element={<MyOrdersPage />}
-                />
-
+                <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
+                <Route path="/track-order" element={<OrderTrackingPage />} />
+                <Route path="/my-orders" element={<MyOrdersPage />} />
                 <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
                 <Route path="/delivery-information" element={<DeliveryInformationPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/invoice" element={<InvoicePage />} />
-
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
-
-                <Route
-                  path="/account"
-                  element={<AccountPage />}
-                />
-
-                <Route
-                  path="/account/address"
-                  element={<SavedAddressPage />}
-                />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/account/address" element={<SavedAddressPage />} />
               </Routes>
             </Layout>
           }

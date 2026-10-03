@@ -152,6 +152,38 @@ export default function ProductDetailPage() {
         title={`${product.name_bn} - ${settings?.brand_name || 'Homemade Beauty Care'}`}
         description={product.short_description_bn || product.description_bn || undefined}
         image={product.image_url}
+        canonical={window.location.href}
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name_bn,
+          description: product.description_bn || product.short_description_bn || undefined,
+          image: gallery,
+          sku: product.sku || undefined,
+          category: product.category?.name_en || undefined,
+          brand: {
+            '@type': 'Brand',
+            name: settings?.brand_name || 'Homemade Beauty Care',
+          },
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: settings?.currency || 'BDT',
+            price: Number(product.price),
+            availability:
+              product.stock > 0
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+            url: window.location.href,
+          },
+          aggregateRating:
+            product.review_count > 0
+              ? {
+                  '@type': 'AggregateRating',
+                  ratingValue: Number(product.rating),
+                  reviewCount: Number(product.review_count),
+                }
+              : undefined,
+        }}
       />
       {/* Breadcrumb */}
       <div className="bg-cream py-3">

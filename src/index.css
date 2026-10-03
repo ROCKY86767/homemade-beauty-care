@@ -4,22 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@theme {
-  /* Homemade Beauty Care brand palette */
-  --color-primary: #5F7448;
-  --color-primary-dark: #3F5732;
-  --color-primary-light: #8FA36F;
-  --color-dark: #263A2D;
-  --color-cream: #F7F4EA;
-  --color-light-green: #E8EEDF;
-  --color-accent: #B46F4F;
-  --color-accent-dark: #8F5138;
-  --color-accent-light: #D09A7D;
-  --color-ink: #29332D;
-
-  --font-sans: 'Hind Siliguri', sans-serif;
-  --font-display: 'Playfair Display', serif;
-}
 
 @layer base {
   html {

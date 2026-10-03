@@ -5,16 +5,17 @@
 @tailwind utilities;
 
 @theme {
-  --color-primary: #7A9B76;
-  --color-primary-dark: #5C7A58;
-  --color-primary-light: #9BBA97;
-  --color-dark: #34483A;
-  --color-cream: #F7F3EA;
-  --color-light-green: #E8EFE5;
-  --color-accent: #B88765;
-  --color-accent-dark: #9C6F4F;
-  --color-accent-light: #D4A584;
-  --color-ink: #292929;
+  /* Homemade Beauty Care brand palette */
+  --color-primary: #5F7448;
+  --color-primary-dark: #3F5732;
+  --color-primary-light: #8FA36F;
+  --color-dark: #263A2D;
+  --color-cream: #F7F4EA;
+  --color-light-green: #E8EEDF;
+  --color-accent: #B46F4F;
+  --color-accent-dark: #8F5138;
+  --color-accent-light: #D09A7D;
+  --color-ink: #29332D;
 
   --font-sans: 'Hind Siliguri', sans-serif;
   --font-display: 'Playfair Display', serif;
@@ -23,14 +24,43 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
   }
+
   body {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+    margin: 0;
     font-family: 'Hind Siliguri', sans-serif;
-    color: #292929;
-    background-color: #FFFFFF;
+    color: #29332D;
+    background-color: #F7F4EA;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
   }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+    overflow-x: clip;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
+  }
+
+  ::selection {
+    background: #8FA36F;
+    color: #263A2D;
   }
 }
 
@@ -38,18 +68,23 @@
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-white font-medium transition-all duration-300 hover:bg-primary-dark hover:shadow-lg active:scale-95;
   }
+
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-primary px-8 py-3 text-primary font-medium transition-all duration-300 hover:bg-primary hover:text-white active:scale-95;
   }
+
   .btn-accent {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-8 py-3 text-white font-medium transition-all duration-300 hover:bg-accent-dark hover:shadow-lg active:scale-95;
   }
+
   .card {
     @apply bg-white rounded-2xl shadow-sm transition-all duration-300;
   }
+
   .section-padding {
     @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
   }
+
   .input-field {
     @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-ink outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20;
   }
@@ -91,33 +126,34 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-
-/* Mobile-first layout safeguards */
+/* Mobile viewport safeguards */
 html,
 body,
 #root {
   width: 100%;
-  min-height: 100%;
-  max-width: 100%;
+  max-width: 100vw;
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
-  overflow-x: hidden;
-  -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
 }
 
 img,
 video,
-svg {
+svg,
+canvas,
+iframe {
   max-width: 100%;
 }
 
@@ -153,7 +189,6 @@ textarea {
     line-height: 1.22;
   }
 
-  /* Prevent long product/order/customer text from breaking the viewport. */
   p,
   h1,
   h2,
@@ -166,14 +201,53 @@ textarea {
     overflow-wrap: anywhere;
   }
 
-  /* Horizontal tab/carousel areas should scroll instead of widening the page. */
   .overflow-x-auto {
     max-width: 100%;
     overscroll-behavior-x: contain;
   }
 }
 
-/* Safe-area support for phones with gesture/navigation bars. */
+/* Keep the brand palette consistent across common utility colors. */
+.bg-cream {
+  background-color: #F7F4EA !important;
+}
+
+.bg-light-green {
+  background-color: #E8EEDF !important;
+}
+
+.text-dark {
+  color: #263A2D !important;
+}
+
+.text-ink {
+  color: #29332D !important;
+}
+
+.border-primary {
+  border-color: #5F7448 !important;
+}
+
+.text-primary {
+  color: #5F7448 !important;
+}
+
+.bg-primary {
+  background-color: #5F7448 !important;
+}
+
+.hover\\:bg-primary:hover {
+  background-color: #5F7448 !important;
+}
+
+.bg-accent {
+  background-color: #B46F4F !important;
+}
+
+.text-accent {
+  color: #B46F4F !important;
+}
+
 @supports (padding: max(0px)) {
   .safe-area-bottom {
     padding-bottom: max(12px, env(safe-area-inset-bottom));

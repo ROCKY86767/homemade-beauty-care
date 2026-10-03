@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Printer, Search, Home, CreditCard } from 'lucide-react';
+import { Printer, Search, Home, CreditCard, MapPin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
 import SEO from '@/components/SEO';

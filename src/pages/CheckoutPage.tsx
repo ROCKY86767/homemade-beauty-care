@@ -659,6 +659,38 @@ export default function CheckoutPage() {
         await saveCustomerAddress();
       }
 
+      // Send a server-side Meta Purchase event after the order is
+      // successfully created. Integration failures must never block checkout.
+      try {
+        await supabase.functions.invoke('integrations', {
+          body: {
+            action: 'send_meta_purchase',
+            order_number: orderNumber,
+          },
+        });
+      } catch (metaError) {
+        console.error('Meta CAPI purchase event error:', metaError);
+      }
+
+      // Browser-side Purchase event for Meta Pixel.
+      try {
+        const fbq = (window as Window & {
+          fbq?: (...args: any[]) => void;
+        }).fbq;
+
+        if (fbq) {
+          fbq('track', 'Purchase', {
+            value: Number(grandTotal),
+            currency: 'BDT',
+            content_ids: items.map(item => item.product.id),
+            content_type: 'product',
+            num_items: items.reduce((sum, item) => sum + item.quantity, 0),
+          });
+        }
+      } catch (pixelError) {
+        console.error('Meta Pixel purchase event error:', pixelError);
+      }
+
       clearCart();
 
       navigate(

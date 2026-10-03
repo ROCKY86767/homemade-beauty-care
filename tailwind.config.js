@@ -18,6 +18,18 @@ export default {
           light: '#D09A7D',
         },
         ink: '#29332D',
+        gray: {
+          50: '#F7F8F4',
+          100: '#EEF1EA',
+          200: '#DDE3D7',
+          300: '#CBD3C7',
+          400: '#9AA69A',
+          500: '#718073',
+          600: '#59675D',
+          700: '#46534B',
+          800: '#334039',
+          900: '#263A2D',
+        },
       },
       fontFamily: {
         sans: ['Hind Siliguri', 'sans-serif'],

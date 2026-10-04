@@ -7,9 +7,10 @@ import StarRating from './StarRating';
 
 interface ProductCardProps {
   product: Product;
+  compactActions?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, compactActions = false }: ProductCardProps) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const discount = calculateDiscountPercent(product.price, product.old_price);
   const inWishlist = isInWishlist(product.id);
@@ -61,7 +62,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             onClick={() => addToCart(product)}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-primary-dark active:scale-95"
           >
-            <ShoppingCart size={16} />
+            <ShoppingCart size={compactActions ? 14 : 16} />
             Add to Cart
           </button>
           <Link
@@ -107,16 +108,16 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-2.5 sm:mt-3 flex gap-1.5 sm:gap-2 lg:hidden">
           <button
             onClick={() => addToCart(product)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white transition-all hover:bg-primary-dark active:scale-95"
+            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-primary font-medium text-white transition-all hover:bg-primary-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"}`}
           >
             <ShoppingCart size={16} />
             Add
           </button>
           <Link
             to={`/product/${product.slug}`}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-accent py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white transition-all hover:bg-accent-dark active:scale-95"
+            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-accent font-medium text-white transition-all hover:bg-accent-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"}`}
           >
-            <Zap size={16} />
+            <Zap size={compactActions ? 14 : 16} />
             Buy Now
           </Link>
         </div>

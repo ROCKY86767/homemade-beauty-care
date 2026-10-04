@@ -892,7 +892,10 @@ export default function CheckoutPage() {
                       });
                     }
                     className="input-field"
-                    placeholder="বাংলাদেশি ১১ সংখ্যার মোবাইল নম্বর" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
+                    placeholder="মোবাইল নম্বর লিখুন"
+                    inputMode="numeric"
+                    maxLength={11}
+                    pattern="01[0-9]{9}"
                   />
                 </div>
 

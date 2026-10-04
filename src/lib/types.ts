@@ -143,6 +143,15 @@ export interface SiteSettings {
   currency: string;
   footer_text_bn: string;
   announcement_bn: string;
+  combo_offer_enabled: boolean;
+  combo_offer_badge: string;
+  combo_offer_title: string;
+  combo_offer_description: string;
+  combo_offer_original_price: number;
+  combo_offer_price: number;
+  combo_offer_image_url: string | null;
+  combo_offer_button_text: string;
+  combo_offer_button_link: string;
 }
 
 export interface AdminUser {

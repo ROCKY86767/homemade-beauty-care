@@ -601,21 +601,22 @@ export default function HomePage() {
       )}
 
       {/* Special Combo Banner */}
+      {settings?.combo_offer_enabled !== false && (
       <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="relative overflow-hidden rounded-3xl bg-dark">
             <div className="grid md:grid-cols-2 items-center">
               <div className="p-8 lg:p-12 text-white">
                 <span className="inline-block rounded-full bg-accent px-4 py-1 text-xs font-semibold uppercase tracking-wider mb-4">
-                  Combo Offer
+                  {settings?.combo_offer_badge || 'Combo Offer'}
                 </span>
 
                 <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
-                  একসাথে যত্ন, একসাথে সাশ্রয়
+                  {settings?.combo_offer_title || 'একসাথে যত্ন, একসাথে সাশ্রয়'}
                 </h2>
 
                 <p className="text-white/70 mb-6 max-w-md">
-                  চুল ও ত্বকের যত্নের জন্য বেছে নিন আমাদের বিশেষ Combo Collection।
+                  {settings?.combo_offer_description || 'চুল ও ত্বকের যত্নের জন্য বেছে নিন আমাদের বিশেষ Combo Collection।'}
                 </p>
 
                 <div className="flex flex-wrap gap-4 mb-6">
@@ -624,7 +625,7 @@ export default function HomePage() {
                       Original Price
                     </p>
                     <p className="text-lg text-white/60 line-through">
-                      ৳1,600
+                      ৳{Number(settings?.combo_offer_original_price || 1600).toLocaleString('en-US')}
                     </p>
                   </div>
 
@@ -633,7 +634,7 @@ export default function HomePage() {
                       Combo Price
                     </p>
                     <p className="text-2xl font-bold text-primary-light">
-                      ৳1,200
+                      ৳{Number(settings?.combo_offer_price || 1200).toLocaleString('en-US')}
                     </p>
                   </div>
 
@@ -642,22 +643,22 @@ export default function HomePage() {
                       You Save
                     </p>
                     <p className="text-2xl font-bold text-accent-light">
-                      ৳400
+                      ৳{Math.max(0, Number(settings?.combo_offer_original_price || 1600) - Number(settings?.combo_offer_price || 1200)).toLocaleString('en-US')}
                     </p>
                   </div>
                 </div>
 
                 <Link
-                  to="/category/combo"
+                  to={settings?.combo_offer_button_link || '/shop'}
                   className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-3.5 font-medium text-white transition-all hover:bg-accent-light active:scale-95"
                 >
-                  Combo Collection দেখুন
+                  {settings?.combo_offer_button_text || 'Combo Collection দেখুন'}
                 </Link>
               </div>
 
               <div className="relative h-64 md:h-full min-h-[300px]">
                 <img
-                  src="https://images.pexels.com/photos/17307534/pexels-photo-17307534.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+                  src={settings?.combo_offer_image_url || "https://images.pexels.com/photos/17307534/pexels-photo-17307534.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"}
                   alt="Combo Collection"
                   className="h-full w-full object-cover"
                 />
@@ -666,6 +667,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* New Arrivals */}
       {newArrivals.length > 0 && (

@@ -15,8 +15,8 @@ const TABS = [
   { id: 'benefits', label: 'উপকারিতা' },
   { id: 'how-to-use', label: 'ব্যবহারের নিয়ম' },
   { id: 'ingredients', label: 'উপাদান' },
-  { id: 'delivery', label: 'ডেলিভারি তথ্য' },
-  { id: 'reviews', label: 'রিভিউ' },
+  { id: 'delivery', label: 'Delivery Information' },
+  { id: 'reviews', label: 'Reviews' },
 ];
 
 export default function ProductDetailPage() {
@@ -131,7 +131,7 @@ export default function ProductDetailPage() {
 
   const handleWhatsAppOrder = () => {
     const waNum = settings?.whatsapp_number?.replace(/[^0-9]/g, '') || '01999478203';
-    const message = `আসসালামু আলাইকুম, আমি অর্ডার করতে চাই:%0A%0A*পণ্য:* ${product.name_bn}%0A*দাম:* ${formatPrice(product.price)}%0A*পরিমাণ:* ${quantity}%0A*মোট:* ${formatPrice(product.price * quantity)}`;
+    const message = `আসসালামু আলাইকুম, আমি অর্ডার করতে চাই:%0A%0A*পণ্য:* ${product.name_bn}%0A*দাম:* ${formatPrice(product.price)}%0A*Quantity:* ${quantity}%0A*মোট:* ${formatPrice(product.price * quantity)}`;
     window.open(`https://wa.me/88${waNum}?text=${message}`, '_blank');
   };
 
@@ -152,7 +152,7 @@ export default function ProductDetailPage() {
 
     if (error) {
       console.error('Review submission error:', error);
-      setReviewError('রিভিউ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      setReviewError('Reviews জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
       return;
     }
 
@@ -350,7 +350,7 @@ export default function ProductDetailPage() {
               disabled={outOfStock}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 font-medium text-white transition-all hover:bg-[#1da851] hover:shadow-lg active:scale-95 disabled:opacity-50"
             >
-              <MessageCircle size={20} /> WhatsApp এ অর্ডার করুন
+              <MessageCircle size={20} /> WhatsApp এ Buy Now
             </button>
 
             <button
@@ -468,9 +468,9 @@ export default function ProductDetailPage() {
 
                 {/* Review form */}
                 <div className="mb-6 rounded-xl border border-gray-100 p-5">
-                  <h3 className="font-display text-lg font-semibold text-ink mb-3">রিভিউ লিখুন</h3>
+                  <h3 className="font-display text-lg font-semibold text-ink mb-3">Reviews লিখুন</h3>
                   {reviewSubmitted ? (
-                    <p className="text-sm text-primary">ধন্যবাদ! আপনার রিভিউ অ্যাডমিন অনুমোদনের পর প্রকাশ করা হবে।</p>
+                    <p className="text-sm text-primary">ধন্যবাদ! আপনার Reviews অ্যাডমিন অনুমোদনের পর প্রকাশ করা হবে।</p>
                   ) : (
                     <form onSubmit={handleReviewSubmit} className="space-y-3">
                       <div className="flex gap-4">
@@ -497,20 +497,20 @@ export default function ProductDetailPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-ink mb-1 block">রিভিউ</label>
+                        <label className="text-sm font-medium text-ink mb-1 block">Reviews</label>
                         <textarea
                           required
                           rows={3}
                           value={reviewForm.text}
                           onChange={e => setReviewForm({ ...reviewForm, text: e.target.value })}
                           className="input-field resize-none"
-                          placeholder="আপনার অভিজ্ঞতা শেয়ার করুন..."
+                          placeholder="আপনার অভিজ্ঞতা Share..."
                         />
                       </div>
                       {reviewError && (
                         <p className="text-sm text-red-500">{reviewError}</p>
                       )}
-                      <button type="submit" className="btn-primary text-sm py-2.5 px-6">রিভিউ জমা দিন</button>
+                      <button type="submit" className="btn-primary text-sm py-2.5 px-6">Reviews জমা দিন</button>
                     </form>
                   )}
                 </div>
@@ -542,7 +542,7 @@ export default function ProductDetailPage() {
                       <p className="text-sm text-gray-600">{review.review_bn}</p>
                     </div>
                   )) : (
-                    <p className="text-gray-400 text-center py-8">এই পণ্যের জন্য এখনো কোনো রিভিউ নেই।</p>
+                    <p className="text-gray-400 text-center py-8">এই পণ্যের জন্য এখনো কোনো Reviews নেই।</p>
                   )}
                 </div>
               </div>
@@ -553,7 +553,7 @@ export default function ProductDetailPage() {
         {/* Related Products */}
         {related.length > 0 && (
           <div className="mt-10 sm:mt-16">
-            <h2 className="font-display text-2xl font-bold text-dark mb-6">সম্পর্কিত পণ্য</h2>
+            <h2 className="font-display text-2xl font-bold text-dark mb-6">Related Products</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {related.map(p => <ProductCard key={p.id} product={p} />)}
             </div>

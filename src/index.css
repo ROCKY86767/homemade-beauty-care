@@ -224,6 +224,13 @@ textarea {
     padding-right: 14px;
   }
 
+  /* Mobile-first typography and spacing */
+  h1 { font-size: 1.55rem; }
+  h2 { font-size: 1.35rem; }
+  h3 { font-size: 1.05rem; }
+  p { line-height: 1.55; }
+  .btn-primary, .btn-secondary, .btn-accent { padding: 0.68rem 1.1rem; font-size: 0.9rem; }
+
   .safe-width {
     width: 100%;
     min-width: 0;

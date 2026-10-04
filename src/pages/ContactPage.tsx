@@ -100,7 +100,7 @@ export default function ContactPage() {
       ))}
 
       <a
-        href={`https://wa.me/${(settings?.whatsapp_number || settings?.phone || '01999478203').replace(/\D/g, '').replace(/^0/, '88')}`}
+        href={settings?.whatsapp_number || settings?.phone ? `https://wa.me/${(settings?.whatsapp_number || settings?.phone || '').replace(/\D/g, '').replace(/^0/, '88')}` : '#'}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
@@ -118,10 +118,10 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-semibold text-ink">Phone</h3>
                   <a
-                    href={`tel:${settings?.phone || '01999478203'}`}
+                    href={settings?.phone ? `tel:${settings.phone}` : '#'} 
                     className="text-gray-500 text-sm mt-1 inline-block hover:text-primary"
                   >
-                    {settings?.phone || '01999478203'}
+                    {settings?.phone || 'Customer Support'}
                   </a>
                 </div>
               </div>

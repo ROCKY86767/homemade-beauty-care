@@ -77,7 +77,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
     return result;
   }, [products, selectedCats, priceRange, minRating, onlyDiscount, sortBy, categories, categorySlug]);
 
-  const pageTitle = isOffers ? 'অফার' : isNewArrivals ? 'নতুন পণ্য' : categorySlug
+  const pageTitle = isOffers ? 'Special Offers' : isNewArrivals ? 'New Arrivals' : categorySlug
     ? categories.find(c => c.slug === categorySlug)?.name_bn || 'Shop'
     : 'Shop All';
 
@@ -223,7 +223,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-gray-400 text-lg">কোনো পণ্য পাওয়া যায়নি।</p>
+                <p className="text-gray-400 text-lg">No products found.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">

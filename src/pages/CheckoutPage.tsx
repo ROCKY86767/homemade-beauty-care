@@ -411,12 +411,9 @@ export default function CheckoutPage() {
   }
 
   const deliveryCharge = settings
-    ? getDeliveryCharge(
-        settings,
-        form.district,
-        subtotal,
-        form.area
-      )
+    ? (settings.free_delivery_enabled && subtotal >= Number(settings.free_delivery_minimum || 0)
+        ? 0
+        : getDeliveryCharge(settings, form.district, subtotal, form.area))
     : 120;
 
   const discount = appliedCoupon
@@ -614,10 +611,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (
-      paymentMethod ===
-      'Online Payment'
-    ) {
+    if (paymentMethod === 'Online Payment' && settings?.online_payment_enabled !== true) {
       setError(
         'Online Payment is not available yet. Please select Cash on Delivery.'
       );

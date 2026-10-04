@@ -118,7 +118,7 @@ export default function Header() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
+                  placeholder="Search products..."
                   className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 click-feedback-soft"
                 />
 
@@ -185,7 +185,7 @@ export default function Header() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
+                placeholder="Search products..."
                 className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white click-feedback-soft"
               />
 

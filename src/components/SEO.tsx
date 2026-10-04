@@ -74,3 +74,14 @@ export default function SEO({
 
   return null;
 }
+
+export function applyNoindex(noindex: boolean) {
+  const name = 'robots';
+  let meta = document.head.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = name;
+    document.head.appendChild(meta);
+  }
+  meta.content = noindex ? 'noindex,nofollow' : 'index,follow';
+}

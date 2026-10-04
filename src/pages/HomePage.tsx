@@ -314,7 +314,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-dark/70 via-dark/30 to-transparent" />
               </div>
 
-              <div className="relative h-full section-padding flex items-center">
+              <div className="relative z-10 h-full section-padding flex items-center">
                 <div className="max-w-xl text-white">
                   {banner.small_text_bn && (
                     <p className="text-sm font-medium text-primary-light mb-3 tracking-wider uppercase animate-fade-in-up">
@@ -332,7 +332,7 @@ export default function HomePage() {
                     </p>
                   )}
 
-                  <div className="flex flex-wrap gap-3 animate-fade-in-up">
+                  <div className="relative z-20 flex flex-wrap gap-3 animate-fade-in-up">
                     {banner.button_text_bn && (
                       <Link
                         to={banner.button_link || '/shop'}

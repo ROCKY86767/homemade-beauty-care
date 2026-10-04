@@ -299,33 +299,73 @@ textarea {
   }
 }
 
+
+/* === Homemade Beauty Care — unified brand system === */
+:root {
+  --brand-primary: #5F7448;
+  --brand-primary-dark: #3F5732;
+  --brand-primary-light: #8FA36F;
+  --brand-deep: #263A2D;
+  --brand-ink: #29332D;
+  --brand-cream: #F7F4EA;
+  --brand-surface: #E8EEDF;
+  --brand-accent: #B46F4F;
+  --brand-accent-dark: #8F5138;
+  --brand-accent-light: #D09A7D;
+  --brand-border: #DDE3D7;
+}
+
+.brand-gradient {
+  background: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand-primary) 58%, var(--brand-primary-light) 100%);
+}
+
+.brand-soft-gradient {
+  background: linear-gradient(135deg, var(--brand-cream) 0%, #ffffff 55%, var(--brand-surface) 100%);
+}
+
+.brand-accent-gradient {
+  background: linear-gradient(135deg, var(--brand-accent-dark) 0%, var(--brand-accent) 100%);
+}
+
+.brand-border {
+  border-color: var(--brand-border) !important;
+}
+
+.brand-shadow {
+  box-shadow: 0 14px 40px rgb(38 58 45 / 0.10);
+}
+
+.brand-glow {
+  box-shadow: 0 0 0 1px rgb(95 116 72 / 0.10), 0 12px 35px rgb(95 116 72 / 0.12);
+}
+
 /* Homemade Beauty Care brand palette */
 .bg-cream {
-  background-color: #F7F4EA !important;
+  background-color: var(--brand-cream) !important;
 }
 
 .bg-light-green {
-  background-color: #E8EEDF !important;
+  background-color: var(--brand-surface) !important;
 }
 
 .text-dark {
-  color: #263A2D !important;
+  color: var(--brand-deep) !important;
 }
 
 .text-ink {
-  color: #29332D !important;
+  color: var(--brand-ink) !important;
 }
 
 .border-primary {
-  border-color: #5F7448 !important;
+  border-color: var(--brand-primary) !important;
 }
 
 .text-primary {
-  color: #5F7448 !important;
+  color: var(--brand-primary) !important;
 }
 
 .bg-primary {
-  background-color: #5F7448 !important;
+  background-color: var(--brand-primary) !important;
 }
 
 .hover\:bg-primary:hover {
@@ -333,11 +373,11 @@ textarea {
 }
 
 .bg-accent {
-  background-color: #B46F4F !important;
+  background-color: var(--brand-accent) !important;
 }
 
 .text-accent {
-  color: #B46F4F !important;
+  color: var(--brand-accent) !important;
 }
 
 @supports (padding: max(0px)) {

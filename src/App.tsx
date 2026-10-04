@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
 import Analytics from '@/components/Analytics';
+import { getSettings } from '@/lib/settings';
+import type { SiteSettings } from '@/lib/types';
 
 import HomePage from '@/pages/HomePage';
 import ShopPage from '@/pages/ShopPage';
@@ -44,9 +46,11 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    getSettings().then(setSiteSettings);
     const handleRecovery = async () => {
       const hash = window.location.hash;
 
@@ -90,6 +94,7 @@ function AppContent() {
 
   return (
     <>
+      {siteSettings?.maintenance_mode && window.location.pathname !== '/admin' && window.location.pathname !== '/login' && window.location.pathname !== '/reset-password' ? <div className="min-h-screen flex items-center justify-center bg-cream px-6 text-center"><div><h1 className="text-3xl font-bold text-dark">We’ll be back soon</h1><p className="mt-2 text-gray-600">The website is temporarily under maintenance.</p></div></div> : <>
       <ScrollToTop />
 
       <Routes>
@@ -127,6 +132,7 @@ function AppContent() {
           }
         />
       </Routes>
+      </>}
     </>
   );
 }

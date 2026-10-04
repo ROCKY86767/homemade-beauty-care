@@ -27,7 +27,7 @@ export default function CartPage() {
         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-cream mb-6">
           <ShoppingBag size={40} className="text-primary" />
         </div>
-        <h2 className="font-display text-2xl font-bold text-dark mb-2">আপনার কার্ট খালি</h2>
+        <h2 className="font-display text-2xl font-bold text-dark mb-2">Your Cart খালি</h2>
         <p className="text-gray-500 mb-6">এখনো কোনো পণ্য কার্টে যোগ করেননি।</p>
         <Link to="/shop" className="btn-primary">শপ করুন</Link>
       </div>
@@ -38,7 +38,7 @@ export default function CartPage() {
     <div className="min-h-screen bg-cream">
       <SEO title="কার্ট - Homemade Beauty Care" />
       <div className="section-padding py-8">
-        <h1 className="font-display text-3xl font-bold text-dark mb-8">আপনার কার্ট</h1>
+        <h1 className="font-display text-3xl font-bold text-dark mb-8">Your Cart</h1>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Cart Items */}

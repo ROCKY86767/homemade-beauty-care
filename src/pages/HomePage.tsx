@@ -68,7 +68,7 @@ const HOW_TO_ORDER = [
   { num: '04', title: 'Confirm Your Order' },
 ];
 
-export default function HomePage() {
+export default function HomePage() { // centralized storefront settings
   const [banners, setBanners] = useState<Banner[]>([]);
 
   // সব Active Product

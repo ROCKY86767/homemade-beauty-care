@@ -99,9 +99,6 @@ export default function HomePage() {
         const [
           bannersResult,
           allProductsResult,
-          bestResult,
-          newResult,
-          saleResult,
           categoriesResult,
           reviewsResult,
         ] = await Promise.all([
@@ -111,33 +108,13 @@ export default function HomePage() {
             .eq('is_active', true)
             .order('sort_order'),
 
-          // ⭐ Homepage-এর মূল product list
+          // ⭐ Homepage-এর একটিমাত্র মূল product query
+          // Best Seller / New Arrival / Sale section এখান থেকেই তৈরি হবে।
           supabase
             .from('products')
             .select('*, category:categories(*)')
             .eq('is_active', true)
             .order('created_at', { ascending: false }),
-
-          supabase
-            .from('products')
-            .select('*, category:categories(*)')
-            .eq('is_active', true)
-            .eq('is_best_seller', true)
-            .limit(4),
-
-          supabase
-            .from('products')
-            .select('*, category:categories(*)')
-            .eq('is_active', true)
-            .eq('is_new', true)
-            .limit(4),
-
-          supabase
-            .from('products')
-            .select('*, category:categories(*)')
-            .eq('is_active', true)
-            .eq('is_on_sale', true)
-            .limit(4),
 
           supabase
             .from('categories')
@@ -167,18 +144,6 @@ export default function HomePage() {
             'All products load error:',
             allProductsResult.error
           );
-        }
-
-        if (bestResult.error) {
-          console.error('Best sellers load error:', bestResult.error);
-        }
-
-        if (newResult.error) {
-          console.error('New arrivals load error:', newResult.error);
-        }
-
-        if (saleResult.error) {
-          console.error('Sale products load error:', saleResult.error);
         }
 
         if (categoriesResult.error) {
@@ -245,11 +210,12 @@ export default function HomePage() {
         // ⭐ সব active products
         setAllProducts(loadedProducts);
 
-        setBestSellers(bestResult.data || []);
+        // একই product dataset থেকে homepage-এর আলাদা section তৈরি করি।
+        setBestSellers(loadedProducts.filter(product => product.is_best_seller).slice(0, 4));
         setHairCare(loadedHairCare);
         setSkinCare(loadedSkinCare);
-        setNewArrivals(newResult.data || []);
-        setOnSale(saleResult.data || []);
+        setNewArrivals(loadedProducts.filter(product => product.is_new).slice(0, 4));
+        setOnSale(loadedProducts.filter(product => product.is_on_sale).slice(0, 4));
         setCategories(loadedCategories);
         setReviews(reviewsResult.data || []);
       } catch (error) {

@@ -21,6 +21,15 @@ const DEFAULT_SETTINGS: SiteSettings = {
   currency: '৳',
   footer_text_bn: 'চুল ও ত্বকের দৈনন্দিন যত্নকে আরও সহজ ও সুন্দর করার জন্য আমাদের যাত্রা।',
   announcement_bn: 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | অর্ডার করতে কল করুন: 01999478203',
+  combo_offer_enabled: true,
+  combo_offer_badge: 'Combo Offer',
+  combo_offer_title: 'একসাথে যত্ন, একসাথে সাশ্রয়',
+  combo_offer_description: 'চুল ও ত্বকের যত্নের জন্য বেছে নিন আমাদের বিশেষ Combo Collection।',
+  combo_offer_original_price: 1600,
+  combo_offer_price: 1200,
+  combo_offer_image_url: null,
+  combo_offer_button_text: 'Combo Collection দেখুন',
+  combo_offer_button_link: '/shop',
 };
 
 let cachedSettings: SiteSettings | null = null;

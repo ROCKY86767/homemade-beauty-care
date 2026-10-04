@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { getSettings } from '@/lib/settings';
 
 declare global {
   interface Window {
@@ -18,9 +19,11 @@ export default function Analytics() {
   );
 
   useEffect(() => {
-    const gaId = import.meta.env.VITE_GA4_MEASUREMENT_ID as string | undefined;
-
-    if (gaId && !document.querySelector('script[data-ga4]')) {
+    let active = true;
+    getSettings().then(settings => {
+      if (!active) return;
+      const gaId = settings.google_analytics_enabled ? settings.google_analytics_id : '';
+      if (gaId && !document.querySelector('script[data-ga4]')) {
       window.dataLayer = window.dataLayer || [];
       window.gtag = function (...args: any[]) {
         window.dataLayer.push(args);
@@ -33,13 +36,15 @@ export default function Analytics() {
       script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
       script.dataset.ga4 = 'true';
       document.head.appendChild(script);
-    }
+      }
+    });
 
     supabase.rpc('get_public_meta_pixel').then(({ data }) => {
       if (data?.enabled && data.pixel_id) {
         setMetaPixelId(data.pixel_id);
       }
     });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {

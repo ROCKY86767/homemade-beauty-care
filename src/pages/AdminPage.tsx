@@ -2526,6 +2526,7 @@ function OrdersView() {
   const [customTo, setCustomTo] = useState('');
 
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
 
   const load = async () => {
@@ -3141,9 +3142,7 @@ function OrdersView() {
                     >
                       <Eye className="h-4 w-4" />
 
-                      {isExpanded
-                        ? 'Hide Items'
-                        : `View Items (${orderItems.length})`}
+                      View
                     </button>
 
                     <Link
@@ -3221,9 +3220,6 @@ function OrdersView() {
                     </p>
                   </div>
                 </div>
-
-                {/* ORDER ITEMS */}
-                {isExpanded && (
                   <div className="mt-5 border-t border-gray-100 pt-5">
                     <h4 className="mb-3 text-sm font-semibold text-gray-900">
                       Order Items
@@ -3300,6 +3296,23 @@ function OrdersView() {
           title="No orders found"
           description="Try changing your search or filters."
         />
+      )}
+
+      {viewOrder && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4" onClick={() => setViewOrder(null)}>
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-5 py-4">
+              <div><h3 className="text-lg font-bold">Order #{viewOrder.order_number || viewOrder.id?.slice(0, 8)}</h3><p className="text-xs text-gray-500">{dateTime(viewOrder.created_at)}</p></div>
+              <button onClick={() => setViewOrder(null)} className="rounded-lg p-2 hover:bg-gray-100"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="grid gap-4 p-5 sm:grid-cols-2">
+              <div className="rounded-xl bg-gray-50 p-4"><p className="text-xs text-gray-400">Customer</p><p className="font-semibold">{viewOrder.customer_name || '—'}</p><p className="text-sm">{viewOrder.mobile || viewOrder.customer_phone || '—'}</p></div>
+              <div className="rounded-xl bg-gray-50 p-4"><p className="text-xs text-gray-400">Total</p><p className="text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p><p className="text-sm">{viewOrder.payment_method || 'COD'} · {viewOrder.payment_status || 'Unpaid'}</p></div>
+              <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2"><p className="text-xs text-gray-400">Address</p><p className="text-sm">{[viewOrder.district, viewOrder.area, viewOrder.address].filter(Boolean).join(', ') || '—'}</p></div>
+              <div className="sm:col-span-2"><h4 className="mb-2 font-semibold">Order Items ({itemsForOrder(viewOrder.id).length})</h4>{itemsForOrder(viewOrder.id).map((item) => <div key={item.id} className="mb-2 flex items-center gap-3 rounded-lg border bg-gray-50 p-2.5"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.product_name}</p><p className="text-xs text-gray-500">{money(item.price)} × {item.quantity}</p></div><p className="text-sm font-semibold">{money(Number(item.price || 0) * Number(item.quantity || 0))}</p></div>)}</div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

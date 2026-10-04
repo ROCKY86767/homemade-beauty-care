@@ -668,6 +668,51 @@ export default function CheckoutPage() {
         throw orderError || new Error('Order creation failed.');
       }
 
+      // Automatically dispatch the confirmed order to every enabled
+      // Order Management integration. Secrets stay server-side in the Edge Function.
+      try {
+        const { data: dispatchToken, error: dispatchTokenError } =
+          await supabase.rpc('issue_guest_order_integration_token', {
+            p_order_number: orderNumber,
+            p_mobile: cleanMobile,
+          });
+
+        if (dispatchTokenError || !dispatchToken) {
+          console.error(
+            'Order management dispatch token error:',
+            dispatchTokenError
+          );
+        } else {
+          const { data: dispatchResult, error: dispatchError } =
+            await supabase.functions.invoke('order-management', {
+              body: {
+                action: 'create_guest',
+                order_number: orderNumber,
+                mobile: cleanMobile,
+                token: dispatchToken,
+              },
+            });
+
+          if (dispatchError) {
+            console.error(
+              'Automatic order management dispatch error:',
+              dispatchError
+            );
+          } else if (dispatchResult?.success === false) {
+            console.error(
+              'Automatic order management dispatch failed:',
+              dispatchResult
+            );
+          }
+        }
+      } catch (integrationError) {
+        // Integration failures must never block a successfully created order.
+        console.error(
+          'Automatic order management dispatch error:',
+          integrationError
+        );
+      }
+
       /*
        * Save customer address
        *

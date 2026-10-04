@@ -170,14 +170,14 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   return (
     <div className="min-h-screen bg-white">
       {/* Banner */}
-      <div className="bg-cream py-10">
+      <div className="bg-cream py-7 sm:py-10">
         <div className="section-padding text-center">
-          <h1 className="font-display text-3xl font-bold text-dark">{pageTitle}</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-dark">{pageTitle}</h1>
           {pageDesc && <p className="mt-2 text-gray-500 max-w-xl mx-auto">{pageDesc}</p>}
         </div>
       </div>
 
-      <div className="section-padding py-8">
+      <div className="section-padding py-6 sm:py-8">
         <div className="flex gap-8">
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-64 shrink-0">
@@ -191,14 +191,14 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
 
           {/* Main */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-5 sm:mb-6">
               <p className="text-sm text-gray-500">
                 <span className="font-semibold text-ink">{filtered.length}</span> products
               </p>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowFilters(true)}
-                  className="lg:hidden flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-ink hover:border-primary"
+                  className="lg:hidden flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-xs sm:text-sm font-medium text-ink hover:border-primary"
                 >
                   <SlidersHorizontal size={16} /> Filter & Sort
                 </button>
@@ -206,7 +206,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                   <select
                     value={sortBy}
                     onChange={e => setSortBy(e.target.value)}
-                    className="appearance-none rounded-full border border-gray-200 pl-4 pr-10 py-2 text-sm font-medium text-ink outline-none focus:border-primary cursor-pointer"
+                    className="appearance-none rounded-full border border-gray-200 pl-3 pr-8 py-2 text-xs sm:text-sm font-medium text-ink outline-none focus:border-primary cursor-pointer"
                   >
                     {SORT_OPTIONS.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -226,7 +226,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 <p className="text-gray-400 text-lg">কোনো পণ্য পাওয়া যায়নি।</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {filtered.map(p => <ProductCard key={p.id} product={p} />)}
               </div>
             )}

@@ -18,7 +18,6 @@ const NAV_LINKS = [
   { label: 'Shop', path: '/shop' },
   { label: 'Skin care', path: '/category/skin-care' },
   { label: 'Hair care', path: '/category/hair-care' },
-  { label: 'Combo', path: '/category/combo' },
   { label: 'New Product', path: '/new-arrivals' },
   { label: 'Offer', path: '/offers' },
   { label: 'About Us', path: '/about' },
@@ -94,7 +93,7 @@ export default function Header() {
               <img
                 src="/new-homemade-logo.png"
                 alt="Homemade Beauty Care"
-                className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
+                className="h-10 w-10 sm:h-16 sm:w-16 object-contain"
               />
 
               <div className="hidden sm:block">

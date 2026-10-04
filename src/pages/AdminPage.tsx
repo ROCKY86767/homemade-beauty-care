@@ -40,6 +40,7 @@ import {
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
+import AdminSettingsCenter from '../components/AdminSettingsCenter';
 import OrderManagementIntegrationCenter from '../components/OrderManagementIntegrationCenter';
 import { formatPrice } from '../lib/format';
 import { getSettings, updateSettings } from '../lib/settings';
@@ -5696,6 +5697,7 @@ function ReportsView() {
 function IntegrationSettingsView() {
   return (
     <div className="space-y-6">
+      <AdminSettingsCenter />
       <AdminIntegrationCenter />
       <OrderManagementIntegrationCenter />
     </div>

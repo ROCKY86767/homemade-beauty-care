@@ -8,7 +8,6 @@ import { getSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
 export default function InvoicePage() {
-  const [orderNumber, setOrderNumber] = useState('');
   const [mobile, setMobile] = useState('');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
@@ -21,25 +20,25 @@ export default function InvoicePage() {
   }, []);
 
   useEffect(() => {
-    const id = searchParams.get('id');
-    if (!id) return;
-    setOrderNumber(id);
-    void loadInvoice(id);
+    const mobileParam = searchParams.get('mobile');
+    if (!mobileParam) return;
+    setMobile(mobileParam);
+    void loadInvoice(mobileParam);
   }, [searchParams]);
 
-  async function loadInvoice(id: string) {
+  async function loadInvoice(phone: string) {
     setError('');
     setResult(null);
     setLoading(true);
 
     const { data, error: rpcError } = await supabase.rpc('track_order', {
-      p_order_number: id.trim().toUpperCase(),
+      p_mobile_number: phone.trim(),
     });
 
     setLoading(false);
 
     if (rpcError || !data?.success) {
-      setError('Invoice পাওয়া যায়নি। Order ID ঠিক আছে কিনা দেখুন।');
+      setError('Invoice পাওয়া যায়নি। মোবাইল নম্বরটি ঠিক আছে কিনা দেখুন।');
       return;
     }
 
@@ -52,7 +51,7 @@ export default function InvoicePage() {
     setResult(null);
     setLoading(true);
 
-    await loadInvoice(orderNumber);
+    await loadInvoice(mobile);
   };
 
   return (
@@ -70,10 +69,10 @@ export default function InvoicePage() {
             <form onSubmit={handleSearch} className="space-y-4 max-w-md mx-auto">
               <input
                 required
-                value={orderNumber}
-                onChange={e => setOrderNumber(e.target.value)}
+                value={mobile}
+                onChange={e => setMobile(e.target.value)}
                 className="input-field"
-                placeholder="Order ID (যেমন HBC-000021)"
+                placeholder="আপনার মোবাইল নম্বর দিন"
               />
 
               {error && <p className="rounded-lg bg-red-50 text-red-600 px-4 py-3 text-sm">{error}</p>}
@@ -86,10 +85,13 @@ export default function InvoicePage() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 print:shadow-none">
-            <div className="flex items-start justify-between gap-4 border-b pb-5">
-              <div>
-                <h1 className="font-display text-2xl font-bold text-dark">Homemade Beauty Care</h1>
-                <p className="text-sm text-gray-500">Order Invoice</p>
+            <div className="flex items-start justify-between gap-4 border-b border-primary/10 pb-6">
+              <div className="flex items-center gap-3">
+                <img src="/new-homemade-logo.png" alt="Homemade Beauty Care" className="h-16 w-16 rounded-xl object-contain" />
+                <div>
+                  <h1 className="font-display text-2xl font-bold text-dark">Homemade Beauty Care</h1>
+                  <p className="text-sm text-gray-500">Official Order Invoice</p>
+                </div>
               </div>
               <button onClick={() => window.print()} className="btn-secondary print:hidden">
                 <Printer size={18} /> Print
@@ -115,7 +117,7 @@ export default function InvoicePage() {
               </div>
             </div>
 
-            <div className="py-5 border-b">
+            <div className="py-5 border-b border-gray-100">
               {result.items.map((item: any) => (
                 <div key={item.id} className="flex gap-3 py-2">
                   {item.image_url && <img src={item.image_url} alt="" className="h-12 w-12 rounded-lg object-cover" />}
@@ -135,12 +137,12 @@ export default function InvoicePage() {
               <div className="flex justify-between border-t pt-3 text-lg font-bold"><span>Grand Total</span><span className="text-primary">{formatPrice(result.order.grand_total)}</span></div>
             </div>
 
-            <div className="border-t pt-5 text-sm text-gray-600 space-y-2">
+            <div className="border-t border-primary/10 pt-5 text-sm text-gray-600 space-y-2">
               <div className="flex gap-2"><MapPin size={16} /> {result.order.address}, {result.order.area}, {result.order.district}</div>
               <div className="flex gap-2"><CreditCard size={16} /> {result.order.payment_method}</div>
             </div>
 
-            <div className="flex gap-3 mt-6 print:hidden">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6 print:hidden">
               <Link to={`/track-order?id=${result.order.order_number}`} className="btn-primary">অর্ডার ট্র্যাক করুন</Link>
               <Link to="/" className="btn-secondary"><Home size={18} /> হোম</Link>
             </div>

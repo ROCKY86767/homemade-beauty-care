@@ -55,8 +55,6 @@ export default function Analytics() {
     (window.fbq as any).version = '2.0';
     (window.fbq as any).queue = (window.fbq as any).queue || [];
     (window.fbq as any)('init', metaPixelId);
-    (window.fbq as any)('track', 'PageView');
-
     const script = document.createElement('script');
     script.async = true;
     script.src = 'https://connect.facebook.net/en_US/fbevents.js';

@@ -4,8 +4,6 @@ import { Printer, Search, Home, CreditCard, MapPin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
 import SEO from '@/components/SEO';
-import { getSettings } from '@/lib/settings';
-import type { SiteSettings } from '@/lib/types';
 
 export default function InvoicePage() {
   const [mobile, setMobile] = useState('');
@@ -13,12 +11,6 @@ export default function InvoicePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
-
-  useEffect(() => {
-    getSettings().then(setSettings);
-  }, []);
-
   useEffect(() => {
     const mobileParam = searchParams.get('mobile');
     if (!mobileParam) return;
@@ -63,7 +55,7 @@ export default function InvoicePage() {
           <div className="card p-6 sm:p-8">
             <div className="text-center mb-6">
               <h1 className="font-display text-3xl font-bold text-dark">Invoice</h1>
-              <p className="text-gray-500 mt-2">শুধু Order ID দিয়ে ইনভয়েস দেখুন ও প্রিন্ট করুন।</p>
+              <p className="text-gray-500 mt-2">আপনার অর্ডারের মোবাইল নম্বর দিয়ে ইনভয়েস দেখুন ও প্রিন্ট করুন।</p>
             </div>
 
             <form onSubmit={handleSearch} className="space-y-4 max-w-md mx-auto">
@@ -98,7 +90,7 @@ export default function InvoicePage() {
               </button>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 py-5 border-b">
+            <div className="grid sm:grid-cols-2 gap-4 py-5 border-b border-gray-100">
               <div>
                 <p className="text-xs text-gray-400">Order ID</p>
                 <p className="font-bold text-lg">{result.order.order_number}</p>

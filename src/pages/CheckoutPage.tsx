@@ -885,14 +885,14 @@ export default function CheckoutPage() {
                     required
                     value={form.mobile}
                     onChange={e => {
-                      const value = e.target.value.replace(/\\D/g, '').slice(0, 11);
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 11);
                       setForm({
                         ...form,
                         mobile: value,
                       });
                     }
                     className="input-field"
-                    placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
+                    placeholder="বাংলাদেশি ১১ সংখ্যার মোবাইল নম্বর" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />
                 </div>
 
@@ -906,14 +906,14 @@ export default function CheckoutPage() {
                     type="tel"
                     value={form.altMobile}
                     onChange={e => {
-                      const value = e.target.value.replace(/\\D/g, '').slice(0, 11);
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 11);
                       setForm({
                         ...form,
                         altMobile: value,
                       });
                     }
                     className="input-field"
-                    placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
+                    placeholder="বাংলাদেশি ১১ সংখ্যার মোবাইল নম্বর" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />
                 </div>
 

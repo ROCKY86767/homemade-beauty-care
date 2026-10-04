@@ -370,7 +370,7 @@ export default function HomePage() {
       )}
 
       {/* Trust Strip */}
-      <section className="bg-cream py-6">
+      {settings?.homepage_show_categories !== false && <section className="bg-cream py-6">
         <div className="section-padding">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {TRUST_FEATURES.map((feature, idx) => (
@@ -396,10 +396,10 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Shop by Category */}
-      <section className="py-10 sm:py-16">
+      {settings?.homepage_show_categories !== false && <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display section-heading-premium text-2xl sm:text-3xl font-bold text-dark">
@@ -436,10 +436,10 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ⭐ ALL ACTIVE PRODUCTS */}
-      {allProducts.length > 0 && (
+      {settings?.homepage_show_all_products !== false && allProducts.length > 0 && (
         <section className="py-10 sm:py-16 bg-cream">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
@@ -476,7 +476,7 @@ export default function HomePage() {
       )}
 
       {/* Best Sellers */}
-      {bestSellers.length > 0 && (
+      {settings?.homepage_show_best_sellers !== false && bestSellers.length > 0 && (
         <section className="py-10 sm:py-16">
           <div className="section-padding">
             <div className="text-center mb-10">
@@ -503,7 +503,7 @@ export default function HomePage() {
       )}
 
       {/* Hair Care Section */}
-      {hairCare.length > 0 && (
+      {settings?.homepage_show_hair_care !== false && hairCare.length > 0 && (
         <section className="py-10 sm:py-16">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
@@ -541,7 +541,7 @@ export default function HomePage() {
       )}
 
       {/* Skin Care Section */}
-      {skinCare.length > 0 && (
+      {settings?.homepage_show_skin_care !== false && skinCare.length > 0 && (
         <section className="py-10 sm:py-16 bg-light-green/40">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
@@ -647,7 +647,7 @@ export default function HomePage() {
       )}
 
       {/* New Arrivals */}
-      {newArrivals.length > 0 && (
+      {settings?.homepage_show_new_arrivals !== false && newArrivals.length > 0 && (
         <section className="py-10 sm:py-16 bg-cream">
           <div className="section-padding">
             <div className="text-center mb-10">
@@ -674,7 +674,7 @@ export default function HomePage() {
       )}
 
       {/* Offer Section */}
-      {onSale.length > 0 && (
+      {settings?.homepage_show_sale !== false && onSale.length > 0 && (
         <section className="py-10 sm:py-16">
           <div className="section-padding">
             <div className="text-center mb-10">

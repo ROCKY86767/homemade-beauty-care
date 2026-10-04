@@ -73,8 +73,8 @@ export default function Header() {
 
       {/* Main Header */}
       <header
-        className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${
-          scrolled ? 'shadow-md' : 'shadow-sm'
+        className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-300 ${
+          scrolled ? 'shadow-lg shadow-dark/5' : 'shadow-sm'
         }`}
       >
         <div className="section-padding">

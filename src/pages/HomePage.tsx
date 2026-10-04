@@ -701,7 +701,7 @@ export default function HomePage() {
       )}
 
       {/* Why Choose Us */}
-      <section className="py-10 sm:py-16 bg-dark text-white">
+      {settings?.homepage_show_why_choose_us !== false && <section className="py-10 sm:py-16 bg-dark text-white">
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
@@ -733,7 +733,7 @@ export default function HomePage() {
       </section>
 
       {/* How to Order */}
-      <section className="py-10 sm:py-16">
+      {settings?.homepage_show_how_to_order !== false && <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
@@ -767,7 +767,7 @@ export default function HomePage() {
       </section>
 
       {/* Customer Reviews */}
-      <section className="py-10 sm:py-16 bg-cream">
+      {settings?.homepage_show_reviews !== false && <section className="py-10 sm:py-16 bg-cream">
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
@@ -881,7 +881,7 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-        </section>
+        </section>}
       )}
     </div>
   );

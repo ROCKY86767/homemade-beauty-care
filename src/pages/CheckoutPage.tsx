@@ -113,6 +113,23 @@ export default function CheckoutPage() {
     useState('');
 
   useEffect(() => {
+    try {
+      const fbq = (window as Window & { fbq?: (...args: any[]) => void }).fbq;
+      if (fbq && items.length > 0) {
+        fbq('track', 'InitiateCheckout', {
+          content_ids: items.map(item => item.product.id),
+          content_type: 'product',
+          value: Number(subtotal),
+          currency: 'BDT',
+          num_items: items.reduce((total, item) => total + item.quantity, 0),
+        });
+      }
+    } catch (error) {
+      console.error('Meta Pixel InitiateCheckout error:', error);
+    }
+  }, [items, subtotal]);
+
+  useEffect(() => {
     getSettings().then(setSettings);
     getDistricts().then(data => {
       setDistricts(data);

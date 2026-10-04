@@ -385,7 +385,7 @@ export default function ProductDetailPage() {
         <div className="mt-8 sm:mt-12">
           <div className="border-b border-gray-100 overflow-x-auto scrollbar-hide">
             <div className="flex gap-1 min-w-max">
-              {TABS.map(tab => (
+              {TABS.filter(tab => settings?.product_allow_reviews !== false || tab.id !== 'reviews').map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -467,7 +467,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Review form */}
-                <div className="mb-6 rounded-xl border border-gray-100 p-5">
+                {settings?.product_allow_reviews !== false && <div className="mb-6 rounded-xl border border-gray-100 p-5">
                   <h3 className="font-display text-lg font-semibold text-ink mb-3">Reviews লিখুন</h3>
                   {reviewSubmitted ? (
                     <p className="text-sm text-primary">ধন্যবাদ! আপনার Reviews অ্যাডমিন অনুমোদনের পর প্রকাশ করা হবে।</p>
@@ -513,7 +513,7 @@ export default function ProductDetailPage() {
                       <button type="submit" className="btn-primary text-sm py-2.5 px-6">Reviews জমা দিন</button>
                     </form>
                   )}
-                </div>
+                </div>}
 
                 <div className="space-y-4">
                   {reviews.length > 0 ? reviews.map(review => (

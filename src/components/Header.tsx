@@ -91,8 +91,8 @@ export default function Header() {
             {/* Logo */}
             <a href="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0 max-w-[145px] sm:max-w-none">
               <img
-                src="/new-homemade-logo.png"
-                alt="Homemade Beauty Care"
+                src={settings?.logo_url || '/new-homemade-logo.png'}
+                alt={settings?.brand_name || 'Homemade Beauty Care'}
                 className="h-10 w-10 sm:h-16 sm:w-16 object-contain"
               />
 

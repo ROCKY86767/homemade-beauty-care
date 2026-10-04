@@ -744,7 +744,7 @@ export default function CheckoutPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
         <SEO title="Checkout - Homemade Beauty Care" />
 
-        <h2 className="font-display text-2xl font-bold text-dark mb-2">
+        <h2 className="font-display text-xl sm:text-2xl font-bold text-dark mb-2">
           আপনার কার্ট খালি
         </h2>
 
@@ -797,8 +797,8 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
 
             {/* Customer Info */}
-            <div className="card p-6 border border-gray-50">
-              <h2 className="font-display text-lg font-semibold text-ink mb-4">
+            <div className="card p-4 sm:p-6 border border-gray-50">
+              <h2 className="font-display text-base sm:text-lg font-semibold text-ink mb-4">
                 আপনার তথ্য
               </h2>
 
@@ -1409,7 +1409,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* Total */}
-              <div className="flex justify-between items-center py-5">
+              <div className="flex justify-between items-center py-4 sm:py-5">
 
                 <span className="font-display text-lg font-bold text-dark">
                   মোট

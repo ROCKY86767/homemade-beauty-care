@@ -24,7 +24,7 @@ export default function MobileNav() {
   return (
     <>
       <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden border-t border-gray-100 bg-white/95 shadow-lg backdrop-blur safe-area-bottom">
-        <div className="flex items-center justify-around py-2">
+        <div className="flex items-center justify-around py-2 click-feedback-soft">
           <Link
             to="/"
             className={`flex flex-col items-center gap-0.5 px-3 py-1.5 transition-colors ${
@@ -32,7 +32,7 @@ export default function MobileNav() {
             }`}
           >
             <Home size={22} />
-            <span className="text-xs font-medium">হোম</span>
+            <span className="text-xs font-medium click-feedback-soft">হোম</span>
           </Link>
           <Link
             to="/shop"
@@ -41,14 +41,14 @@ export default function MobileNav() {
             }`}
           >
             <Grid3x3 size={22} />
-            <span className="text-xs font-medium">ক্যাটাগরি</span>
+            <span className="text-xs font-medium click-feedback-soft">ক্যাটাগরি</span>
           </Link>
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-gray-500 transition-colors hover:text-primary"
+            className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-gray-500 transition-colors hover:text-primary click-feedback-soft"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary -mt-4 shadow-md">
-              <Search size={20} className="text-white" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary -mt-4 shadow-md click-feedback-soft">
+              <Search size={20} className="text-white click-feedback-soft" />
             </div>
           </button>
           <Link
@@ -59,11 +59,11 @@ export default function MobileNav() {
           >
             <ShoppingCart size={22} />
             {cartCount > 0 && (
-              <span className="absolute right-1 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-white">
+              <span className="absolute right-1 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-white click-feedback-soft">
                 {cartCount}
               </span>
             )}
-            <span className="text-xs font-medium">কার্ট</span>
+            <span className="text-xs font-medium click-feedback-soft">কার্ট</span>
           </Link>
           <Link
             to="/account"
@@ -72,15 +72,15 @@ export default function MobileNav() {
             }`}
           >
             <User size={22} />
-            <span className="text-xs font-medium">অ্যাকাউন্ট</span>
+            <span className="text-xs font-medium click-feedback-soft">অ্যাকাউন্ট</span>
           </Link>
         </div>
       </nav>
 
       {searchOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden" onClick={() => setSearchOpen(false)}>
-          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="absolute bottom-20 left-4 right-4 bg-white rounded-2xl shadow-2xl p-4 animate-fade-in-up" onClick={e => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-black/40 animate-fade-in click-feedback-soft" />
+          <div className="absolute bottom-20 left-4 right-4 bg-white rounded-2xl shadow-2xl p-4 animate-fade-in-up click-feedback-soft" onClick={e => e.stopPropagation()}>
             <form onSubmit={handleSearch}>
               <input
                 type="text"
@@ -88,7 +88,7 @@ export default function MobileNav() {
                 value={searchValue}
                 onChange={e => setSearchValue(e.target.value)}
                 placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
-                className="w-full rounded-full border border-gray-200 bg-cream px-5 py-3 text-sm outline-none focus:border-primary"
+                className="w-full rounded-full border border-gray-200 bg-cream px-5 py-3 text-sm outline-none focus:border-primary click-feedback-soft"
               />
             </form>
           </div>

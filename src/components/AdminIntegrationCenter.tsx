@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { getSettings, updateSettings } from '../lib/settings';
 
 type IntegrationSettings = {
   pathao_enabled: boolean;
@@ -109,6 +110,13 @@ export default function AdminIntegrationCenter() {
   const [pathaoUsername, setPathaoUsername] = useState('');
   const [pathaoPassword, setPathaoPassword] = useState('');
   const [metaToken, setMetaToken] = useState('');
+  const [socials, setSocials] = useState({
+    facebook_url: '',
+    instagram_url: '',
+    tiktok_url: '',
+    youtube_url: '',
+  });
+  const [socialSaving, setSocialSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingSecret, setSavingSecret] = useState('');
@@ -118,13 +126,44 @@ export default function AdminIntegrationCenter() {
   const load = async () => {
     setLoading(true);
     setError('');
-    const { data, error: rpcError } = await supabase.rpc('get_admin_integration_settings');
+    const [integrationResult, siteSettingsResult] = await Promise.all([
+      supabase.rpc('get_admin_integration_settings'),
+      getSettings(),
+    ]);
+    const { data, error: rpcError } = integrationResult;
+    if (siteSettingsResult) {
+      setSocials({
+        facebook_url: siteSettingsResult.facebook_url || '',
+        instagram_url: siteSettingsResult.instagram_url || '',
+        tiktok_url: siteSettingsResult.tiktok_url || '',
+        youtube_url: siteSettingsResult.youtube_url || '',
+      });
+    }
     if (rpcError) {
       setError(rpcError.message || 'Integration settings load failed.');
     } else {
       setSettings({ ...EMPTY, ...(data || {}) });
     }
     setLoading(false);
+  };
+
+  const saveSocialLinks = async () => {
+    setSocialSaving(true);
+    setError('');
+    setMessage('');
+    try {
+      await updateSettings({
+        facebook_url: socials.facebook_url.trim(),
+        instagram_url: socials.instagram_url.trim(),
+        tiktok_url: socials.tiktok_url.trim(),
+        youtube_url: socials.youtube_url.trim(),
+      });
+      setMessage('Social Media links saved successfully.');
+    } catch (err: any) {
+      setError(err.message || 'Social Media links save failed.');
+    } finally {
+      setSocialSaving(false);
+    }
   };
 
   useEffect(() => {
@@ -224,6 +263,76 @@ export default function AdminIntegrationCenter() {
           <CheckCircle2 className="w-4 h-4 shrink-0" /> {message}
         </div>
       )}
+
+      <section className="mb-5 rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-lg text-gray-900">Social Media Links</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Update the social media URLs shown in the website footer. Changes apply site-wide.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={saveSocialLinks}
+            disabled={socialSaving}
+            className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {socialSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save Social Links
+          </button>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4 mt-5">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Facebook URL</label>
+            <input
+              type="url"
+              value={socials.facebook_url}
+              onChange={(e) => setSocials({ ...socials, facebook_url: e.target.value })}
+              placeholder="https://www.facebook.com/yourpage"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Instagram URL</label>
+            <input
+              type="url"
+              value={socials.instagram_url}
+              onChange={(e) => setSocials({ ...socials, instagram_url: e.target.value })}
+              placeholder="https://www.instagram.com/yourprofile"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">TikTok URL</label>
+            <input
+              type="url"
+              value={socials.tiktok_url}
+              onChange={(e) => setSocials({ ...socials, tiktok_url: e.target.value })}
+              placeholder="https://www.tiktok.com/@yourprofile"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">YouTube URL</label>
+            <input
+              type="url"
+              value={socials.youtube_url}
+              onChange={(e) => setSocials({ ...socials, youtube_url: e.target.value })}
+              placeholder="https://www.youtube.com/@yourchannel"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+          </div>
+        </div>
+
+        <p className="mt-4 text-xs text-gray-500">
+          Leave a field empty if you do not want that social icon to appear on the website.
+        </p>
+      </section>
 
       <div className="grid xl:grid-cols-2 gap-5">
         <section className="rounded-xl border border-gray-200 bg-white p-5">

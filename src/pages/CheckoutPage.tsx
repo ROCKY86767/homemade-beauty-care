@@ -855,7 +855,7 @@ export default function CheckoutPage() {
                 {/* Name */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    পুরো Full Name *
+                    Full Name *
                   </label>
 
                   <input
@@ -870,7 +870,7 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field"
-                    placeholder="আপনার Full Name"
+                    placeholder="Enter your full name"
                   />
                 </div>
 
@@ -892,7 +892,7 @@ export default function CheckoutPage() {
                       });
                     }}
                     className="input-field"
-                    placeholder="Mobile Number লিখুন"
+                    placeholder="Enter mobile number"
                     inputMode="numeric"
                     maxLength={11}
                     pattern="01[0-9]{9}"
@@ -902,7 +902,7 @@ export default function CheckoutPage() {
                 {/* Alternative Mobile */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    বিকল্প নম্বর
+                    Alternative Number
                   </label>
 
                   <input
@@ -916,7 +916,7 @@ export default function CheckoutPage() {
                       });
                     }}
                     className="input-field"
-                    placeholder="বাংলাদেশি ১১ সংখ্যার Mobile Number" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
+                    placeholder="Enter alternative mobile number" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />
                 </div>
 
@@ -942,7 +942,7 @@ export default function CheckoutPage() {
                         ? 'bg-gray-50'
                         : ''
                     }`}
-                    placeholder="আপনার Email Address"
+                    placeholder="Enter your email address"
                   />
 
                   {userId && (
@@ -1377,7 +1377,7 @@ export default function CheckoutPage() {
                         )
                       }
                       className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
-                      placeholder="কুপন কোড"
+                      placeholder="Enter coupon code"
                     />
 
                     <button

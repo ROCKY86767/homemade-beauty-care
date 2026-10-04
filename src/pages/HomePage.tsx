@@ -18,54 +18,54 @@ import StarRating from '@/components/StarRating';
 const TRUST_FEATURES = [
   {
     icon: Truck,
-    title: 'সারা বাংলাদেশে ডেলিভারি',
-    desc: 'দেশের যেকোনো প্রান্তে',
+    title: 'Nationwide Delivery',
+    desc: 'Delivery across Bangladesh',
   },
   {
     icon: CreditCard,
-    title: 'ক্যাশ অন ডেলিভারি',
-    desc: 'পণ্য হাতে পেয়ে টাকা দিন',
+    title: 'Cash on Delivery',
+    desc: 'Pay after receiving your order',
   },
   {
     icon: Leaf,
-    title: 'যত্নে তৈরি পণ্য',
-    desc: 'প্রাকৃতিক উপাদানে',
+    title: 'Carefully Made Products',
+    desc: 'Made with natural ingredients',
   },
   {
     icon: Headphones,
-    title: 'কাস্টমার সাপোর্ট',
-    desc: 'যেকোনো প্রয়োজনে',
+    title: 'Customer Support',
+    desc: 'Here when you need us',
   },
 ];
 
 const WHY_CHOOSE_US = [
   {
-    title: 'প্রতিদিনের যত্নের জন্য',
+    title: 'For Everyday Care',
     desc: 'আপনার beauty routine সহজ করার লক্ষ্য নিয়ে আমাদের পণ্য নির্বাচন করা হয়।',
   },
   {
-    title: 'গুণগত মানের প্রতি যত্ন',
+    title: 'Quality You Can Trust',
     desc: 'পণ্যের মান ও ব্যবহারকারীর অভিজ্ঞতাকে গুরুত্ব দেওয়া হয়।',
   },
   {
-    title: 'সহজ অর্ডার',
+    title: 'Easy Ordering',
     desc: 'সহজে অর্ডার করুন এবং বাসায় বসেই পণ্য গ্রহণ করুন।',
   },
   {
-    title: 'সারা বাংলাদেশে ডেলিভারি',
+    title: 'Nationwide Delivery',
     desc: 'বাংলাদেশের বিভিন্ন প্রান্তে পণ্য পৌঁছে দেওয়ার ব্যবস্থা।',
   },
   {
-    title: 'কাস্টমার সাপোর্ট',
+    title: 'Customer Support',
     desc: 'পণ্য নির্বাচন ও অর্ডার সংক্রান্ত সহযোগিতার জন্য আমাদের সাথে যোগাযোগ করুন।',
   },
 ];
 
 const HOW_TO_ORDER = [
-  { num: '01', title: 'পছন্দের পণ্য বেছে নিন' },
-  { num: '02', title: 'কার্টে যোগ করুন' },
-  { num: '03', title: 'আপনার তথ্য দিন' },
-  { num: '04', title: 'অর্ডার কনফার্ম করুন' },
+  { num: '01', title: 'Choose Your Products' },
+  { num: '02', title: 'Add to Cart' },
+  { num: '03', title: 'Enter Your Details' },
+  { num: '04', title: 'Confirm Your Order' },
 ];
 
 export default function HomePage() {
@@ -403,11 +403,11 @@ export default function HomePage() {
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display section-heading-premium text-2xl sm:text-3xl font-bold text-dark">
-              আপনার প্রয়োজন অনুযায়ী শপ করুন
+              Shop by Category
             </h2>
 
             <p className="mt-2 text-gray-500">
-              চুল ও ত্বকের যত্নের জন্য বেছে নিন আপনার পছন্দের ক্যাটাগরি
+              Choose the right category for your hair & skin care
             </p>
           </div>
 
@@ -445,11 +445,11 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
                 <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
-                  আমাদের পণ্যসমূহ
+                  Our Products
                 </h2>
 
                 <p className="mt-2 text-gray-500">
-                  আপনার দৈনন্দিন সৌন্দর্য ও যত্নের জন্য আমাদের পণ্যগুলো দেখুন।
+                  Explore our products for your everyday beauty & care.
                 </p>
               </div>
 
@@ -457,7 +457,7 @@ export default function HomePage() {
                 to="/shop"
                 className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all click-feedback-soft"
               >
-                সব পণ্য দেখুন
+                View All Products
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -481,11 +481,11 @@ export default function HomePage() {
           <div className="section-padding">
             <div className="text-center mb-10">
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
-                সবচেয়ে বেশি পছন্দের
+                Best Sellers
               </h2>
 
               <p className="mt-2 text-gray-500">
-                আমাদের জনপ্রিয় পণ্যগুলো এক নজরে দেখুন
+                Our most popular products, all in one place
               </p>
             </div>
 
@@ -509,7 +509,7 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
                 <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
-                  চুলের যত্নে আমাদের বিশেষ সংগ্রহ
+                  Hair Care Collection
                 </h2>
 
                 <p className="mt-2 text-gray-500 max-w-lg">
@@ -522,7 +522,7 @@ export default function HomePage() {
                 to="/category/hair-care"
                 className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all click-feedback-soft"
               >
-                সব Hair Care দেখুন
+                View Hair Care
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -559,7 +559,7 @@ export default function HomePage() {
                 to="/category/skin-care"
                 className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all click-feedback-soft"
               >
-                সব Skin Care দেখুন
+                View Skin Care
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -679,7 +679,7 @@ export default function HomePage() {
           <div className="section-padding">
             <div className="text-center mb-10">
               <span className="inline-block rounded-full bg-accent/10 text-accent px-4 py-1 text-sm font-semibold mb-2">
-                বিশেষ অফার
+                Special Offers
               </span>
 
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
@@ -737,7 +737,7 @@ export default function HomePage() {
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
-              কীভাবে অর্ডার করবেন?
+              How to Order?
             </h2>
           </div>
 
@@ -855,7 +855,7 @@ export default function HomePage() {
                 আমাদের সাথে যুক্ত থাকুন
               </h2>
               <p className="mt-2 text-gray-500">
-                নতুন পণ্য, beauty tips এবং special offers পেতে আমাদের follow করুন।
+                New Arrivals, beauty tips এবং special offers পেতে আমাদের follow করুন।
               </p>
             </div>
 

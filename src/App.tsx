@@ -92,9 +92,37 @@ function AppContent() {
     };
   }, [navigate]);
 
+  const pathname = window.location.pathname;
+  const isAdminArea = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isAuthUtilityPage = pathname === '/login' || pathname === '/reset-password';
+  const showMaintenance = siteSettings?.maintenance_mode === true && !isAdminArea && !isAuthUtilityPage;
+
+  if (showMaintenance) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cream px-6 text-center">
+        <div className="max-w-lg rounded-3xl border border-brand-border bg-white p-8 sm:p-12 brand-shadow">
+          <img
+            src={siteSettings?.logo_url || '/new-homemade-logo.png'}
+            alt={siteSettings?.brand_name || 'Homemade Beauty Care'}
+            className="mx-auto h-20 w-20 object-contain"
+          />
+          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-primary">Maintenance Mode</p>
+          <h1 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-dark">
+            We’ll be back soon
+          </h1>
+          <p className="mt-3 text-sm sm:text-base leading-relaxed text-gray-600">
+            {siteSettings?.brand_name || 'Homemade Beauty Care'} is temporarily unavailable while we make some improvements. Please check back shortly.
+          </p>
+          {siteSettings?.brand_tagline_bn && (
+            <p className="mt-4 text-sm font-medium text-primary">{siteSettings.brand_tagline_bn}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {siteSettings?.maintenance_mode && window.location.pathname !== '/admin' && window.location.pathname !== '/login' && window.location.pathname !== '/reset-password' ? <div className="min-h-screen flex items-center justify-center bg-cream px-6 text-center"><div><h1 className="text-3xl font-bold text-dark">We’ll be back soon</h1><p className="mt-2 text-gray-600">The website is temporarily under maintenance.</p></div></div> : <>
       <ScrollToTop />
 
       <Routes>
@@ -132,7 +160,6 @@ function AppContent() {
           }
         />
       </Routes>
-      </>}
     </>
   );
 }

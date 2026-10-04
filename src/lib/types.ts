@@ -156,7 +156,52 @@ export interface SiteSettings {
   combo_offer_image_url: string | null;
   combo_offer_button_text: string;
   combo_offer_button_link: string;
+  site_language: string;
+  timezone: string;
+  maintenance_mode: boolean;
+  homepage_show_categories: boolean;
+  homepage_show_all_products: boolean;
+  homepage_show_best_sellers: boolean;
+  homepage_show_new_arrivals: boolean;
+  homepage_show_sale: boolean;
+  homepage_show_hair_care: boolean;
+  homepage_show_skin_care: boolean;
+  homepage_show_reviews: boolean;
+  homepage_show_how_to_order: boolean;
+  homepage_show_why_choose_us: boolean;
+  homepage_banner_autoplay: boolean;
+  homepage_banner_interval: number;
+  product_low_stock_threshold: number;
+  product_allow_reviews: boolean;
+  checkout_guest_enabled: boolean;
+  checkout_require_email: boolean;
+  checkout_require_terms: boolean;
+  order_duplicate_window_minutes: number;
+  free_delivery_enabled: boolean;
+  free_delivery_minimum: number;
+  cod_enabled: boolean;
+  online_payment_enabled: boolean;
+  order_auto_dispatch_enabled: boolean;
+  invoice_enabled: boolean;
+  customer_google_login_enabled: boolean;
+  customer_email_login_enabled: boolean;
+  newsletter_enabled: boolean;
+  whatsapp_notifications_enabled: boolean;
+  email_notifications_enabled: boolean;
+  sms_notifications_enabled: boolean;
+  meta_pixel_enabled: boolean;
+  google_analytics_enabled: boolean;
+  google_analytics_id: string;
+  google_search_console_code: string;
+  seo_site_title: string;
+  seo_meta_description: string;
+  seo_canonical_url: string;
+  seo_og_image_url: string;
+  seo_noindex: boolean;
+  contact_whatsapp_enabled: boolean;
+  contact_phone_enabled: boolean;
 }
+
 
 export interface AdminUser {
   id: string;

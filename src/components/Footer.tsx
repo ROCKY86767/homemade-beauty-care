@@ -67,10 +67,10 @@ export default function Footer() {
         <div className="section-padding py-8 sm:py-12">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-xl sm:text-2xl font-bold text-white">
-              সবার আগে নতুন কিছু জানতে চান?
+              Stay Updated
             </h2>
             <p className="mt-2 text-sm text-white/70">
-              নতুন পণ্য, special offers এবং beauty tips পেতে subscribe করুন।
+              Subscribe for new products, special offers and beauty tips.
             </p>
             <form onSubmit={handleSubscribe} className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input

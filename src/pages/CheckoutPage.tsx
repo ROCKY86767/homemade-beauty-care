@@ -890,7 +890,7 @@ export default function CheckoutPage() {
                         ...form,
                         mobile: value,
                       });
-                    }
+                    }}
                     className="input-field"
                     placeholder="মোবাইল নম্বর লিখুন"
                     inputMode="numeric"
@@ -914,7 +914,7 @@ export default function CheckoutPage() {
                         ...form,
                         altMobile: value,
                       });
-                    }
+                    }}
                     className="input-field"
                     placeholder="বাংলাদেশি ১১ সংখ্যার মোবাইল নম্বর" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />

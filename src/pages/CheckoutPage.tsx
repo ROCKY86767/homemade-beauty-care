@@ -884,15 +884,15 @@ export default function CheckoutPage() {
                     type="tel"
                     required
                     value={form.mobile}
-                    onChange={e =>
+                    onChange={e => {
+                      const value = e.target.value.replace(/\\D/g, '').slice(0, 11);
                       setForm({
                         ...form,
-                        mobile:
-                          e.target.value,
-                      })
+                        mobile: value,
+                      });
                     }
                     className="input-field"
-                    placeholder="01999478203"
+                    placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />
                 </div>
 
@@ -905,15 +905,15 @@ export default function CheckoutPage() {
                   <input
                     type="tel"
                     value={form.altMobile}
-                    onChange={e =>
+                    onChange={e => {
+                      const value = e.target.value.replace(/\\D/g, '').slice(0, 11);
                       setForm({
                         ...form,
-                        altMobile:
-                          e.target.value,
-                      })
+                        altMobile: value,
+                      });
                     }
                     className="input-field"
-                    placeholder="বিকল্প মোবাইল নম্বর"
+                    placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />
                 </div>
 

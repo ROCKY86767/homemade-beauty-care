@@ -4672,185 +4672,133 @@ function BannersView() {
     title_bn: '',
     description_bn: '',
     button_text_bn: '',
-    button_link: '',
-    image_url: '',
+    button_link: '/shop',
+    desktop_image_url: '',
+    mobile_image_url: '',
+    start_at: '',
+    end_at: '',
     sort_order: '0',
     is_active: true,
   };
 
-  const [banners, setBanners] =
-    useState<Banner[]>([]);
-
-  const [form, setForm] =
-    useState<any>(emptyForm);
-
-  const [editingId, setEditingId] =
-    useState<string | null>(null);
-
-  const [showForm, setShowForm] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  const [uploading, setUploading] =
-    useState(false);
-
-  const [error, setError] =
-    useState('');
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [form, setForm] = useState<any>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<'desktop' | 'mobile' | null>(null);
+  const [error, setError] = useState('');
 
   const load = async () => {
     setLoading(true);
     setError('');
-
     try {
-      const { data, error } =
-        await supabase
-          .from('banners')
-          .select('*')
-          .order('sort_order', {
-            ascending: true,
-          });
-
+      const { data, error } = await supabase.from('banners').select('*').order('sort_order', { ascending: true });
       if (error) throw error;
-
       setBanners(data || []);
     } catch (err: any) {
-      setError(
-        err.message ||
-          'Banners load failed.'
-      );
+      setError(err.message || 'Banners load failed.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const saveBanner = async (
-    e: FormEvent
-  ) => {
+  const saveBanner = async (e: FormEvent) => {
     e.preventDefault();
-
     setSaving(true);
     setError('');
-
     try {
+      if (!form.desktop_image_url.trim() && !form.mobile_image_url.trim()) {
+        throw new Error('কমপক্ষে একটি Desktop বা Mobile banner image দিন।');
+      }
+      if (form.start_at && form.end_at && new Date(form.end_at) <= new Date(form.start_at)) {
+        throw new Error('End date/time অবশ্যই Start date/time-এর পরে হতে হবে।');
+      }
+
       const payload = {
-        small_text_bn:
-          form.small_text_bn.trim(),
-        title_bn:
-          form.title_bn.trim(),
-        description_bn:
-          form.description_bn.trim(),
-        button_text_bn:
-          form.button_text_bn.trim(),
-        button_link:
-          form.button_link.trim(),
-        image_url:
-          form.image_url.trim(),
-        sort_order: Number(
-          form.sort_order || 0
-        ),
-        is_active:
-          Boolean(form.is_active),
+        small_text_bn: form.small_text_bn.trim(),
+        title_bn: form.title_bn.trim(),
+        description_bn: form.description_bn.trim(),
+        button_text_bn: form.button_text_bn.trim(),
+        button_link: form.button_link.trim(),
+        image_url: form.desktop_image_url.trim() || form.mobile_image_url.trim(),
+        desktop_image_url: form.desktop_image_url.trim() || null,
+        mobile_image_url: form.mobile_image_url.trim() || null,
+        start_at: form.start_at ? new Date(form.start_at).toISOString() : null,
+        end_at: form.end_at ? new Date(form.end_at).toISOString() : null,
+        sort_order: Number(form.sort_order || 0),
+        is_active: Boolean(form.is_active),
       };
 
-      if (editingId) {
-        const { error } =
-          await supabase
-            .from('banners')
-            .update(payload)
-            .eq('id', editingId);
+      const query = editingId
+        ? supabase.from('banners').update(payload).eq('id', editingId)
+        : supabase.from('banners').insert(payload);
 
-        if (error) throw error;
-      } else {
-        const { error } =
-          await supabase
-            .from('banners')
-            .insert(payload);
-
-        if (error) throw error;
-      }
+      const { error } = await query;
+      if (error) throw error;
 
       setForm(emptyForm);
       setEditingId(null);
       setShowForm(false);
-
       await load();
     } catch (err: any) {
-      setError(
-        err.message ||
-          'Banner save failed.'
-      );
+      setError(err.message || 'Banner save failed.');
     } finally {
       setSaving(false);
     }
   };
 
-  const deleteBanner = async (
-    id: string
-  ) => {
-    if (
-      !window.confirm(
-        'Banner delete করতে চান?'
-      )
-    ) {
-      return;
-    }
-
+  const deleteBanner = async (id: string) => {
+    if (!window.confirm('Banner delete করতে চান?')) return;
     try {
-      const { error } =
-        await supabase
-          .from('banners')
-          .delete()
-          .eq('id', id);
-
+      const { error } = await supabase.from('banners').delete().eq('id', id);
       if (error) throw error;
-
       await load();
     } catch (err: any) {
-      setError(
-        err.message ||
-          'Banner delete failed.'
-      );
+      setError(err.message || 'Banner delete failed.');
     }
   };
 
-  const uploadBannerImage = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const uploadBannerImage = async (e: React.ChangeEvent<HTMLInputElement>, type: 'desktop' | 'mobile') => {
     const file = e.target.files?.[0];
-
     if (!file) return;
-
-    setUploading(true);
+    setUploading(type);
     setError('');
-
     try {
-      const url = await uploadImage(
-        file,
-        'banners'
-      );
-
+      const url = await uploadImage(file, 'banners');
       setForm((p: any) => ({
         ...p,
-        image_url: url,
+        [type === 'desktop' ? 'desktop_image_url' : 'mobile_image_url']: url,
       }));
     } catch (err: any) {
-      setError(
-        err.message ||
-          'Image upload failed.'
-      );
+      setError(err.message || 'Image upload failed.');
     } finally {
-      setUploading(false);
+      setUploading(null);
       e.target.value = '';
     }
+  };
+
+  const openEdit = (banner: Banner) => {
+    const toLocal = (value: string | null) => value ? new Date(value).toISOString().slice(0, 16) : '';
+    setEditingId(banner.id);
+    setForm({
+      small_text_bn: banner.small_text_bn || '',
+      title_bn: banner.title_bn || '',
+      description_bn: banner.description_bn || '',
+      button_text_bn: banner.button_text_bn || '',
+      button_link: banner.button_link || '/shop',
+      desktop_image_url: banner.desktop_image_url || banner.image_url || '',
+      mobile_image_url: banner.mobile_image_url || '',
+      start_at: toLocal(banner.start_at),
+      end_at: toLocal(banner.end_at),
+      sort_order: String(banner.sort_order ?? 0),
+      is_active: banner.is_active ?? true,
+    });
+    setShowForm(true);
+    setError('');
   };
 
   if (loading) return <LoadingBox />;
@@ -4858,20 +4806,12 @@ function BannersView() {
   return (
     <div>
       <PageHeader
-        title="Banners"
-        description={`${banners.length} banners`}
+        title="Homepage Banners"
+        description="Add, schedule, reorder and manage responsive banners"
         action={
-          <button
-            onClick={() => {
-              setEditingId(null);
-              setForm(emptyForm);
-              setShowForm(true);
-              setError('');
-            }}
-            className="btn-primary px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Banner
+          <button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); setError(''); }}
+            className="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Banner
           </button>
         }
       />
@@ -4881,191 +4821,54 @@ function BannersView() {
       {showForm && (
         <div className="bg-white rounded-xl border p-5 mb-6">
           <div className="flex justify-between items-center mb-5">
-            <h3 className="font-bold text-lg">
-              {editingId
-                ? 'Edit Banner'
-                : 'Add Banner'}
-            </h3>
-
-            <button
-              onClick={() =>
-                setShowForm(false)
-              }
-            >
-              <X />
-            </button>
+            <h3 className="font-bold text-lg">{editingId ? 'Edit Banner' : 'Add Banner'}</h3>
+            <button onClick={() => setShowForm(false)}><X /></button>
           </div>
 
-          <form
-            onSubmit={saveBanner}
-            className="space-y-4"
-          >
+          <form onSubmit={saveBanner} className="space-y-5">
             <div className="grid md:grid-cols-2 gap-4">
-              <Input
-                label="Small Text"
-                value={
-                  form.small_text_bn
-                }
-                onChange={(value) =>
-                  setForm((p: any) => ({
-                    ...p,
-                    small_text_bn:
-                      value,
-                  }))
-                }
-              />
-
-              <Input
-                label="Title"
-                value={form.title_bn}
-                onChange={(value) =>
-                  setForm((p: any) => ({
-                    ...p,
-                    title_bn: value,
-                  }))
-                }
-              />
-
-              <Input
-                label="Button Text"
-                value={
-                  form.button_text_bn
-                }
-                onChange={(value) =>
-                  setForm((p: any) => ({
-                    ...p,
-                    button_text_bn:
-                      value,
-                  }))
-                }
-              />
-
-              <Input
-                label="Button Link"
-                value={form.button_link}
-                onChange={(value) =>
-                  setForm((p: any) => ({
-                    ...p,
-                    button_link: value,
-                  }))
-                }
-              />
-
-              <Input
-                label="Sort Order"
-                type="number"
-                value={form.sort_order}
-                onChange={(value) =>
-                  setForm((p: any) => ({
-                    ...p,
-                    sort_order: value,
-                  }))
-                }
-              />
+              <Input label="Small Text" value={form.small_text_bn} onChange={(value) => setForm((p: any) => ({ ...p, small_text_bn: value }))} />
+              <Input label="Title" value={form.title_bn} onChange={(value) => setForm((p: any) => ({ ...p, title_bn: value }))} />
+              <Input label="Button Text" value={form.button_text_bn} onChange={(value) => setForm((p: any) => ({ ...p, button_text_bn: value }))} />
+              <Input label="Button Link" value={form.button_link} onChange={(value) => setForm((p: any) => ({ ...p, button_link: value }))} />
+              <Input label="Sort Order" type="number" value={form.sort_order} onChange={(value) => setForm((p: any) => ({ ...p, sort_order: value }))} />
+              <TextArea label="Description" value={form.description_bn} onChange={(value) => setForm((p: any) => ({ ...p, description_bn: value }))} />
             </div>
 
-            <TextArea
-              label="Description"
-              value={
-                form.description_bn
-              }
-              onChange={(value) =>
-                setForm((p: any) => ({
-                  ...p,
-                  description_bn:
-                    value,
-                }))
-              }
-            />
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Banner Image
-              </label>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <label className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border cursor-pointer">
-                  {uploading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-
-                  {uploading
-                    ? 'Uploading...'
-                    : 'Upload Image'}
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={
-                      uploadBannerImage
-                    }
-                    disabled={uploading}
-                  />
-                </label>
-
-                <input
-                  value={form.image_url}
-                  onChange={(e) =>
-                    setForm((p: any) => ({
-                      ...p,
-                      image_url:
-                        e.target.value,
-                    }))
-                  }
-                  placeholder="Or paste image URL"
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
-                />
-              </div>
-
-              {form.image_url && (
-                <img
-                  src={form.image_url}
-                  alt=""
-                  className="mt-3 w-full max-w-md h-40 object-cover rounded-lg border"
-                />
-              )}
+            <div className="grid md:grid-cols-2 gap-4">
+              {(['desktop', 'mobile'] as const).map((type) => {
+                const key = type === 'desktop' ? 'desktop_image_url' : 'mobile_image_url';
+                return (
+                  <div key={type}>
+                    <label className="block text-sm font-medium mb-2">{type === 'desktop' ? 'Desktop Banner Image' : 'Mobile Banner Image'}</label>
+                    <div className="flex flex-col gap-2">
+                      <label className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border cursor-pointer">
+                        {uploading === type ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                        {uploading === type ? 'Uploading...' : 'Upload Image'}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadBannerImage(e, type)} disabled={uploading !== null} />
+                      </label>
+                      <input value={form[key]} onChange={(e) => setForm((p: any) => ({ ...p, [key]: e.target.value }))} placeholder="Or paste image URL"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                      {form[key] && <img src={form[key]} alt="" className="w-full h-36 object-cover rounded-lg border" />}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            <Checkbox
-              label="Active"
-              checked={form.is_active}
-              onChange={(checked) =>
-                setForm((p: any) => ({
-                  ...p,
-                  is_active: checked,
-                }))
-              }
-            />
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input label="Start Date & Time" type="datetime-local" value={form.start_at} onChange={(value) => setForm((p: any) => ({ ...p, start_at: value }))} />
+              <Input label="End Date & Time" type="datetime-local" value={form.end_at} onChange={(value) => setForm((p: any) => ({ ...p, end_at: value }))} />
+            </div>
+
+            <Checkbox label="Show Banner (ON/OFF)" checked={form.is_active} onChange={(checked) => setForm((p: any) => ({ ...p, is_active: checked }))} />
 
             <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn-primary px-5 py-2.5 rounded-lg flex items-center gap-2"
-              >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-
-                {editingId
-                  ? 'Update'
-                  : 'Save'}
+              <button type="submit" disabled={saving} className="btn-primary px-5 py-2.5 rounded-lg flex items-center gap-2">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {editingId ? 'Update Banner' : 'Add Banner'}
               </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowForm(false)
-                }
-                className="px-5 py-2.5 rounded-lg border"
-              >
-                Cancel
-              </button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-lg border">Cancel</button>
             </div>
           </form>
         </div>
@@ -5073,98 +4876,26 @@ function BannersView() {
 
       <div className="grid md:grid-cols-2 gap-5">
         {banners.map((banner) => (
-          <div
-            key={banner.id}
-            className="bg-white rounded-xl border overflow-hidden"
-          >
-            {banner.image_url && (
-              <img
-                src={banner.image_url}
-                alt=""
-                className="w-full h-48 object-cover"
-              />
+          <div key={banner.id} className="bg-white rounded-xl border overflow-hidden">
+            {(banner.desktop_image_url || banner.image_url) && (
+              <img src={banner.desktop_image_url || banner.image_url || ''} alt="" className="w-full h-48 object-cover" />
             )}
-
             <div className="p-5">
-              <div className="text-xs text-gray-500">
-                {banner.small_text_bn}
-              </div>
-
-              <h3 className="font-bold text-xl mt-1">
-                {banner.title_bn}
-              </h3>
-
-              <p className="text-sm text-gray-600 mt-2">
-                {banner.description_bn}
-              </p>
-
-              <div className="flex items-center justify-between mt-4">
-                <span
-                  className={
-                    banner.is_active
-                      ? 'text-green-600 text-xs'
-                      : 'text-red-600 text-xs'
-                  }
-                >
-                  {banner.is_active
-                    ? 'Active'
-                    : 'Inactive'}
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs text-gray-500">#{banner.sort_order} · {banner.button_text_bn || 'No button'}</div>
+                <span className={banner.is_active ? 'text-green-600 text-xs font-medium' : 'text-red-600 text-xs font-medium'}>
+                  {banner.is_active ? 'ON' : 'OFF'}
                 </span>
-
+              </div>
+              <h3 className="font-bold text-xl mt-2">{banner.title_bn}</h3>
+              <p className="text-sm text-gray-600 mt-2">{banner.description_bn}</p>
+              <div className="text-xs text-gray-500 mt-3">
+                {banner.start_at ? dateTime(banner.start_at) : 'No start'} → {banner.end_at ? dateTime(banner.end_at) : 'No end'}
+              </div>
+              <div className="flex items-center justify-end mt-4">
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setEditingId(
-                        banner.id
-                      );
-
-                      setForm({
-                        small_text_bn:
-                          banner.small_text_bn ||
-                          '',
-                        title_bn:
-                          banner.title_bn ||
-                          '',
-                        description_bn:
-                          banner.description_bn ||
-                          '',
-                        button_text_bn:
-                          banner.button_text_bn ||
-                          '',
-                        button_link:
-                          banner.button_link ||
-                          '',
-                        image_url:
-                          banner.image_url ||
-                          '',
-                        sort_order:
-                          String(
-                            banner.sort_order ??
-                              0
-                          ),
-                        is_active:
-                          banner.is_active ??
-                          true,
-                      });
-
-                      setShowForm(true);
-                      setError('');
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-lg"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      deleteBanner(
-                        banner.id
-                      )
-                    }
-                    className="p-2 hover:bg-red-50 text-red-600 rounded-lg"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <button onClick={() => openEdit(banner)} className="p-2 hover:bg-gray-100 rounded-lg"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteBanner(banner.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             </div>
@@ -5172,11 +4903,7 @@ function BannersView() {
         ))}
       </div>
 
-      {banners.length === 0 && (
-        <div className="bg-white rounded-xl border">
-          <EmptyState text="No banners found." />
-        </div>
-      )}
+      {banners.length === 0 && <div className="bg-white rounded-xl border"><EmptyState text="No banners found." /></div>}
     </div>
   );
 }

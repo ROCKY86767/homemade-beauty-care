@@ -98,6 +98,8 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] =
     useState('Cash on Delivery');
 
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const [couponCode, setCouponCode] =
     useState('');
 
@@ -611,6 +613,27 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (settings?.checkout_guest_enabled === false && !userId) {
+      setError('Please log in before placing an order.');
+      navigate('/login');
+      return;
+    }
+
+    if (settings?.checkout_require_email === true && !form.email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (settings?.checkout_require_terms === true && !termsAccepted) {
+      setError('Please accept the terms and conditions to continue.');
+      return;
+    }
+
+    if (settings?.cod_enabled !== true && paymentMethod === 'Cash on Delivery') {
+      setError('Cash on Delivery is currently unavailable. Please select an available payment method.');
+      return;
+    }
+
     if (paymentMethod === 'Online Payment' && settings?.online_payment_enabled !== true) {
       setError(
         'Online Payment is not available yet. Please select Cash on Delivery.'
@@ -922,6 +945,7 @@ export default function CheckoutPage() {
 
                   <input
                     type="email"
+                    required={settings?.checkout_require_email === true}
                     value={form.email}
                     readOnly={!!userId}
                     onChange={e =>
@@ -1200,11 +1224,12 @@ export default function CheckoutPage() {
 
                 {/* COD */}
                 <label
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    paymentMethod ===
-                    'Cash on Delivery'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-100 hover:border-gray-200'
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                    settings?.cod_enabled === false
+                      ? 'border-gray-100 opacity-50 cursor-not-allowed'
+                      : paymentMethod === 'Cash on Delivery'
+                        ? 'border-primary bg-primary/5 cursor-pointer'
+                        : 'border-gray-100 hover:border-gray-200 cursor-pointer'
                   }`}
                 >
                   <input
@@ -1214,6 +1239,7 @@ export default function CheckoutPage() {
                       paymentMethod ===
                       'Cash on Delivery'
                     }
+                    disabled={settings?.cod_enabled === false}
                     onChange={() =>
                       setPaymentMethod(
                         'Cash on Delivery'
@@ -1228,18 +1254,21 @@ export default function CheckoutPage() {
                     </span>
 
                     <p className="text-sm text-gray-500">
-                      Pay when you receive your order
+                      {settings?.cod_enabled === false
+                        ? 'Currently unavailable'
+                        : 'Pay when you receive your order'}
                     </p>
                   </div>
                 </label>
 
                 {/* Online */}
                 <label
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    paymentMethod ===
-                    'Online Payment'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-100 hover:border-gray-200'
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                    settings?.online_payment_enabled !== true
+                      ? 'border-gray-100 opacity-50 cursor-not-allowed'
+                      : paymentMethod === 'Online Payment'
+                        ? 'border-primary bg-primary/5 cursor-pointer'
+                        : 'border-gray-100 hover:border-gray-200 cursor-pointer'
                   }`}
                 >
                   <input
@@ -1249,6 +1278,7 @@ export default function CheckoutPage() {
                       paymentMethod ===
                       'Online Payment'
                     }
+                    disabled={settings?.online_payment_enabled !== true}
                     onChange={() =>
                       setPaymentMethod(
                         'Online Payment'
@@ -1263,7 +1293,9 @@ export default function CheckoutPage() {
                     </span>
 
                     <p className="text-sm text-gray-500">
-                      Coming soon (bKash, Nagad, Card)
+                      {settings?.online_payment_enabled === true
+                        ? 'Pay securely online'
+                        : 'Currently unavailable'}
                     </p>
                   </div>
                 </label>
@@ -1476,6 +1508,18 @@ export default function CheckoutPage() {
               )}
 
               {/* Submit */}
+              {settings?.checkout_require_terms === true && (
+                <label className="flex items-start gap-2 text-xs text-gray-500 mb-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={e => setTermsAccepted(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-primary"
+                  />
+                  <span>I agree to the terms and conditions and confirm that my order information is correct.</span>
+                </label>
+              )}
+
               <button
                 type="submit"
                 disabled={submitting}

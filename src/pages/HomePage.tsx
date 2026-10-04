@@ -236,14 +236,14 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (banners.length <= 1 || settings?.homepage_banner_autoplay === false) return;
 
     const timer = setInterval(() => {
       setCurrentBanner(prev => (prev + 1) % banners.length);
-    }, 5000);
+    }, Math.max(1000, Number(settings?.homepage_banner_interval || 5000)));
 
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [banners.length, settings?.homepage_banner_autoplay, settings?.homepage_banner_interval]);
 
   const nextBanner = () => {
     setCurrentBanner(prev => (prev + 1) % banners.length);
@@ -370,7 +370,7 @@ export default function HomePage() {
       )}
 
       {/* Trust Strip */}
-      {settings?.homepage_show_categories !== false && <section className="bg-cream py-6">
+      <section className="bg-cream py-6">
         <div className="section-padding">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {TRUST_FEATURES.map((feature, idx) => (
@@ -396,7 +396,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>}
+      </section>
 
       {/* Shop by Category */}
       {settings?.homepage_show_categories !== false && <section className="py-10 sm:py-16">

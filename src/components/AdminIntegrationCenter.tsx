@@ -111,7 +111,8 @@ export default function AdminIntegrationCenter() {
   const [pathaoPassword, setPathaoPassword] = useState('');
   const [metaToken, setMetaToken] = useState('');
   const [socials, setSocials] = useState({
-    facebook_url: '',
+    whatsapp_number: '',
+    facebook_url: ''
     instagram_url: '',
     tiktok_url: '',
     youtube_url: '',
@@ -133,6 +134,7 @@ export default function AdminIntegrationCenter() {
     const { data, error: rpcError } = integrationResult;
     if (siteSettingsResult) {
       setSocials({
+        whatsapp_number: siteSettingsResult.whatsapp_number || '',
         facebook_url: siteSettingsResult.facebook_url || '',
         instagram_url: siteSettingsResult.instagram_url || '',
         tiktok_url: siteSettingsResult.tiktok_url || '',
@@ -153,6 +155,7 @@ export default function AdminIntegrationCenter() {
     setMessage('');
     try {
       await updateSettings({
+        whatsapp_number: socials.whatsapp_number.trim(),
         facebook_url: socials.facebook_url.trim(),
         instagram_url: socials.instagram_url.trim(),
         tiktok_url: socials.tiktok_url.trim(),
@@ -284,6 +287,19 @@ export default function AdminIntegrationCenter() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4 mt-5">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">WhatsApp Number</label>
+            <input
+              type="tel"
+              value={socials.whatsapp_number}
+              onChange={(e) => setSocials({ ...socials, whatsapp_number: e.target.value.replace(/\D/g, '').slice(0, 13) })}
+              placeholder="8801XXXXXXXXX"
+              inputMode="numeric"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <p className="mt-1 text-xs text-gray-400">Use international format, e.g. 8801XXXXXXXXX</p>
+          </div>
+
           <div>
             <label className="block text-sm font-medium mb-1.5">Facebook URL</label>
             <input

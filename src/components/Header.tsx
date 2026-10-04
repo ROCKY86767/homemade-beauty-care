@@ -82,7 +82,7 @@ export default function Header() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink hover:bg-cream"
+              className="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink hover:bg-cream click-feedback-soft"
               aria-label="Open menu"
             >
               <Menu size={26} />
@@ -119,12 +119,12 @@ export default function Header() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
-                  className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
+                  className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 click-feedback-soft"
                 />
 
                 <button
                   type="submit"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-dark"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-dark click-feedback-soft"
                   aria-label="Search"
                 >
                   <Search size={18} />
@@ -137,7 +137,7 @@ export default function Header() {
               {/* My Account */}
               <Link
                 to="/account"
-                className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
                 aria-label="My Account"
                 title="My Account"
               >
@@ -147,14 +147,14 @@ export default function Header() {
               {/* Wishlist */}
               <Link
                 to="/wishlist"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
                 aria-label="Wishlist"
                 title="Wishlist"
               >
                 <Heart size={22} />
 
                 {wishlist.length > 0 && (
-                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-semibold text-white">
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-semibold text-white click-feedback-soft">
                     {wishlist.length}
                   </span>
                 )}
@@ -163,14 +163,14 @@ export default function Header() {
               {/* Cart */}
               <Link
                 to="/cart"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
                 aria-label="Cart"
                 title="Cart"
               >
                 <ShoppingCart size={22} />
 
                 {cartCount > 0 && (
-                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-white">
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-white click-feedback-soft">
                     {cartCount}
                   </span>
                 )}
@@ -186,12 +186,12 @@ export default function Header() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
-                className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white"
+                className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white click-feedback-soft"
               />
 
               <button
                 type="submit"
-                className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white"
+                className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white click-feedback-soft"
                 aria-label="Search"
               >
                 <Search size={18} />
@@ -208,7 +208,7 @@ export default function Header() {
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="block px-3 py-2 text-sm font-medium text-ink rounded-lg transition-colors hover:bg-cream hover:text-primary"
+                    className="block px-3 py-2 text-sm font-medium text-ink rounded-lg transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
                   >
                     {link.label}
                   </Link>
@@ -235,7 +235,7 @@ export default function Header() {
 
               <button
                 onClick={() => setMobileOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-cream"
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-cream click-feedback-soft"
                 aria-label="Close menu"
               >
                 <X size={22} />
@@ -329,7 +329,7 @@ export default function Header() {
               <Link
                 to="/admin"
                 onClick={() => setMobileOpen(false)}
-                className="block rounded-full bg-dark py-3 text-center text-sm font-medium text-white"
+                className="block rounded-full bg-dark py-3 text-center text-sm font-medium text-white click-feedback-soft"
               >
                 Admin Dashboard
               </Link>

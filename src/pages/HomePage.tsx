@@ -312,7 +312,7 @@ export default function HomePage() {
                     {banner.button_text_bn && (
                       <Link
                         to={banner.button_link || '/shop'}
-                        className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 font-medium text-white transition-all hover:bg-primary-light hover:shadow-lg active:scale-95"
+                        className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 font-medium text-white transition-all hover:bg-primary-light hover:shadow-lg active:scale-95 click-feedback-soft"
                       >
                         {banner.button_text_bn}
                       </Link>
@@ -321,7 +321,7 @@ export default function HomePage() {
                     {idx === 0 && (
                       <Link
                         to="/shop"
-                        className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-8 py-3.5 font-medium text-white transition-all hover:bg-white hover:text-dark active:scale-95"
+                        className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-8 py-3.5 font-medium text-white transition-all hover:bg-white hover:text-dark active:scale-95 click-feedback-soft"
                       >
                         View Collection
                       </Link>
@@ -336,7 +336,7 @@ export default function HomePage() {
             <>
               <button
                 onClick={prevBanner}
-                className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40"
+                className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40 click-feedback-soft"
                 aria-label="Previous banner"
               >
                 <ChevronLeft size={24} />
@@ -344,7 +344,7 @@ export default function HomePage() {
 
               <button
                 onClick={nextBanner}
-                className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40"
+                className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40 click-feedback-soft"
                 aria-label="Next banner"
               >
                 <ChevronRight size={24} />
@@ -416,7 +416,7 @@ export default function HomePage() {
               <Link
                 key={cat.id}
                 to={`/category/${cat.slug}`}
-                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-cream"
+                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-cream click-feedback-soft"
               >
                 <img
                   src={cat.image_url || ''}
@@ -455,7 +455,7 @@ export default function HomePage() {
 
               <Link
                 to="/shop"
-                className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
+                className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all click-feedback-soft"
               >
                 সব পণ্য দেখুন
                 <ArrowRight size={18} />
@@ -520,7 +520,7 @@ export default function HomePage() {
 
               <Link
                 to="/category/hair-care"
-                className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
+                className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all click-feedback-soft"
               >
                 সব Hair Care দেখুন
                 <ArrowRight size={18} />
@@ -557,7 +557,7 @@ export default function HomePage() {
 
               <Link
                 to="/category/skin-care"
-                className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
+                className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all click-feedback-soft"
               >
                 সব Skin Care দেখুন
                 <ArrowRight size={18} />
@@ -627,7 +627,7 @@ export default function HomePage() {
 
                 <Link
                   to={settings?.combo_offer_button_link || '/shop'}
-                  className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-3.5 font-medium text-white transition-all hover:bg-accent-light active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-3.5 font-medium text-white transition-all hover:bg-accent-light active:scale-95 click-feedback-soft"
                 >
                   {settings?.combo_offer_button_text || 'Combo Collection দেখুন'}
                 </Link>

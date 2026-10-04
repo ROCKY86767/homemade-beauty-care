@@ -155,7 +155,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2.5 text-sm text-white/60">
                 <Phone size={16} className="mt-0.5 shrink-0 text-primary-light" />
-                <span>{settings?.phone || '01999478203'}</span>
+                <span>{settings?.phone || 'Customer Support'}</span>
               </li>
               <li className="flex items-start gap-2.5 text-sm text-white/60">
                 <Mail size={16} className="mt-0.5 shrink-0 text-primary-light" />

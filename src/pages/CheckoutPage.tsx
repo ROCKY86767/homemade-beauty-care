@@ -603,7 +603,7 @@ export default function CheckoutPage() {
       )
     ) {
       setError(
-        'সঠিক মোবাইল নম্বর দিন (যেমন: 01*********)'
+        'সঠিক Mobile Number দিন (যেমন: 01*********)'
       );
 
       return;
@@ -779,8 +779,8 @@ export default function CheckoutPage() {
 
       setError(
         duplicateOrder
-          ? 'এই মোবাইল নম্বর দিয়ে গত ৫ মিনিটের মধ্যে একটি অর্ডার ইতোমধ্যে কনফার্ম হয়েছে। ৫ মিনিট পর আবার অর্ডার করতে পারবেন।'
-          : 'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।'
+          ? 'এই Mobile Number দিয়ে গত ৫ মিনিটের মধ্যে একটি অর্ডার ইতোমধ্যে কনফার্ম হয়েছে। ৫ মিনিট পর আবার অর্ডার করতে পারবেন।'
+          : 'Unable to place the order. Please try again.'
       );
 
       setSubmitting(false);
@@ -847,7 +847,7 @@ export default function CheckoutPage() {
             {/* Customer Info */}
             <div className="card p-4 sm:p-6 border border-gray-50">
               <h2 className="font-display text-base sm:text-lg font-semibold text-ink mb-4">
-                আপনার তথ্য
+                Customer Information
               </h2>
 
               <div className="grid sm:grid-cols-2 gap-4">
@@ -855,7 +855,7 @@ export default function CheckoutPage() {
                 {/* Name */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    পুরো নাম *
+                    পুরো Full Name *
                   </label>
 
                   <input
@@ -870,14 +870,14 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field"
-                    placeholder="আপনার নাম"
+                    placeholder="আপনার Full Name"
                   />
                 </div>
 
                 {/* Mobile */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    মোবাইল নম্বর *
+                    Mobile Number *
                   </label>
 
                   <input
@@ -892,7 +892,7 @@ export default function CheckoutPage() {
                       });
                     }}
                     className="input-field"
-                    placeholder="মোবাইল নম্বর লিখুন"
+                    placeholder="Mobile Number লিখুন"
                     inputMode="numeric"
                     maxLength={11}
                     pattern="01[0-9]{9}"
@@ -916,7 +916,7 @@ export default function CheckoutPage() {
                       });
                     }}
                     className="input-field"
-                    placeholder="বাংলাদেশি ১১ সংখ্যার মোবাইল নম্বর" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
+                    placeholder="বাংলাদেশি ১১ সংখ্যার Mobile Number" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />
                 </div>
 
@@ -955,7 +955,7 @@ export default function CheckoutPage() {
                 {/* District */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    জেলা *
+                    District *
                   </label>
 
                   <select
@@ -988,7 +988,7 @@ export default function CheckoutPage() {
                 {/* Thana / Upazila */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    থানা / উপজেলা *
+                    থানা / উপDistrict *
                   </label>
 
                   <select
@@ -1007,8 +1007,8 @@ export default function CheckoutPage() {
                       {locationLoading
                         ? 'লোকেশন লোড হচ্ছে...'
                         : thanas.length === 0
-                          ? 'থানা/উপজেলা পাওয়া যায়নি'
-                          : 'থানা / উপজেলা নির্বাচন করুন'}
+                          ? 'থানা/উপDistrict পাওয়া যায়নি'
+                          : 'থানা / উপDistrict নির্বাচন করুন'}
                     </option>
                     {thanas.map(thana => (
                       <option
@@ -1024,7 +1024,7 @@ export default function CheckoutPage() {
                 {/* Address */}
                 <div className="sm:col-span-2">
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    সম্পূর্ণ ঠিকানা *
+                    সম্পূর্ণ Delivery Address *
                   </label>
 
                   <textarea
@@ -1161,7 +1161,7 @@ export default function CheckoutPage() {
                 ) : (
                   <div className="rounded-xl bg-gray-50 p-4">
                     <p className="text-sm text-gray-500">
-                      এই মোবাইল নম্বরের কোনো saved address পাওয়া যায়নি।
+                      এই Mobile Numberের কোনো saved address পাওয়া যায়নি।
                     </p>
                   </div>
                 )}
@@ -1489,7 +1489,7 @@ export default function CheckoutPage() {
               >
                 {submitting
                   ? 'অর্ডার প্রসেস হচ্ছে...'
-                  : 'অর্ডার কনফার্ম করুন'}
+                  : 'Place Order'}
               </button>
 
               <p className="text-xs text-gray-400 text-center mt-3">

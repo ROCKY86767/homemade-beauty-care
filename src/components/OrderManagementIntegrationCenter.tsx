@@ -9,6 +9,7 @@ type Integration = {
   enabled: boolean;
   base_url: string;
   create_order_path: string;
+  create_order_method: string;
   status_path: string;
   invoice_path: string;
   auth_type: string;
@@ -25,6 +26,11 @@ type Integration = {
   webhook_status_path: string;
   webhook_payment_status_path: string;
   webhook_secret_header: string;
+  cancel_order_path: string;
+  cancel_order_method: string;
+  tracking_response_path: string;
+  status_mapping: Record<string, any>;
+  webhook_enabled: boolean;
   webhook_secret_set?: boolean;
   api_key_set?: boolean;
   api_secret_set?: boolean;
@@ -41,6 +47,7 @@ const blank = (): Integration => ({
   enabled: false,
   base_url: '',
   create_order_path: '',
+  create_order_method: 'POST',
   status_path: '',
   invoice_path: '',
   auth_type: 'bearer',
@@ -72,7 +79,14 @@ const blank = (): Integration => ({
   webhook_order_id_path: '',
   webhook_status_path: '',
   webhook_payment_status_path: '',
-  webhook_secret_header: 'x-webhook-secret'
+  webhook_secret_header: 'x-webhook-secret',
+  cancel_order_path: '',
+  cancel_order_method: 'POST',
+  tracking_response_path: '',
+  status_mapping: {
+    pending: 'Pending', confirmed: 'Confirmed', processing: 'Processing', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled'
+  },
+  webhook_enabled: true
 });
 
 function Secret({ label, value, setValue, saved, save, busy }: any) {
@@ -237,8 +251,10 @@ export default function OrderManagementIntegrationCenter() {
           <div><label className="block text-sm font-medium mb-1.5">Software Name</label><input value={current.name} onChange={e=>setCurrent({...current,name:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. The Invoice / Bizmotion" /></div>
           <div><label className="block text-sm font-medium mb-1.5">Provider Type</label><select value={current.provider} onChange={e=>setCurrent({...current,provider:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option value="custom_rest">Custom REST API</option><option value="bizmotion">Bizmotion</option><option value="the_invoice">The Invoice</option><option value="other">Other</option></select></div>
         </div>
+        <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">Universal REST connector: API documentation অনুযায়ী URL, method, auth, headers, body template ও response mapping সেট করলেই যেকোনো compatible Order Management / OMS / ERP / POS software connect করা যাবে।</div>
         <div><label className="block text-sm font-medium mb-1.5">Base API URL</label><input value={current.base_url} onChange={e=>setCurrent({...current,base_url:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="https://example.com/api" /></div>
         <div className="grid sm:grid-cols-3 gap-4">
+          <div><label className="block text-sm font-medium mb-1.5">Create Order Method</label><select value={current.create_order_method || 'POST'} onChange={e=>setCurrent({...current,create_order_method:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option>POST</option><option>PUT</option><option>PATCH</option></select></div>
           <div><label className="block text-sm font-medium mb-1.5">Create Order Path</label><input value={current.create_order_path} onChange={e=>setCurrent({...current,create_order_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="/orders" /></div>
           <div><label className="block text-sm font-medium mb-1.5">Status Path</label><input value={current.status_path} onChange={e=>setCurrent({...current,status_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="/orders/{id}" /></div>
           <div><label className="block text-sm font-medium mb-1.5">Invoice Path</label><input value={current.invoice_path} onChange={e=>setCurrent({...current,invoice_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="/invoices/{id}" /></div>
@@ -263,9 +279,13 @@ export default function OrderManagementIntegrationCenter() {
   <div><label className="block text-sm font-medium mb-1.5">Status Request Method</label><select value={current.status_request_method || 'GET'} onChange={e=>setCurrent({...current,status_request_method:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option></select></div>
   <div><label className="block text-sm font-medium mb-1.5">Status API Path</label><input value={current.status_path} onChange={e=>setCurrent({...current,status_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="/orders/{id}" /></div>
 </div>
+<div><label className="block text-sm font-medium mb-1.5">Tracking Response Path</label><input value={current.tracking_response_path || ''} onChange={e=>setCurrent({...current,tracking_response_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.tracking_url" /></div>
 <div><label className="block text-sm font-medium mb-1.5">Status Request Template (JSON, for POST/PUT)</label><textarea rows={4} value={JSON.stringify(current.status_request_template || {}, null, 2)} onChange={e=>{try{setCurrent({...current,status_request_template:JSON.parse(e.target.value)})}catch{}}} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-mono" /></div>
+<div><label className="block text-sm font-medium mb-1.5">Status Mapping (JSON)</label><textarea rows={5} value={JSON.stringify(current.status_mapping || {}, null, 2)} onChange={e=>{try{setCurrent({...current,status_mapping:JSON.parse(e.target.value)})}catch{}}} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-mono" /><p className="text-xs text-gray-500 mt-1">Example: {"{ "delivered": "Delivered", "cancelled": "Cancelled" }"}</p></div>
+<div className="grid sm:grid-cols-2 gap-4"><div><label className="block text-sm font-medium mb-1.5">Cancel Order Path</label><input value={current.cancel_order_path || ''} onChange={e=>setCurrent({...current,cancel_order_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="/orders/{id}/cancel" /></div><div><label className="block text-sm font-medium mb-1.5">Cancel Method</label><select value={current.cancel_order_method || 'POST'} onChange={e=>setCurrent({...current,cancel_order_method:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select></div></div>
 <div className="rounded-lg border border-amber-100 bg-amber-50 p-4">
   <p className="font-medium text-sm text-amber-900 mb-2">Two-way status sync / Webhook mapping</p>
+  <label className="flex items-center gap-2 text-sm mb-3"><input type="checkbox" checked={current.webhook_enabled !== false} onChange={e=>setCurrent({...current,webhook_enabled:e.target.checked})} /> Enable webhook status updates</label>
   <div className="grid sm:grid-cols-2 gap-4">
     <div><label className="block text-sm font-medium mb-1.5">Webhook External Order ID Path</label><input value={current.webhook_order_id_path || ''} onChange={e=>setCurrent({...current,webhook_order_id_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.order_id" /></div>
     <div><label className="block text-sm font-medium mb-1.5">Webhook Status Path</label><input value={current.webhook_status_path || ''} onChange={e=>setCurrent({...current,webhook_status_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.status" /></div>

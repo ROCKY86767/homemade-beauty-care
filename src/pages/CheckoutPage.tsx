@@ -706,8 +706,14 @@ export default function CheckoutPage() {
             ? JSON.stringify(err)
             : String(err);
 
+      const duplicateOrder =
+        message.includes('গত ৫ মিনিটের মধ্যে') ||
+        message.includes('5 minutes');
+
       setError(
-        `অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন। (${message})`
+        duplicateOrder
+          ? 'এই মোবাইল নম্বর দিয়ে গত ৫ মিনিটের মধ্যে একটি অর্ডার ইতোমধ্যে কনফার্ম হয়েছে। ৫ মিনিট পর আবার অর্ডার করতে পারবেন।'
+          : 'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।'
       );
 
       setSubmitting(false);

@@ -42,13 +42,10 @@ export default function Analytics() {
       }
     });
 
-    getSettings().then(settings => {
-      if (!active || !settings.meta_pixel_enabled) return;
-      supabase.rpc('get_public_meta_pixel').then(({ data }) => {
-        if (active && data?.enabled && data.pixel_id) {
-          setMetaPixelId(data.pixel_id);
-        }
-      });
+    supabase.rpc('get_public_meta_pixel').then(({ data }) => {
+      if (active && data?.enabled && data.pixel_id) {
+        setMetaPixelId(data.pixel_id);
+      }
     });
 
     return () => {

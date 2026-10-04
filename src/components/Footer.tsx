@@ -107,7 +107,7 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
 <img
-  src={settings?.logo_url || "/new-homemade-logo.png"
+  src={settings?.logo_url || "/new-homemade-logo.png"}
   alt="Homemade Beauty Care"
   className="h-14 w-14 rounded-md object-contain"
   style={{ borderRadius: '6px' }}

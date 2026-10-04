@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight, Truck, Phone, Clock3 } from 'lucide-react';
+import { ChevronRight, Truck, Clock3 } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 export default function DeliveryInformationPage() {
@@ -62,9 +62,7 @@ export default function DeliveryInformationPage() {
             <p className="text-white/80 leading-7 mb-5">
               ওয়েবসাইটের Track Order পেজ অথবা আমাদের হটলাইনের মাধ্যমে অর্ডারের তথ্য জানতে পারবেন।
             </p>
-            <a href="tel:01999478203" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-white font-medium hover:bg-primary-light transition-colors">
-              <Phone size={18} /> 01999478203
-            </a>
+            <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-white font-medium hover:bg-primary-light transition-colors">যোগাযোগ করুন</Link>
           </section>
         </div>
       </div>

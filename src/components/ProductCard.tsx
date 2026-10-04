@@ -74,14 +74,14 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <Link to={`/product/${product.slug}`}>
-          <h3 className="font-display text-base font-semibold text-ink transition-colors hover:text-primary line-clamp-1">
+          <h3 className="font-display text-sm sm:text-base font-semibold text-ink transition-colors hover:text-primary line-clamp-1">
             {product.name_bn}
           </h3>
         </Link>
         {product.short_description_bn && (
-          <p className="mt-1 text-sm text-gray-500 line-clamp-1">
+          <p className="mt-1 text-xs sm:text-sm text-gray-500 line-clamp-1">
             {product.short_description_bn}
           </p>
         )}
@@ -94,7 +94,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <div className="mt-3 flex items-center gap-2">
-          <span className="text-lg font-bold text-ink">
+          <span className="text-base sm:text-lg font-bold text-ink">
             {formatPrice(product.price)}
           </span>
           {product.old_price && product.old_price > product.price && (
@@ -104,7 +104,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        <div className="mt-3 flex gap-2 lg:hidden">
+        <div className="mt-2.5 sm:mt-3 flex gap-1.5 sm:gap-2 lg:hidden">
           <button
             onClick={() => addToCart(product)}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 text-sm font-medium text-white transition-all hover:bg-primary-dark active:scale-95"

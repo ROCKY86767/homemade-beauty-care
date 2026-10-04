@@ -1,3 +1,4 @@
+import { PackageCheck, Box, Truck, MapPinCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -40,6 +41,51 @@ type SavedAddress = {
   address: string;
   is_default: boolean;
 };
+
+
+
+function OrderJourneyAnimation() {
+  const steps = [
+    { icon: PackageCheck, title: 'অর্ডার কনফার্ম', desc: 'আপনার অর্ডারটি আমরা পেয়েছি' },
+    { icon: Box, title: 'প্যাকিং হচ্ছে', desc: 'আপনার পণ্য যত্নসহকারে প্যাক করা হচ্ছে' },
+    { icon: Truck, title: 'কুরিয়ারে দেওয়া হয়েছে', desc: 'কুরিয়ার আপনার পার্সেল নিয়ে রওনা হয়েছে' },
+    { icon: MapPinCheck, title: 'ডেলিভারি', desc: 'আপনার ঠিকানায় পৌঁছে যাবে' },
+  ];
+
+  return (
+    <div className="mt-7 rounded-3xl border border-primary/10 bg-gradient-to-br from-cream via-white to-primary/5 p-5 sm:p-7 overflow-hidden">
+      <div className="flex items-center justify-between gap-2 mb-7">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Order Journey</p>
+          <h3 className="mt-1 font-display text-xl sm:text-2xl font-bold text-dark">আপনার অর্ডারের যাত্রা</h3>
+        </div>
+        <div className="h-11 w-11 rounded-full bg-primary/10 text-primary flex items-center justify-center animate-soft-float">
+          <PackageCheck size={22} />
+        </div>
+      </div>
+
+      <div className="relative grid grid-cols-1 sm:grid-cols-4 gap-5 sm:gap-3">
+        <div className="hidden sm:block absolute left-[12%] right-[12%] top-6 h-0.5 bg-primary/15" />
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+          return (
+            <div key={step.title} className="relative z-10 text-center animate-reveal-scale" style={{ animationDelay: `${index * 140}ms` }}>
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border-4 border-white bg-primary text-white shadow-md shadow-primary/20 animate-soft-float" style={{ animationDelay: `${index * 250}ms` }}>
+                <Icon size={21} />
+              </div>
+              <h4 className="mt-3 text-sm font-bold text-dark">{step.title}</h4>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500">{step.desc}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 rounded-2xl bg-white/80 px-4 py-3 text-center text-xs sm:text-sm text-gray-500 border border-white">
+        📦 আপনার অর্ডারটি এখন আমাদের টিমের প্রসেসিং কিউতে রয়েছে।
+      </div>
+    </div>
+  );
+}
 
 export default function CheckoutPage() {
   const {
@@ -1490,6 +1536,8 @@ export default function CheckoutPage() {
                 অর্ডার কনফার্ম করার মাধ্যমে আপনি আমাদের
                 শর্তাবলীতে সম্মত হচ্ছেন।
               </p>
+
+              {false && <OrderJourneyAnimation />}
 
             </div>
 

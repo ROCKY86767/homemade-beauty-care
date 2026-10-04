@@ -19,11 +19,11 @@ export default function Analytics() {
   useEffect(() => {
     let active = true;
 
-    getSettings().then(settings => {
+    getSettings().then(async (settings) => {
       if (!active) return;
 
       const gaId = settings.google_analytics_enabled
-        ? settings.google_analytics_id
+        ? settings.google_analytics_id?.trim()
         : '';
 
       if (gaId && !document.querySelector('script[data-ga4]')) {
@@ -40,11 +40,12 @@ export default function Analytics() {
         script.dataset.ga4 = 'true';
         document.head.appendChild(script);
       }
-    });
 
-    supabase.rpc('get_public_meta_pixel').then(({ data }) => {
-      if (active && data?.enabled && data.pixel_id) {
-        setMetaPixelId(data.pixel_id);
+      if (settings.meta_pixel_enabled) {
+        const { data } = await supabase.rpc('get_public_meta_pixel');
+        if (active && data?.enabled && data.pixel_id) {
+          setMetaPixelId(data.pixel_id);
+        }
       }
     });
 
@@ -63,6 +64,9 @@ export default function Analytics() {
     };
 
     (window.fbq as any).push = (window.fbq as any).push || window.fbq;
+    (window.fbq as any).loaded = true;
+    (window.fbq as any).version = '2.0';
+    (window.fbq as any).queue = (window.fbq as any).queue || [];
     (window.fbq as any).loaded = true;
     (window.fbq as any).version = '2.0';
     (window.fbq as any).queue = (window.fbq as any).queue || [];

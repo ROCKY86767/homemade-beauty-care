@@ -89,7 +89,7 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0 max-w-[145px] sm:max-w-none">
+            <a href="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0 max-w-[145px] sm:max-w-none">
               <img
                 src="/new-homemade-logo.png"
                 alt="Homemade Beauty Care"
@@ -106,7 +106,7 @@ export default function Header() {
                     'প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া'}
                 </p>
               </div>
-            </Link>
+            </a>
 
             {/* Search bar */}
             <form

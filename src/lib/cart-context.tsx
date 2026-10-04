@@ -49,6 +49,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (newQty > product.stock) {
       return { success: false, message: `সর্বোচ্চ ${product.stock} টি অর্ডার করতে পারবেন` };
     }
+    try {
+      const fbq = (window as Window & { fbq?: (...args: any[]) => void }).fbq;
+      if (fbq) fbq('track', 'AddToCart', { content_ids: [product.id], content_name: product.name_bn, content_type: 'product', value: Number(product.price) * quantity, currency: 'BDT' });
+    } catch (error) {
+      console.error('Meta Pixel AddToCart error:', error);
+    }
+
     setItems(prev => {
       if (existing) {
         return prev.map(i =>

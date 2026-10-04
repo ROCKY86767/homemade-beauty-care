@@ -31,6 +31,7 @@ type Integration = {
   tracking_response_path: string;
   status_mapping: Record<string, any>;
   webhook_enabled: boolean;
+  provider_settings: Record<string, any>;
   webhook_secret_set?: boolean;
   api_key_set?: boolean;
   api_secret_set?: boolean;
@@ -86,7 +87,8 @@ const blank = (): Integration => ({
   status_mapping: {
     pending: 'Pending', confirmed: 'Confirmed', processing: 'Processing', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled'
   },
-  webhook_enabled: true
+  webhook_enabled: true,
+  provider_settings: {}
 });
 
 function Secret({ label, value, setValue, saved, save, busy }: any) {
@@ -249,10 +251,23 @@ export default function OrderManagementIntegrationCenter() {
         </label>
         <div className="grid sm:grid-cols-2 gap-4">
           <div><label className="block text-sm font-medium mb-1.5">Software Name</label><input value={current.name} onChange={e=>setCurrent({...current,name:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. The Invoice / Bizmotion" /></div>
-          <div><label className="block text-sm font-medium mb-1.5">Provider Type</label><select value={current.provider} onChange={e=>setCurrent({...current,provider:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option value="custom_rest">Custom REST API</option><option value="bizmotion">Bizmotion</option><option value="the_invoice">The Invoice</option><option value="other">Other</option></select></div>
+          <div><label className="block text-sm font-medium mb-1.5">Provider Type</label><select value={current.provider} onChange={e=>setCurrent({...current,provider:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option value="custom_rest">Custom REST API</option><option value="pathao">Pathao Courier</option><option value="bizmotion">Bizmotion</option><option value="the_invoice">The Invoice</option><option value="other">Other</option></select></div>
         </div>
         <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">Universal REST connector: API documentation অনুযায়ী URL, method, auth, headers, body template ও response mapping সেট করলেই যেকোনো compatible Order Management / OMS / ERP / POS software connect করা যাবে।</div>
         <div><label className="block text-sm font-medium mb-1.5">Base API URL</label><input value={current.base_url} onChange={e=>setCurrent({...current,base_url:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="https://example.com/api" /></div>
+        {current.provider === 'pathao' && <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 space-y-3">
+          <div>
+            <p className="font-semibold text-sm text-emerald-900">Pathao Courier Settings</p>
+            <p className="text-xs text-emerald-800 mt-1">Pathao Merchant API credentials দিয়ে automatic courier order তৈরি হবে।</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div><label className="block text-xs font-medium mb-1">Store ID</label><input value={current.provider_settings?.store_id || ''} onChange={e=>setCurrent({...current,provider_settings:{...(current.provider_settings||{}),store_id:e.target.value}})} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Pathao Store ID" /></div>
+            <div><label className="block text-xs font-medium mb-1">Parcel Weight (kg)</label><input type="number" min="0.5" max="10" step="0.1" value={current.provider_settings?.item_weight ?? 0.5} onChange={e=>setCurrent({...current,provider_settings:{...(current.provider_settings||{}),item_weight:Number(e.target.value)}})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
+            <div><label className="block text-xs font-medium mb-1">Delivery Type</label><select value={current.provider_settings?.delivery_type ?? 48} onChange={e=>setCurrent({...current,provider_settings:{...(current.provider_settings||{}),delivery_type:Number(e.target.value)}})} className="w-full border rounded-lg px-3 py-2 text-sm"><option value="48">Normal Delivery</option><option value="12">On Demand</option></select></div>
+            <div><label className="block text-xs font-medium mb-1">Item Type</label><select value={current.provider_settings?.item_type ?? 2} onChange={e=>setCurrent({...current,provider_settings:{...(current.provider_settings||{}),item_type:Number(e.target.value)}})} className="w-full border rounded-lg px-3 py-2 text-sm"><option value="2">Parcel</option><option value="1">Document</option></select></div>
+          </div>
+          <p className="text-xs text-emerald-800">API Key = Client ID · API Secret = Client Secret · Username = Merchant Email · Password = Merchant Password</p>
+        </div>
         <div className="grid sm:grid-cols-3 gap-4">
           <div><label className="block text-sm font-medium mb-1.5">Create Order Method</label><select value={current.create_order_method || 'POST'} onChange={e=>setCurrent({...current,create_order_method:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm"><option>POST</option><option>PUT</option><option>PATCH</option></select></div>
           <div><label className="block text-sm font-medium mb-1.5">Create Order Path</label><input value={current.create_order_path} onChange={e=>setCurrent({...current,create_order_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="/orders" /></div>

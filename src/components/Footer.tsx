@@ -163,6 +163,12 @@ export default function Footer() {
                   <span>{settings?.phone || 'Customer Support'}</span>
                 </li>
               )}
+              {settings?.contact_whatsapp_enabled !== false && settings?.whatsapp_number && (
+                <li className="flex items-start gap-2.5 text-sm text-white/60">
+                  <MessageCircle size={16} className="mt-0.5 shrink-0 text-primary-light" />
+                  <a href={`https://wa.me/${settings.whatsapp_number.replace(/\D/g, '').replace(/^0/, '88')}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary-light">{settings.whatsapp_number}</a>
+                </li>
+              )}
               <li className="flex items-start gap-2.5 text-sm text-white/60">
                 <Mail size={16} className="mt-0.5 shrink-0 text-primary-light" />
                 <span>{settings?.email || 'support.ghrcha@gmail.com'}</span>

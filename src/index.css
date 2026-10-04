@@ -9,7 +9,7 @@
     scroll-behavior: smooth;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     overscroll-behavior-x: none;
   }
 
@@ -21,7 +21,7 @@
     font-family: 'Hind Siliguri', sans-serif;
     color: #29332D;
     background-color: #F7F4EA;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     overscroll-behavior-x: none;
     -webkit-text-size-adjust: 100%;
   }
@@ -31,7 +31,7 @@
     max-width: 100%;
     min-height: 100vh;
     min-width: 0;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
   }
 
   *,
@@ -193,7 +193,7 @@ body,
 #root {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden !important;
+  overflow-x: clip !important;
 }
 
 body {
@@ -218,8 +218,16 @@ textarea {
 
 @media (max-width: 639px) {
   .section-padding {
+    width: 100%;
+    min-width: 0;
     padding-left: 14px;
     padding-right: 14px;
+  }
+
+  .safe-width {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .card {
@@ -255,6 +263,18 @@ textarea {
   .overflow-x-auto {
     max-width: 100%;
     overscroll-behavior-x: contain;
+  }
+
+  /* Prevent long content, media and third-party widgets from creating a
+     tiny horizontal strip on narrow screens. */
+  table {
+    max-width: 100%;
+  }
+
+  pre,
+  code {
+    max-width: 100%;
+    overflow-x: auto;
   }
 }
 

@@ -39,6 +39,7 @@ export default function Footer() {
   }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
+    if (settings?.newsletter_enabled === false) return;
     e.preventDefault();
     if (!email.trim()) return;
     const { error } = await supabase.from('newsletter').insert({ email: email.trim() });
@@ -63,6 +64,7 @@ export default function Footer() {
   return (
     <footer className="bg-dark text-white">
       {/* Newsletter */}
+      {settings?.newsletter_enabled !== false && (
       <div className="border-b border-white/10">
         <div className="section-padding py-8 sm:py-12">
           <div className="mx-auto max-w-2xl text-center">
@@ -96,6 +98,8 @@ export default function Footer() {
         </div>
       </div>
 
+      )}
+
       {/* Main footer */}
       <div className="section-padding py-12">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
@@ -103,7 +107,7 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
 <img
-  src="/new-homemade-logo.png"
+  src={settings?.logo_url || "/new-homemade-logo.png"
   alt="Homemade Beauty Care"
   className="h-14 w-14 rounded-md object-contain"
   style={{ borderRadius: '6px' }}
@@ -155,7 +159,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2.5 text-sm text-white/60">
                 <Phone size={16} className="mt-0.5 shrink-0 text-primary-light" />
-                <span>{settings?.phone || 'Customer Support'}</span>
+                <span>{settings?.contact_phone_enabled === false ? null : (settings?.phone || 'Customer Support')}</span>
               </li>
               <li className="flex items-start gap-2.5 text-sm text-white/60">
                 <Mail size={16} className="mt-0.5 shrink-0 text-primary-light" />

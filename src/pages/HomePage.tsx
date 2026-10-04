@@ -205,7 +205,14 @@ export default function HomePage() {
           skinCategoryIds.includes(product.category_id)
         );
 
-        setBanners(bannersResult.data || []);
+        const now = new Date();
+        const scheduledBanners = (bannersResult.data || []).filter((banner: Banner) => {
+          const start = banner.start_at ? new Date(banner.start_at) : null;
+          const end = banner.end_at ? new Date(banner.end_at) : null;
+          return (!start || start <= now) && (!end || end >= now);
+        });
+
+        setBanners(scheduledBanners);
 
         // ⭐ সব active products
         setAllProducts(loadedProducts);
@@ -271,11 +278,14 @@ export default function HomePage() {
               }`}
             >
               <div className="absolute inset-0">
-                <img
-                  src={banner.image_url || ''}
-                  alt={banner.title_bn}
-                  className="h-full w-full object-cover"
-                />
+                <picture>
+                  <source media="(max-width: 639px)" srcSet={banner.mobile_image_url || banner.desktop_image_url || banner.image_url || ''} />
+                  <img
+                    src={banner.desktop_image_url || banner.image_url || banner.mobile_image_url || ''}
+                    alt={banner.title_bn}
+                    className="h-full w-full object-cover"
+                  />
+                </picture>
 
                 <div className="absolute inset-0 bg-gradient-to-r from-dark/70 via-dark/30 to-transparent" />
               </div>

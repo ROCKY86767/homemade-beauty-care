@@ -1,12 +1,12 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Grid3x3, Search, Heart, ShoppingCart } from 'lucide-react';
+import { Home, Grid3x3, Search, User, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useState } from 'react';
 
 export default function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { cartCount, wishlist } = useCart();
+  const { cartCount } = useCart();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const isActive = (path: string) =>
@@ -23,7 +23,7 @@ export default function MobileNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white border-t border-gray-100 shadow-lg">
+      <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden border-t border-gray-100 bg-white/95 shadow-lg backdrop-blur safe-area-bottom">
         <div className="flex items-center justify-around py-2">
           <Link
             to="/"
@@ -66,17 +66,12 @@ export default function MobileNav() {
             <span className="text-xs font-medium">কার্ট</span>
           </Link>
           <Link
-            to="/track-order"
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 transition-colors ${
-              isActive('/track-order') ? 'text-primary' : 'text-gray-500'
+            to="/account"
+            className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 transition-colors ${
+              isActive('/account') ? 'text-primary' : 'text-gray-500'
             }`}
           >
-            <Heart size={22} />
-            {wishlist.length > 0 && (
-              <span className="absolute right-1 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-semibold text-white">
-                {wishlist.length}
-              </span>
-            )}
+            <User size={22} />
             <span className="text-xs font-medium">অ্যাকাউন্ট</span>
           </Link>
         </div>

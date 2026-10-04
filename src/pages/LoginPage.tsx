@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft, Chrome } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import SEO from '@/components/SEO';
 
@@ -13,6 +13,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  async function signInWithGoogle() {
+    setLoading(true);
+    setError('');
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/account` } });
+    if (oauthError) { setLoading(false); setError(oauthError.message); }
+  }
 
   async function sendOtp() {
     const cleanEmail = email.trim().toLowerCase();
@@ -116,7 +123,10 @@ export default function LoginPage() {
 
             {!otpSent ? (
               <div className="space-y-5">
-
+                <button type="button" onClick={signInWithGoogle} disabled={loading} className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white py-3 font-medium text-ink hover:bg-gray-50 disabled:opacity-50">
+                  <Chrome size={18} /> Continue with Google
+                </button>
+                <div className="flex items-center gap-3 text-xs text-gray-400"><div className="h-px flex-1 bg-gray-200" /><span>অথবা Email OTP</span><div className="h-px flex-1 bg-gray-200" /></div>
                 <div>
                   <label className="block text-sm font-medium text-ink mb-2">
                     Email Address

@@ -730,7 +730,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* How to Order */}
       {settings?.homepage_show_how_to_order !== false && <section className="py-10 sm:py-16">
@@ -764,7 +764,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Customer Reviews */}
       {settings?.homepage_show_reviews !== false && <section className="py-10 sm:py-16 bg-cream">
@@ -840,7 +840,7 @@ export default function HomePage() {
             </div>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* Social Section */}
       {[

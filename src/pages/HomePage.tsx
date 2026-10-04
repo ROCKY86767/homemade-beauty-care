@@ -701,7 +701,6 @@ export default function HomePage() {
       )}
 
       {/* Why Choose Us */}
-      {settings?.homepage_show_why_choose_us !== false && (
       <section className="py-10 sm:py-16 bg-dark text-white">
         <div className="section-padding">
           <div className="text-center mb-10">
@@ -733,10 +732,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      </section>)}
-
       {/* How to Order */}
-      {settings?.homepage_show_how_to_order !== false && (
       <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="text-center mb-10">
@@ -770,10 +766,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      </section>)}
-
       {/* Customer Reviews */}
-      {settings?.homepage_show_reviews !== false && (
       <section className="py-10 sm:py-16 bg-cream">
         <div className="section-padding">
           <div className="text-center mb-10">
@@ -848,8 +841,6 @@ export default function HomePage() {
           )}
         </div>
       </section>
-
-      </section>)}
 
       {/* Social Section */}
       {[

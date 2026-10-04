@@ -86,7 +86,7 @@ export default function OrderSuccessPage() {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center bg-cream px-4 py-12">
-      <SEO title="অর্ডার সফল - Homemade Beauty Care" />
+      <SEO title="Order Confirmed - Homemade Beauty Care" />
       <div className="max-w-lg w-full">
         <div className="relative overflow-hidden rounded-3xl bg-white border border-primary/10 shadow-sm px-5 py-8 sm:px-10 sm:py-10 text-center animate-fade-in-up">
           <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/5" />
@@ -97,7 +97,7 @@ export default function OrderSuccessPage() {
             </div>
             <p className="mb-2 text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] text-primary">Order Confirmed</p>
             <h1 className="font-display text-2xl sm:text-4xl font-bold text-dark leading-tight">
-              ধন্যবাদ! আপনার অর্ডারটি সফলভাবে কনফার্ম হয়েছে
+              Thank you! Your order has been successfully confirmed.
             </h1>
             <p className="mx-auto mt-3 max-w-xl text-sm sm:text-base leading-relaxed text-gray-500">
               আপনার অর্ডারটি আমরা পেয়েছি। আমাদের টিম এখন এটি প্রসেস করছে। প্রয়োজনে ডেলিভারির আগে আমাদের প্রতিনিধি আপনার সাথে যোগাযোগ করবেন।
@@ -191,13 +191,13 @@ export default function OrderSuccessPage() {
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-in-up">
           <Link to={`/track-order?id=${orderNumber}`} className="btn-primary click-feedback justify-center">
-            অর্ডার ট্র্যাক করুন
+            Track Order
           </Link>
           <Link to="/invoice" className="btn-secondary click-feedback-soft justify-center">
             Invoice
           </Link>
           <Link to="/" className="btn-secondary">
-            <Home size={18} /> হোমে ফিরে যান
+            <Home size={18} /> Back to Home
           </Link>
         </div>
       </div>

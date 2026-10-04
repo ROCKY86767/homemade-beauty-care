@@ -344,7 +344,7 @@ export default function HomePage() {
 
                     {idx === 0 && (
                       <Link
-                        to="/category/combo"
+                        to="/shop"
                         className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-8 py-3.5 font-medium text-white transition-all hover:bg-white hover:text-dark active:scale-95"
                       >
                         View Collection

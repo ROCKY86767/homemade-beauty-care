@@ -29,7 +29,7 @@ export default function ProductCard({ product, compactActions = false }: Product
 
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
           {discount > 0 && (
-            <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+            <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-sm click-feedback ripple-click">
               -{discount}%
             </span>
           )}
@@ -51,7 +51,7 @@ export default function ProductCard({ product, compactActions = false }: Product
             inWishlist
               ? 'bg-accent text-white'
               : 'bg-white/90 text-ink hover:bg-accent hover:text-white'
-          }`}
+          } click-feedback`}
           aria-label="Add to wishlist"
         >
           <Heart size={18} className={inWishlist ? 'fill-white' : ''} />
@@ -108,14 +108,14 @@ export default function ProductCard({ product, compactActions = false }: Product
         <div className="mt-2.5 sm:mt-3 flex gap-1.5 sm:gap-2 lg:hidden">
           <button
             onClick={() => addToCart(product)}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-primary font-medium text-white transition-all hover:bg-primary-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"}`}
+            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-primary font-medium text-white transition-all hover:bg-primary-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
           >
             <ShoppingCart size={16} />
             Add
           </button>
           <Link
             to={`/product/${product.slug}`}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-accent font-medium text-white transition-all hover:bg-accent-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"}`}
+            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-accent font-medium text-white transition-all hover:bg-accent-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
           >
             <Zap size={compactActions ? 14 : 16} />
             Buy Now

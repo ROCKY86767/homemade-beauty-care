@@ -107,14 +107,14 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-2.5 sm:mt-3 flex gap-1.5 sm:gap-2 lg:hidden">
           <button
             onClick={() => addToCart(product)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 text-sm font-medium text-white transition-all hover:bg-primary-dark active:scale-95"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white transition-all hover:bg-primary-dark active:scale-95"
           >
             <ShoppingCart size={16} />
             Add
           </button>
           <Link
             to={`/product/${product.slug}`}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-accent py-2.5 text-sm font-medium text-white transition-all hover:bg-accent-dark active:scale-95"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-accent py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white transition-all hover:bg-accent-dark active:scale-95"
           >
             <Zap size={16} />
             Buy Now

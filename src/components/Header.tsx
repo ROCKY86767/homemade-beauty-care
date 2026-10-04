@@ -62,14 +62,14 @@ export default function Header() {
   return (
     <>
       {/* Announcement Bar */}
-      <div className="bg-dark text-white text-sm">
+      {settings?.announcement_bn && <div className="bg-dark text-white text-sm">
         <div className="section-padding flex items-center justify-center py-2 text-center">
           <p className="font-medium">
             {settings?.announcement_bn ||
               'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি | অর্ডার করতে কল করুন: 01999478203'}
           </p>
         </div>
-      </div>
+      </div>}
 
       {/* Main Header */}
       <header

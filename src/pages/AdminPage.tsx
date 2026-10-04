@@ -2512,6 +2512,7 @@ function CategoriesView() {
 ========================================================= */
 
 function OrdersView() {
+  // Compact order rows + dedicated View modal.
   const [orders, setOrders] = useState<Order[]>([]);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);

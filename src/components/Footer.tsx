@@ -64,15 +64,15 @@ export default function Footer() {
     <footer className="bg-dark text-white">
       {/* Newsletter */}
       <div className="border-b border-white/10">
-        <div className="section-padding py-12">
+        <div className="section-padding py-8 sm:py-12">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-2xl font-bold text-white">
+            <h2 className="font-display text-xl sm:text-2xl font-bold text-white">
               সবার আগে নতুন কিছু জানতে চান?
             </h2>
             <p className="mt-2 text-sm text-white/70">
               নতুন পণ্য, special offers এবং beauty tips পেতে subscribe করুন।
             </p>
-            <form onSubmit={handleSubscribe} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <form onSubmit={handleSubscribe} className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input
                 type="email"
                 value={email}
@@ -172,8 +172,8 @@ export default function Footer() {
 
       {/* Bottom */}
       <div className="border-t border-white/10">
-        <div className="section-padding py-5 text-center">
-          <p className="text-sm text-white/50">
+        <div className="section-padding py-4 sm:py-5 text-center">
+          <p className="text-xs sm:text-sm text-white/50">
             © {new Date().getFullYear()} {settings?.brand_name || 'Homemade Beauty Care'}. All Rights Reserved.
           </p>
         </div>

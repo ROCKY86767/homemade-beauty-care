@@ -322,12 +322,12 @@ export default function HomePage() {
                     </p>
                   )}
 
-                  <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 animate-fade-in-up">
+                  <h1 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 animate-fade-in-up">
                     {banner.title_bn}
                   </h1>
 
                   {banner.description_bn && (
-                    <p className="text-base text-white/80 mb-6 max-w-md animate-fade-in-up">
+                    <p className="text-sm sm:text-base text-white/80 mb-5 sm:mb-6 max-w-md animate-fade-in-up">
                       {banner.description_bn}
                     </p>
                   )}
@@ -422,10 +422,10 @@ export default function HomePage() {
       </section>
 
       {/* Shop by Category */}
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl font-bold text-dark">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
               আপনার প্রয়োজন অনুযায়ী শপ করুন
             </h2>
 
@@ -463,11 +463,11 @@ export default function HomePage() {
 
       {/* ⭐ ALL ACTIVE PRODUCTS */}
       {allProducts.length > 0 && (
-        <section className="py-16 bg-cream">
+        <section className="py-10 sm:py-16 bg-cream">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
-                <h2 className="font-display text-3xl font-bold text-dark">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
                   আমাদের পণ্যসমূহ
                 </h2>
 
@@ -499,10 +499,10 @@ export default function HomePage() {
 
       {/* Best Sellers */}
       {bestSellers.length > 0 && (
-        <section className="py-16">
+        <section className="py-10 sm:py-16">
           <div className="section-padding">
             <div className="text-center mb-10">
-              <h2 className="font-display text-3xl font-bold text-dark">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
                 সবচেয়ে বেশি পছন্দের
               </h2>
 
@@ -525,11 +525,11 @@ export default function HomePage() {
 
       {/* Hair Care Section */}
       {hairCare.length > 0 && (
-        <section className="py-16">
+        <section className="py-10 sm:py-16">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
-                <h2 className="font-display text-3xl font-bold text-dark">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
                   চুলের যত্নে আমাদের বিশেষ সংগ্রহ
                 </h2>
 
@@ -562,11 +562,11 @@ export default function HomePage() {
 
       {/* Skin Care Section */}
       {skinCare.length > 0 && (
-        <section className="py-16 bg-light-green/40">
+        <section className="py-10 sm:py-16 bg-light-green/40">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
-                <h2 className="font-display text-3xl font-bold text-dark">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
                   ত্বকের যত্নে প্রতিদিনের ভালোবাসা
                 </h2>
 
@@ -597,7 +597,7 @@ export default function HomePage() {
       )}
 
       {/* Special Combo Banner */}
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="relative overflow-hidden rounded-3xl bg-dark">
             <div className="grid md:grid-cols-2 items-center">
@@ -665,10 +665,10 @@ export default function HomePage() {
 
       {/* New Arrivals */}
       {newArrivals.length > 0 && (
-        <section className="py-16 bg-cream">
+        <section className="py-10 sm:py-16 bg-cream">
           <div className="section-padding">
             <div className="text-center mb-10">
-              <h2 className="font-display text-3xl font-bold text-dark">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
                 নতুন এসেছে
               </h2>
 
@@ -691,14 +691,14 @@ export default function HomePage() {
 
       {/* Offer Section */}
       {onSale.length > 0 && (
-        <section className="py-16">
+        <section className="py-10 sm:py-16">
           <div className="section-padding">
             <div className="text-center mb-10">
               <span className="inline-block rounded-full bg-accent/10 text-accent px-4 py-1 text-sm font-semibold mb-2">
                 বিশেষ অফার
               </span>
 
-              <h2 className="font-display text-3xl font-bold text-dark">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
                 নিজের যত্নে আজই কিছু একটা বেছে নিন
               </h2>
             </div>
@@ -716,10 +716,10 @@ export default function HomePage() {
       )}
 
       {/* Why Choose Us */}
-      <section className="py-16 bg-dark text-white">
+      <section className="py-10 sm:py-16 bg-dark text-white">
         <div className="section-padding">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl font-bold text-white">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
               কেন Homemade Beauty Care?
             </h2>
           </div>
@@ -748,10 +748,10 @@ export default function HomePage() {
       </section>
 
       {/* How to Order */}
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl font-bold text-dark">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
               কীভাবে অর্ডার করবেন?
             </h2>
           </div>
@@ -782,10 +782,10 @@ export default function HomePage() {
       </section>
 
       {/* Customer Reviews */}
-      <section className="py-16 bg-cream">
+      <section className="py-10 sm:py-16 bg-cream">
         <div className="section-padding">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl font-bold text-dark">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
               আমাদের কাস্টমাররা কী বলছেন?
             </h2>
           </div>
@@ -863,10 +863,10 @@ export default function HomePage() {
         { name: 'Instagram', url: settings?.instagram_url, icon: 'M16 11.37A4 4 0 1 1 7.63 8 4 4 0 0 1 16 11.37z M17.5 6.5h.01 M3 11.37A8.37 8.37 0 0 1 11.37 3h1.26A8.37 8.37 0 0 1 21 11.37v1.26A8.37 8.37 0 0 1 12.63 21h-1.26A8.37 8.37 0 0 1 3 12.63z', color: 'bg-gradient-to-br from-[#E4405F] to-[#F77737]' },
         { name: 'TikTok', url: settings?.tiktok_url, icon: 'M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5', color: 'bg-dark' },
       ].filter(social => social.url).length > 0 && (
-        <section className="py-16">
+        <section className="py-10 sm:py-16">
           <div className="section-padding">
             <div className="text-center mb-10">
-              <h2 className="font-display text-3xl font-bold text-dark">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
                 আমাদের সাথে যুক্ত থাকুন
               </h2>
               <p className="mt-2 text-gray-500">

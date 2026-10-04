@@ -101,6 +101,10 @@ export async function updateSettings(updates: Partial<SiteSettings>): Promise<Si
   return data;
 }
 
+export function getDefaultSettings(): SiteSettings {
+  return { ...DEFAULT_SETTINGS };
+}
+
 export function clearSettingsCache() {
   cachedSettings = null;
 }
@@ -115,10 +119,11 @@ export function getDeliveryCharge(_settings: SiteSettings, district: string, _su
       'শাহবাগ','শ্যামপুর','শেরেবাংলা নগর','সূত্রাপুর','তেজগাঁও','তেজগাঁও শিল্পাঞ্চল','তুরাগ',
       'উত্তরা পূর্ব','উত্তরা পশ্চিম','ভাটারা','ওয়ারী'
     ]);
-    if (cityThanas.has(thana.trim())) return 70;
+    if (cityThanas.has(thana.trim())) return _settings.delivery_inside_dhaka;
+
     if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ'].includes(thana.trim())) return 100;
   }
-  if (district === 'গাজীপুর' || district === 'নারায়ণগঞ্জ') return 100;
+  if (district === 'গাজীপুর' || district === 'নারায়ণগঞ্জ') return Math.min(100, _settings.delivery_outside_dhaka);
   if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ'].includes(thana.trim())) return 100;
-  return 120;
+  return _settings.delivery_outside_dhaka;
 }

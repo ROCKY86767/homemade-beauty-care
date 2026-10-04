@@ -436,7 +436,7 @@ export default function CheckoutPage() {
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       setCouponError(
-        'কুপন কোড লিখুন।'
+        'Please enter a coupon code.'
       );
 
       setCouponSuccess('');
@@ -462,7 +462,7 @@ export default function CheckoutPage() {
 
     if (queryError) {
       setCouponError(
-        'কুপন যাচাই করতে সমস্যা হয়েছে।'
+        'Unable to validate the coupon.'
       );
 
       setAppliedCoupon(null);
@@ -472,7 +472,7 @@ export default function CheckoutPage() {
 
     if (!coupon) {
       setCouponError(
-        'কুপন কোড সঠিক নয় বা বর্তমানে সক্রিয় নয়।'
+        'Invalid or inactive coupon code.'
       );
 
       setAppliedCoupon(null);
@@ -486,7 +486,7 @@ export default function CheckoutPage() {
         new Date()
     ) {
       setCouponError(
-        'এই কুপনটি এখনো চালু হয়নি।'
+        'This coupon is not active yet.'
       );
 
       setAppliedCoupon(null);
@@ -500,7 +500,7 @@ export default function CheckoutPage() {
         new Date()
     ) {
       setCouponError(
-        'এই কুপন কোডের মেয়াদ শেষ হয়ে গেছে।'
+        'This coupon code has expired.'
       );
 
       setAppliedCoupon(null);
@@ -514,7 +514,7 @@ export default function CheckoutPage() {
         Number(coupon.usage_limit)
     ) {
       setCouponError(
-        'এই কুপন কোডের ব্যবহারের সীমা শেষ হয়ে গেছে।'
+        'This coupon has reached its usage limit.'
       );
 
       setAppliedCoupon(null);
@@ -529,7 +529,7 @@ export default function CheckoutPage() {
       )
     ) {
       setCouponError(
-        `এই কুপনের জন্য সর্বনিম্ন অর্ডার ${formatPrice(
+        `Minimum order for this coupon is ${formatPrice(
           Number(
             coupon.minimum_order || 0
           )
@@ -549,7 +549,7 @@ export default function CheckoutPage() {
 
     if (couponDiscount <= 0) {
       setCouponError(
-        'এই অর্ডারে কুপনটি প্রযোজ্য নয়।'
+        'This coupon is not applicable to this order.'
       );
 
       setAppliedCoupon(null);
@@ -560,9 +560,9 @@ export default function CheckoutPage() {
     setAppliedCoupon(coupon);
 
     setCouponSuccess(
-      `কুপন প্রয়োগ করা হয়েছে! আপনি ${formatPrice(
+      `Coupon applied! You save ${formatPrice(
         couponDiscount
-      )} ছাড় পাবেন।`
+      )} .`
     );
   };
 
@@ -591,7 +591,7 @@ export default function CheckoutPage() {
       !form.address
     ) {
       setError(
-        'অনুগ্রহ করে সকল প্রয়োজনীয় তথ্য পূরণ করুন।'
+        'Please fill in all required fields.'
       );
 
       return;
@@ -603,7 +603,7 @@ export default function CheckoutPage() {
       )
     ) {
       setError(
-        'সঠিক Mobile Number দিন (যেমন: 01*********)'
+        'Please enter a valid mobile number (e.g. 01XXXXXXXXX).'
       );
 
       return;
@@ -619,7 +619,7 @@ export default function CheckoutPage() {
       'Online Payment'
     ) {
       setError(
-        'Online Payment এখনো চালু হয়নি। Cash on Delivery নির্বাচন করুন।'
+        'Online Payment is not available yet. Please select Cash on Delivery.'
       );
 
       return;
@@ -779,7 +779,7 @@ export default function CheckoutPage() {
 
       setError(
         duplicateOrder
-          ? 'এই Mobile Number দিয়ে গত ৫ মিনিটের মধ্যে একটি অর্ডার ইতোমধ্যে কনফার্ম হয়েছে। ৫ মিনিট পর আবার অর্ডার করতে পারবেন।'
+          ? 'An order has already been confirmed with this mobile number within the last 5 minutes. Please try again after 5 minutes.'
           : 'Unable to place the order. Please try again.'
       );
 
@@ -793,18 +793,18 @@ export default function CheckoutPage() {
         <SEO title="Checkout - Homemade Beauty Care" />
 
         <h2 className="font-display text-xl sm:text-2xl font-bold text-dark mb-2">
-          আপনার কার্ট খালি
+          Your cart is empty
         </h2>
 
         <p className="text-gray-500 mb-6 text-center">
-          অর্ডার করতে প্রথমে কার্টে পণ্য যোগ করুন।
+          Add products to your cart before proceeding to checkout.
         </p>
 
         <Link
           to="/shop"
           className="btn-primary"
         >
-          শপ করুন
+          Continue Shopping
         </Link>
       </div>
     );
@@ -822,18 +822,18 @@ export default function CheckoutPage() {
             to="/cart"
             className="hover:text-primary"
           >
-            কার্ট
+            Cart
           </Link>
 
           <ChevronRight size={14} />
 
           <span className="text-ink font-medium">
-            অর্ডার সম্পন্ন করুন
+            Complete Your Order
           </span>
         </div>
 
         <h1 className="font-display text-3xl font-bold text-dark mb-8">
-          অর্ডার সম্পন্ন করুন
+          Complete Your Order
         </h1>
 
         <form
@@ -923,7 +923,7 @@ export default function CheckoutPage() {
                 {/* Email */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    ইমেইল
+                    Email Address
                   </label>
 
                   <input
@@ -942,12 +942,12 @@ export default function CheckoutPage() {
                         ? 'bg-gray-50'
                         : ''
                     }`}
-                    placeholder="আপনার ইমেইল"
+                    placeholder="আপনার Email Address"
                   />
 
                   {userId && (
                     <p className="text-xs text-gray-400 mt-1">
-                      আপনার verified account email
+                      Your verified account email
                     </p>
                   )}
                 </div>
@@ -988,7 +988,7 @@ export default function CheckoutPage() {
                 {/* Thana / Upazila */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    থানা / উপDistrict *
+                    Thana / Upazila *
                   </label>
 
                   <select
@@ -1005,10 +1005,10 @@ export default function CheckoutPage() {
                   >
                     <option value="">
                       {locationLoading
-                        ? 'লোকেশন লোড হচ্ছে...'
+                        ? 'Loading locations...'
                         : thanas.length === 0
-                          ? 'থানা/উপDistrict পাওয়া যায়নি'
-                          : 'থানা / উপDistrict নির্বাচন করুন'}
+                          ? 'No area found'
+                          : 'Select Thana / Upazila'}
                     </option>
                     {thanas.map(thana => (
                       <option
@@ -1024,7 +1024,7 @@ export default function CheckoutPage() {
                 {/* Address */}
                 <div className="sm:col-span-2">
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    সম্পূর্ণ Delivery Address *
+                    Full Delivery Address *
                   </label>
 
                   <textarea
@@ -1039,14 +1039,14 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field resize-none"
-                    placeholder="বাসা/হোল্ডিং নম্বর, রোড, থানা/পুলিশ স্টেশন"
+                    placeholder="House/Holding number, road, thana/police station"
                   />
                 </div>
 
                 {/* Note */}
                 <div className="sm:col-span-2">
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    অর্ডার নোট
+                    Order Note
                   </label>
 
                   <textarea
@@ -1060,7 +1060,7 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field resize-none"
-                    placeholder="অর্ডার সম্পর্কে কোনো বিশেষ নির্দেশনা (ঐচ্ছিক)"
+                    placeholder="Any special instructions for your order (optional)"
                   />
                 </div>
 
@@ -1078,7 +1078,7 @@ export default function CheckoutPage() {
                     </h2>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      এই account-এর saved address
+                      Saved addresses for this account
                     </p>
                   </div>
 
@@ -1090,7 +1090,7 @@ export default function CheckoutPage() {
 
                 {savedAddressLoading ? (
                   <p className="text-sm text-gray-400">
-                    Address খোঁজা হচ্ছে...
+                    Loading saved addresses...
                   </p>
                 ) : savedAddresses.length > 0 ? (
                   <div className="space-y-3">
@@ -1161,14 +1161,14 @@ export default function CheckoutPage() {
                 ) : (
                   <div className="rounded-xl bg-gray-50 p-4">
                     <p className="text-sm text-gray-500">
-                      এই Mobile Numberের কোনো saved address পাওয়া যায়নি।
+                      No saved address found for this mobile number.
                     </p>
                   </div>
                 )}
 
                 <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
                   <Plus size={14} />
-                  অর্ডার করার সময় নতুন address account-এর সাথে save হবে।
+                  Your new address will be saved to your account when you place the order.
                 </div>
 
               </div>
@@ -1179,18 +1179,18 @@ export default function CheckoutPage() {
               !userId && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <p className="text-sm text-gray-600">
-                    Saved Address ব্যবহার করতে{' '}
+                    To use Saved Addresses, please{' '}
                     <Link
                       to="/login"
                       className="font-semibold text-primary hover:underline"
                     >
-                      Login করুন
+                      Log in
                     </Link>
                     ।
                   </p>
 
                   <p className="text-xs text-gray-400 mt-1">
-                    Login না করেও Guest Checkout করা যাবে।
+                    You can also continue as a guest without logging in.
                   </p>
                 </div>
               )}
@@ -1199,7 +1199,7 @@ export default function CheckoutPage() {
             <div className="card p-6 border border-gray-50">
 
               <h2 className="font-display text-lg font-semibold text-ink mb-4">
-                পেমেন্ট মেথড
+                Payment Method
               </h2>
 
               <div className="space-y-3">
@@ -1234,7 +1234,7 @@ export default function CheckoutPage() {
                     </span>
 
                     <p className="text-sm text-gray-500">
-                      পণ্য হাতে পেয়ে টাকা দিন
+                      Pay when you receive your order
                     </p>
                   </div>
                 </label>
@@ -1269,7 +1269,7 @@ export default function CheckoutPage() {
                     </span>
 
                     <p className="text-sm text-gray-500">
-                      শীঘ্রই আসছে (bKash, Nagad, Card)
+                      Coming soon (bKash, Nagad, Card)
                     </p>
                   </div>
                 </label>
@@ -1463,7 +1463,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between items-center py-4 sm:py-5">
 
                 <span className="font-display text-lg font-bold text-dark">
-                  মোট
+                  Total
                 </span>
 
                 <span className="font-display text-2xl font-bold text-primary">
@@ -1488,13 +1488,13 @@ export default function CheckoutPage() {
                 className="btn-primary w-full disabled:opacity-50"
               >
                 {submitting
-                  ? 'অর্ডার প্রসেস হচ্ছে...'
+                  ? 'Placing Order...'
                   : 'Place Order'}
               </button>
 
               <p className="text-xs text-gray-400 text-center mt-3">
-                অর্ডার কনফার্ম করার মাধ্যমে আপনি আমাদের
-                শর্তাবলীতে সম্মত হচ্ছেন।
+                By placing this order, you agree to our
+                terms and conditions.
               </p>
 
               {false && <OrderJourneyAnimation />}

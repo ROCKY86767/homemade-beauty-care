@@ -55,7 +55,7 @@ export default function InvoicePage() {
           <div className="card p-6 sm:p-8">
             <div className="text-center mb-6">
               <h1 className="font-display text-3xl font-bold text-dark">Invoice</h1>
-              <p className="text-gray-500 mt-2">আপনার অর্ডারের মোবাইল নম্বর দিয়ে ইনভয়েস দেখুন ও প্রিন্ট করুন।</p>
+              <p className="text-gray-500 mt-2">Enter your order mobile number to view and print your invoice.</p>
             </div>
 
             <form onSubmit={handleSearch} className="space-y-4 max-w-md mx-auto">
@@ -64,7 +64,7 @@ export default function InvoicePage() {
                 value={mobile}
                 onChange={e => setMobile(e.target.value)}
                 className="input-field"
-                placeholder="আপনার মোবাইল নম্বর দিন"
+                placeholder="Enter Your Mobile Number"
               />
 
               {error && <p className="rounded-lg bg-red-50 text-red-600 px-4 py-3 text-sm">{error}</p>}

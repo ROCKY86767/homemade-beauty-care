@@ -490,6 +490,7 @@ export default function HomePage() {
                 <ProductCard
                   key={product.id}
                   product={product}
+                  compactActions
                 />
               ))}
             </div>
@@ -516,6 +517,7 @@ export default function HomePage() {
                 <ProductCard
                   key={product.id}
                   product={product}
+                  compactActions
                 />
               ))}
             </div>
@@ -553,6 +555,7 @@ export default function HomePage() {
                 <ProductCard
                   key={product.id}
                   product={product}
+                  compactActions
                 />
               ))}
             </div>
@@ -589,6 +592,7 @@ export default function HomePage() {
                 <ProductCard
                   key={product.id}
                   product={product}
+                  compactActions
                 />
               ))}
             </div>
@@ -682,6 +686,7 @@ export default function HomePage() {
                 <ProductCard
                   key={product.id}
                   product={product}
+                  compactActions
                 />
               ))}
             </div>
@@ -708,6 +713,7 @@ export default function HomePage() {
                 <ProductCard
                   key={product.id}
                   product={product}
+                  compactActions
                 />
               ))}
             </div>

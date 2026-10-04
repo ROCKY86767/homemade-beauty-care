@@ -14,37 +14,43 @@ declare global {
 
 export default function Analytics() {
   const location = useLocation();
-  const [metaPixelId, setMetaPixelId] = useState(
-    (import.meta.env.VITE_META_PIXEL_ID as string | undefined) || ''
-  );
+  const [metaPixelId, setMetaPixelId] = useState('');
 
   useEffect(() => {
     let active = true;
+
     getSettings().then(settings => {
       if (!active) return;
-      const gaId = settings.google_analytics_enabled ? settings.google_analytics_id : '';
-      if (gaId && !document.querySelector('script[data-ga4]')) {
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = function (...args: any[]) {
-        window.dataLayer.push(args);
-      };
-      window.gtag('js', new Date());
-      window.gtag('config', gaId, { send_page_view: false });
 
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
-      script.dataset.ga4 = 'true';
-      document.head.appendChild(script);
+      const gaId = settings.google_analytics_enabled
+        ? settings.google_analytics_id
+        : '';
+
+      if (gaId && !document.querySelector('script[data-ga4]')) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function (...args: any[]) {
+          window.dataLayer.push(args);
+        };
+        window.gtag('js', new Date());
+        window.gtag('config', gaId, { send_page_view: false });
+
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
+        script.dataset.ga4 = 'true';
+        document.head.appendChild(script);
       }
     });
 
     supabase.rpc('get_public_meta_pixel').then(({ data }) => {
-      if (data?.enabled && data.pixel_id) {
+      if (active && data?.enabled && data.pixel_id) {
         setMetaPixelId(data.pixel_id);
       }
     });
-    return () => { active = false; };
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -55,11 +61,13 @@ export default function Analytics() {
         ? (window.fbq as any).callMethod(...args)
         : (window.fbq as any).queue.push(args);
     };
+
     (window.fbq as any).push = (window.fbq as any).push || window.fbq;
     (window.fbq as any).loaded = true;
     (window.fbq as any).version = '2.0';
     (window.fbq as any).queue = (window.fbq as any).queue || [];
     (window.fbq as any)('init', metaPixelId);
+
     const script = document.createElement('script');
     script.async = true;
     script.src = 'https://connect.facebook.net/en_US/fbevents.js';
@@ -68,9 +76,7 @@ export default function Analytics() {
   }, [metaPixelId]);
 
   useEffect(() => {
-    const gaId = import.meta.env.VITE_GA4_MEASUREMENT_ID as string | undefined;
-
-    if (gaId && window.gtag) {
+    if (window.gtag) {
       window.gtag('event', 'page_view', {
         page_location: window.location.href,
         page_path: location.pathname,

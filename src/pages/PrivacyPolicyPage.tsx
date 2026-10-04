@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight, ShieldCheck, Phone } from 'lucide-react';
+import { ChevronRight, ShieldCheck } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 export default function PrivacyPolicyPage() {
@@ -62,9 +62,7 @@ export default function PrivacyPolicyPage() {
           <section className="rounded-2xl bg-dark p-6 md:p-8 text-white">
             <h2 className="font-display text-xl font-bold mb-3">গোপনীয়তা সংক্রান্ত যোগাযোগ</h2>
             <p className="text-white/80 leading-7 mb-5">আপনার অ্যাকাউন্ট, অর্ডার বা ব্যক্তিগত তথ্য সম্পর্কে কোনো প্রশ্ন থাকলে আমাদের সঙ্গে যোগাযোগ করুন।</p>
-            <a href="tel:01999478203" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-white font-medium hover:bg-primary-light transition-colors">
-              <Phone size={18} /> 01999478203
-            </a>
+            <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-white font-medium hover:bg-primary-light transition-colors">যোগাযোগ করুন</Link>
           </section>
         </div>
       </div>

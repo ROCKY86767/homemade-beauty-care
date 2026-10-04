@@ -20,10 +20,11 @@ const FOOTER_LINKS = {
   ],
   CATEGORIES: [
     { label: 'Hair Care', path: '/category/hair-care' },
+    { label: 'Hair Oil', path: '/category/hair-oil' },
+    { label: 'Hair Pack', path: '/category/hair-pack' },
     { label: 'Skin Care', path: '/category/skin-care' },
     { label: 'Face Care', path: '/category/face-care' },
-    { label: 'Body Care', path: '/category/body-care' },
-    { label: 'Combo', path: '/category/combo' },
+    { label: 'Face Pack', path: '/category/face-pack' },
     { label: 'Offers', path: '/offers' },
   ],
 };

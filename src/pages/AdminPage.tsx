@@ -42,6 +42,7 @@ import AdminLogin from './AdminLogin';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import OrderManagementIntegrationCenter from '../components/OrderManagementIntegrationCenter';
 import { formatPrice } from '../lib/format';
+import { getSettings, updateSettings } from '../lib/settings';
 
 /* =========================================================
    TYPES
@@ -58,7 +59,8 @@ type Tab =
   | 'banners'
   | 'inventory'
   | 'reports'
-  | 'settings';
+  | 'settings'
+  | 'combo';
 
 type Product = any;
 type Category = any;
@@ -206,6 +208,7 @@ export default function AdminPage() {
       'inventory',
       'reports',
       'settings',
+      'combo',
     ];
 
     return valid.includes(value as Tab)
@@ -327,6 +330,11 @@ export default function AdminPage() {
       id: 'reports' as Tab,
       label: 'Reports',
       icon: BarChart3,
+    },
+    {
+      id: 'combo' as Tab,
+      label: 'Homepage Combo',
+      icon: Tag,
     },
     {
       id: 'settings' as Tab,
@@ -464,6 +472,10 @@ export default function AdminPage() {
 
             {activeTab === 'reports' && (
               <ReportsView />
+            )}
+
+            {activeTab === 'combo' && (
+              <HomepageComboSettingsView />
             )}
 
             {activeTab === 'settings' && (
@@ -5959,6 +5971,161 @@ function IntegrationSettingsView() {
     <div className="space-y-6">
       <AdminIntegrationCenter />
       <OrderManagementIntegrationCenter />
+    </div>
+  );
+}
+
+/* =========================================================
+   HOMEPAGE COMBO OFFER SETTINGS
+========================================================= */
+
+function HomepageComboSettingsView() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({
+    combo_offer_enabled: true,
+    combo_offer_badge: 'Combo Offer',
+    combo_offer_title: 'একসাথে যত্ন, একসাথে সাশ্রয়',
+    combo_offer_description: 'চুল ও ত্বকের যত্নের জন্য বেছে নিন আমাদের বিশেষ Combo Collection।',
+    combo_offer_original_price: '1600',
+    combo_offer_price: '1200',
+    combo_offer_image_url: '',
+    combo_offer_button_text: 'Combo Collection দেখুন',
+    combo_offer_button_link: '/shop',
+  });
+
+  useEffect(() => {
+    getSettings()
+      .then((settings) => {
+        setForm({
+          combo_offer_enabled: settings.combo_offer_enabled !== false,
+          combo_offer_badge: settings.combo_offer_badge || 'Combo Offer',
+          combo_offer_title: settings.combo_offer_title || 'একসাথে যত্ন, একসাথে সাশ্রয়',
+          combo_offer_description: settings.combo_offer_description || 'চুল ও ত্বকের যত্নের জন্য বেছে নিন আমাদের বিশেষ Combo Collection।',
+          combo_offer_original_price: String(settings.combo_offer_original_price ?? 1600),
+          combo_offer_price: String(settings.combo_offer_price ?? 1200),
+          combo_offer_image_url: settings.combo_offer_image_url || '',
+          combo_offer_button_text: settings.combo_offer_button_text || 'Combo Collection দেখুন',
+          combo_offer_button_link: settings.combo_offer_button_link || '/shop',
+        });
+      })
+      .catch((err: any) => setError(err.message || 'Settings load failed.'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const setField = (key: keyof typeof form, value: string | boolean) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setMessage('');
+    setError('');
+    try {
+      const original = Number(form.combo_offer_original_price) || 0;
+      const price = Number(form.combo_offer_price) || 0;
+      if (original < 0 || price < 0) throw new Error('Price cannot be negative.');
+      await updateSettings({
+        combo_offer_enabled: form.combo_offer_enabled,
+        combo_offer_badge: form.combo_offer_badge.trim(),
+        combo_offer_title: form.combo_offer_title.trim(),
+        combo_offer_description: form.combo_offer_description.trim(),
+        combo_offer_original_price: original,
+        combo_offer_price: price,
+        combo_offer_image_url: form.combo_offer_image_url.trim() || null,
+        combo_offer_button_text: form.combo_offer_button_text.trim(),
+        combo_offer_button_link: form.combo_offer_button_link.trim() || '/shop',
+      });
+      setMessage('Homepage Combo Offer settings saved successfully.');
+    } catch (err: any) {
+      setError(err.message || 'Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const uploadComboImage = async (file: File) => {
+    setUploading(true);
+    setMessage('');
+    setError('');
+    try {
+      const url = await uploadImage(file, 'banners');
+      setField('combo_offer_image_url', url);
+      setMessage('Image uploaded. Click Save Changes to apply it.');
+    } catch (err: any) {
+      setError(err.message || 'Image upload failed.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) return <LoadingBox />;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Homepage Combo Offer"
+        description="Control the Combo Offer section shown on the homepage."
+      />
+
+      {message && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{message}</div>}
+      {error && <ErrorBox error={error} />}
+
+      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 space-y-6">
+        <div className="flex items-center justify-between gap-4 rounded-lg bg-gray-50 p-4">
+          <div>
+            <h3 className="font-semibold text-gray-900">Show Combo Offer</h3>
+            <p className="text-xs text-gray-500 mt-1">Turn the homepage Combo Offer section on or off.</p>
+          </div>
+          <label className="relative inline-flex cursor-pointer items-center">
+            <input type="checkbox" className="sr-only peer" checked={form.combo_offer_enabled} onChange={(e) => setField('combo_offer_enabled', e.target.checked)} />
+            <div className="h-6 w-11 rounded-full bg-gray-300 peer-checked:bg-primary after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-full" />
+          </label>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <Input label="Badge / Label" value={form.combo_offer_badge} onChange={(v) => setField('combo_offer_badge', v)} />
+          <Input label="Button Text" value={form.combo_offer_button_text} onChange={(v) => setField('combo_offer_button_text', v)} />
+        </div>
+
+        <Input label="Title" value={form.combo_offer_title} onChange={(v) => setField('combo_offer_title', v)} />
+        <TextArea label="Description" value={form.combo_offer_description} onChange={(v) => setField('combo_offer_description', v)} />
+
+        <div className="grid sm:grid-cols-2 gap-5">
+          <Input label="Original Price" type="number" value={form.combo_offer_original_price} onChange={(v) => setField('combo_offer_original_price', v)} />
+          <Input label="Combo Price" type="number" value={form.combo_offer_price} onChange={(v) => setField('combo_offer_price', v)} />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Button Link</label>
+          <input value={form.combo_offer_button_link} onChange={(e) => setField('combo_offer_button_link', e.target.value)} placeholder="/shop or /category/slug" className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Combo Image</label>
+          <div className="grid lg:grid-cols-[220px_1fr] gap-4 items-start">
+            <div className="aspect-[4/3] overflow-hidden rounded-xl border bg-gray-50">
+              {form.combo_offer_image_url ? <img src={form.combo_offer_image_url} alt="Combo offer preview" className="h-full w-full object-cover" /> : <div className="h-full flex items-center justify-center text-sm text-gray-400">No custom image</div>}
+            </div>
+            <div className="space-y-3">
+              <input type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadComboImage(file); }} className="block w-full text-sm" disabled={uploading} />
+              {uploading && <p className="text-xs text-gray-500">Uploading image...</p>}
+              <Input label="Or Image URL" value={form.combo_offer_image_url} onChange={(v) => setField('combo_offer_image_url', v)} />
+              <p className="text-xs text-gray-500">Maximum upload size: 5MB.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button onClick={save} disabled={saving || uploading} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save Changes
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

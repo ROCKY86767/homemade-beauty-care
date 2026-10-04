@@ -157,10 +157,12 @@ export default function Footer() {
               CONTACT
             </h4>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2.5 text-sm text-white/60">
-                <Phone size={16} className="mt-0.5 shrink-0 text-primary-light" />
-                <span>{settings?.contact_phone_enabled === false ? null : (settings?.phone || 'Customer Support')}</span>
-              </li>
+              {settings?.contact_phone_enabled !== false && (
+                <li className="flex items-start gap-2.5 text-sm text-white/60">
+                  <Phone size={16} className="mt-0.5 shrink-0 text-primary-light" />
+                  <span>{settings?.phone || 'Customer Support'}</span>
+                </li>
+              )}
               <li className="flex items-start gap-2.5 text-sm text-white/60">
                 <Mail size={16} className="mt-0.5 shrink-0 text-primary-light" />
                 <span>{settings?.email || 'support.ghrcha@gmail.com'}</span>

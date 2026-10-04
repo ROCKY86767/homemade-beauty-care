@@ -283,7 +283,7 @@ export default function HomePage() {
                   <img
                     src={banner.desktop_image_url || banner.image_url || banner.mobile_image_url || ''}
                     alt={banner.title_bn}
-                    className="h-full w-full object-cover"
+                    className={`h-full w-full object-cover ${idx === currentBanner ? 'animate-slow-zoom' : ''}`}
                   />
                 </picture>
 
@@ -376,7 +376,8 @@ export default function HomePage() {
             {TRUST_FEATURES.map((feature, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 p-3"
+                className="flex items-center gap-3 rounded-2xl p-3 premium-hover animate-reveal-scale"
+                style={{ animationDelay: `${idx * 90}ms` }}
               >
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <feature.icon size={24} />

@@ -267,7 +267,7 @@ export default function HomePage() {
     <div>
       {/* Hero Slider */}
       {banners.length > 0 && (
-        <section className="relative h-[500px] sm:h-[550px] lg:h-[600px] overflow-hidden">
+        <section className="relative hero-premium h-[500px] sm:h-[550px] lg:h-[600px] overflow-hidden">
           {banners.map((banner, idx) => (
             <div
               key={banner.id}
@@ -402,7 +402,7 @@ export default function HomePage() {
       <section className="py-10 sm:py-16">
         <div className="section-padding">
           <div className="text-center mb-10">
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
+            <h2 className="font-display section-heading-premium text-2xl sm:text-3xl font-bold text-dark">
               আপনার প্রয়োজন অনুযায়ী শপ করুন
             </h2>
 

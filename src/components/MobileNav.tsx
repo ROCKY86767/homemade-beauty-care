@@ -32,7 +32,7 @@ export default function MobileNav() {
             }`}
           >
             <Home size={22} />
-            <span className="text-xs font-medium click-feedback-soft">হোম</span>
+            <span className="text-xs font-medium click-feedback-soft">Home</span>
           </Link>
           <Link
             to="/shop"
@@ -41,7 +41,7 @@ export default function MobileNav() {
             }`}
           >
             <Grid3x3 size={22} />
-            <span className="text-xs font-medium click-feedback-soft">ক্যাটাগরি</span>
+            <span className="text-xs font-medium click-feedback-soft">Categories</span>
           </Link>
           <button
             onClick={() => setSearchOpen(true)}
@@ -63,7 +63,7 @@ export default function MobileNav() {
                 {cartCount}
               </span>
             )}
-            <span className="text-xs font-medium click-feedback-soft">কার্ট</span>
+            <span className="text-xs font-medium click-feedback-soft">Cart</span>
           </Link>
           <Link
             to="/account"
@@ -72,7 +72,7 @@ export default function MobileNav() {
             }`}
           >
             <User size={22} />
-            <span className="text-xs font-medium click-feedback-soft">অ্যাকাউন্ট</span>
+            <span className="text-xs font-medium click-feedback-soft">Account</span>
           </Link>
         </div>
       </nav>
@@ -87,7 +87,7 @@ export default function MobileNav() {
                 autoFocus
                 value={searchValue}
                 onChange={e => setSearchValue(e.target.value)}
-                placeholder="আপনার পছন্দের পণ্য খুঁজুন..."
+                placeholder="Search products..."
                 className="w-full rounded-full border border-gray-200 bg-cream px-5 py-3 text-sm outline-none focus:border-primary click-feedback-soft"
               />
             </form>

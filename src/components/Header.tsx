@@ -89,19 +89,19 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0">
+            <Link to="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0 max-w-[145px] sm:max-w-none">
               <img
                 src="/new-homemade-logo.png"
                 alt="Homemade Beauty Care"
                 className="h-10 w-10 sm:h-16 sm:w-16 object-contain"
               />
 
-              <div className="hidden sm:block">
-                <h1 className="font-display text-lg font-bold leading-tight text-dark">
+              <div className="block sm:block min-w-0">
+                <h1 className="font-display text-[13px] sm:text-lg font-bold leading-tight text-dark truncate">
                   {settings?.brand_name || 'Homemade Beauty Care'}
                 </h1>
 
-                <p className="text-xs text-primary leading-tight">
+                <p className="hidden sm:block text-xs text-primary leading-tight">
                   {settings?.brand_tagline_bn ||
                     'প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া'}
                 </p>

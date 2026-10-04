@@ -219,7 +219,7 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="section-padding py-8">
+      <div className="section-padding py-5 sm:py-8">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Images */}
           <div>
@@ -259,7 +259,7 @@ export default function ProductDetailPage() {
                 {product.category.name_bn}
               </Link>
             )}
-            <h1 className="mt-1 font-display text-3xl font-bold text-dark">{product.name_bn}</h1>
+            <h1 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-dark">{product.name_bn}</h1>
 
             <div className="mt-3 flex items-center gap-3">
               <StarRating rating={product.rating} size={18} />
@@ -269,7 +269,7 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="mt-5 flex items-center gap-3">
-              <span className="text-3xl font-bold text-ink">{formatPrice(product.price)}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-ink">{formatPrice(product.price)}</span>
               {product.old_price && product.old_price > product.price && (
                 <>
                   <span className="text-xl text-gray-400 line-through">{formatPrice(product.old_price)}</span>
@@ -328,7 +328,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
               <button
                 onClick={handleAddToCart}
                 disabled={outOfStock}
@@ -364,7 +364,7 @@ export default function ProductDetailPage() {
             </button>
 
             {/* Delivery Info */}
-            <div className="mt-6 rounded-2xl bg-cream p-5 space-y-3">
+            <div className="mt-5 rounded-2xl bg-cream p-4 sm:p-5 space-y-3">
               <div className="flex items-center gap-3">
                 <Truck size={20} className="text-primary" />
                 <span className="text-sm text-ink">সারা বাংলাদেশে ডেলিভারি</span>
@@ -382,14 +382,14 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-12">
+        <div className="mt-8 sm:mt-12">
           <div className="border-b border-gray-100 overflow-x-auto scrollbar-hide">
             <div className="flex gap-1 min-w-max">
               {TABS.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  className={`px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-primary text-primary'
                       : 'border-transparent text-gray-500 hover:text-ink'
@@ -552,7 +552,7 @@ export default function ProductDetailPage() {
 
         {/* Related Products */}
         {related.length > 0 && (
-          <div className="mt-16">
+          <div className="mt-10 sm:mt-16">
             <h2 className="font-display text-2xl font-bold text-dark mb-6">সম্পর্কিত পণ্য</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {related.map(p => <ProductCard key={p.id} product={p} />)}

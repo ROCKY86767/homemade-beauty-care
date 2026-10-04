@@ -55,6 +55,21 @@ export default function ProductDetailPage() {
         setActiveImage(0);
         setQuantity(1);
 
+        try {
+          const fbq = (window as Window & { fbq?: (...args: any[]) => void }).fbq;
+          if (fbq) {
+            fbq('track', 'ViewContent', {
+              content_ids: [prod.id],
+              content_name: prod.name_bn,
+              content_type: 'product',
+              value: Number(prod.price),
+              currency: 'BDT',
+            });
+          }
+        } catch (error) {
+          console.error('Meta Pixel ViewContent error:', error);
+        }
+
         const [{ data: reviewData }, { data: relatedData }] = await Promise.all([
           supabase.from('reviews').select('*').eq('product_id', prod.id).eq('is_approved', true).order('sort_order'),
           supabase.from('products').select('*, category:categories(*)')

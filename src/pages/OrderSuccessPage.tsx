@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Package, Home, Truck, MapPin, CreditCard } from 'lucide-react';
+import { CheckCircle2, Package, Home, Truck, MapPin, CreditCard, PackageCheck, Box, MapPinCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Order, OrderItem } from '@/lib/types';
 import { formatPrice } from '@/lib/format';

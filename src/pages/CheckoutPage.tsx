@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight,
@@ -49,6 +49,7 @@ export default function CheckoutPage() {
   } = useCart();
 
   const navigate = useNavigate();
+  const checkoutEventSent = useRef(false);
 
   const [settings, setSettings] =
     useState<SiteSettings | null>(null);
@@ -115,7 +116,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     try {
       const fbq = (window as Window & { fbq?: (...args: any[]) => void }).fbq;
-      if (fbq && items.length > 0) {
+      if (fbq && items.length > 0 && !checkoutEventSent.current) {
         fbq('track', 'InitiateCheckout', {
           content_ids: items.map(item => item.product.id),
           content_type: 'product',
@@ -123,6 +124,7 @@ export default function CheckoutPage() {
           currency: 'BDT',
           num_items: items.reduce((total, item) => total + item.quantity, 0),
         });
+        checkoutEventSent.current = true;
       }
     } catch (error) {
       console.error('Meta Pixel InitiateCheckout error:', error);

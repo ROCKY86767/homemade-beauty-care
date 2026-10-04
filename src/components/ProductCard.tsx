@@ -16,13 +16,13 @@ export default function ProductCard({ product, compactActions = false }: Product
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <div className="group card overflow-hidden border border-gray-50 hover:shadow-xl hover:border-primary/20">
+    <div className="group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
       <div className="relative aspect-square overflow-hidden bg-cream">
         <Link to={`/product/${product.slug}`}>
           <img
             src={product.image_url}
             alt={product.name_bn}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
           />
         </Link>
@@ -47,7 +47,7 @@ export default function ProductCard({ product, compactActions = false }: Product
 
         <button
           onClick={() => toggleWishlist(product.id)}
-          className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-all duration-300 ${
+          className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110 ${
             inWishlist
               ? 'bg-accent text-white'
               : 'bg-white/90 text-ink hover:bg-accent hover:text-white'
@@ -67,7 +67,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           </button>
           <Link
             to={`/product/${product.slug}`}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-cream active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"
             aria-label="Quick view"
           >
             <Eye size={18} className="text-ink" />

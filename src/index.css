@@ -484,3 +484,43 @@ textarea {
   animation: shimmer 3s linear infinite;
   background-size: 200% 100%;
 }
+
+
+/* Unified click/tap feedback */
+.click-feedback {
+  -webkit-tap-highlight-color: transparent;
+  transform: translateZ(0);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.click-feedback:active {
+  transform: scale(.96);
+  filter: brightness(.96);
+}
+.click-feedback-soft:active {
+  transform: scale(.985);
+}
+.ripple-click {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.ripple-click::after {
+  content: "";
+  position: absolute;
+  left: var(--ripple-x, 50%);
+  top: var(--ripple-y, 50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none;
+}
+.ripple-click:active::after {
+  animation: clickRipple .45s ease-out;
+}
+@keyframes clickRipple {
+  0% { opacity: .16; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(24); }
+}

@@ -288,8 +288,10 @@ export default function OrderManagementIntegrationCenter() {
 
     <div className="mt-5 flex flex-wrap gap-2">
       <button onClick={save} disabled={busy} className="px-4 py-2.5 bg-primary text-white rounded-lg inline-flex items-center gap-2">{busy?<Loader2 className="w-4 h-4 animate-spin"/>:<Save className="w-4 h-4"/>} Save Integration</button>
-      {current.id && <button onClick={test} disabled={busy} className="px-4 py-2.5 border rounded-lg inline-flex items-center gap-2"><CheckCircle2 className="w-4 h-4"/> Test Connection</button>
-      <button onClick={syncStatus} disabled={busy} className="px-4 py-2.5 border rounded-lg inline-flex items-center gap-2"><RefreshCw className="w-4 h-4"/> Sync Status</button>}
+      {current.id && <>
+        <button onClick={test} disabled={busy} className="px-4 py-2.5 border rounded-lg inline-flex items-center gap-2"><CheckCircle2 className="w-4 h-4"/> Test Connection</button>
+        <button onClick={syncStatus} disabled={busy} className="px-4 py-2.5 border rounded-lg inline-flex items-center gap-2"><RefreshCw className="w-4 h-4"/> Sync Status</button>
+      </>}
       {current.id && <button onClick={remove} className="px-4 py-2.5 border border-red-200 text-red-600 rounded-lg inline-flex items-center gap-2"><Trash2 className="w-4 h-4"/> Delete</button>}
     </div>
     <div className="mt-5 rounded-lg bg-gray-50 p-4 text-xs text-gray-600 flex gap-2"><ShieldCheck className="w-4 h-4 shrink-0"/> এই connectorটি generic REST API support করে, তাই API documentation/credentials পাওয়া থাকলে software-specific frontend coding না করেই Admin থেকে mapping করা যাবে।</div>

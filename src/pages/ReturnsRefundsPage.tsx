@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight, Phone, RotateCcw, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, RotateCcw, CheckCircle2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 export default function ReturnsRefundsPage() {
@@ -132,13 +132,7 @@ export default function ReturnsRefundsPage() {
               অর্ডার নম্বর, পণ্যের ছবি বা অন্যান্য প্রমাণ দিতে হতে পারে।
             </p>
 
-            <a
-              href="tel:01999478203"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-white font-medium hover:bg-primary/90 transition-colors"
-            >
-              <Phone size={18} />
-              01999478203
-            </a>
+            <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-white font-medium hover:bg-primary/90 transition-colors">যোগাযোগ করুন</Link>
           </section>
 
           {/* Important Note */}

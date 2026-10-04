@@ -62,9 +62,7 @@ function SecretField({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-800 mb-1.5">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-800 mb-1.5">{label}</label>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <input
@@ -112,7 +110,7 @@ export default function AdminIntegrationCenter() {
   const [metaToken, setMetaToken] = useState('');
   const [socials, setSocials] = useState({
     whatsapp_number: '',
-    facebook_url: ''
+    facebook_url: '',
     instagram_url: '',
     tiktok_url: '',
     youtube_url: '',

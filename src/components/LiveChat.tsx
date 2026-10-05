@@ -373,9 +373,39 @@ export function ChatAdminView() {
   const adminRecorderRef = useRef<MediaRecorder | null>(null);
   const adminAudioChunksRef = useRef<Blob[]>([]);
   const [voiceUploading, setVoiceUploading] = useState(false);
+  const [pendingVoice, setPendingVoice] = useState<Blob | null>(null);
+  const [pendingVoiceUrl, setPendingVoiceUrl] = useState('');
+
+  const clearPendingVoice = () => {
+    if (pendingVoiceUrl) URL.revokeObjectURL(pendingVoiceUrl);
+    setPendingVoice(null);
+    setPendingVoiceUrl('');
+  };
+
+  const sendPendingVoice = async () => {
+    if (!selected?.id || !pendingVoice) return;
+    setVoiceUploading(true);
+    setChatError('');
+    try {
+      const url = await uploadChatAudio(pendingVoice, `admin/${selected.id}`);
+      const { error } = await supabase.from('chat_messages').insert({
+        conversation_id: selected.id, sender_type: 'admin', sender_name: 'Admin', message: 'Voice message',
+        is_read: true, message_type: 'audio', media_url: url,
+      });
+      if (error) throw error;
+      await supabase.from('chat_conversations').update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', selected.id);
+      clearPendingVoice();
+      await loadMessages(selected.id);
+    } catch (err: any) {
+      setChatError(err?.message || 'Voice message পাঠানো যায়নি.');
+    } finally {
+      setVoiceUploading(false);
+    }
+  };
 
   const toggleRecording = async () => {
     if (recording) { adminRecorderRef.current?.stop(); return; }
+    if (pendingVoice) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
       setChatError('এই ব্রাউজারে voice message support নেই। Chrome/Edge ব্যবহার করুন.');
       return;
@@ -387,24 +417,13 @@ export function ChatAdminView() {
       const recorder = new MediaRecorder(stream, getRecorderOptions());
       adminAudioChunksRef.current = [];
       recorder.ondataavailable = (event) => { if (event.data.size > 0) adminAudioChunksRef.current.push(event.data); };
-      recorder.onstop = async () => {
+      recorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
         setRecording(false);
-        if (!selected?.id || !adminAudioChunksRef.current.length) return;
-        try {
-          setVoiceUploading(true);
-          const blob = new Blob(adminAudioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-          const url = await uploadChatAudio(blob, `admin/${selected.id}`);
-          const { error } = await supabase.from('chat_messages').insert({
-            conversation_id: selected.id, sender_type: 'admin', sender_name: 'Admin', message: 'Voice message',
-            is_read: true, message_type: 'audio', media_url: url,
-          });
-          if (error) throw error;
-          await supabase.from('chat_conversations').update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', selected.id);
-          await loadMessages(selected.id);
-        } catch (err: any) {
-          setChatError(err?.message || 'Voice message পাঠানো যায়নি.');
-        } finally { setVoiceUploading(false); }
+        if (!adminAudioChunksRef.current.length) return;
+        const blob = new Blob(adminAudioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        setPendingVoice(blob);
+        setPendingVoiceUrl(URL.createObjectURL(blob));
       };
       recorder.onerror = () => {
         stream.getTracks().forEach((track) => track.stop());
@@ -588,8 +607,15 @@ export function ChatAdminView() {
                     )}
                     {chatImageUrl && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2"><img src={chatImageUrl} alt="selected" className="h-12 w-12 rounded-lg object-cover" /><span className="text-xs text-gray-600">Saved picture selected</span><button type="button" onClick={() => setChatImageUrl(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
                     {chatImage && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2"><img src={URL.createObjectURL(chatImage)} alt="selected" className="h-12 w-12 rounded-lg object-cover" /><span className="truncate text-xs text-gray-600">{chatImage.name}</span><button type="button" onClick={() => setChatImage(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
+                    {pendingVoiceUrl && (
+                      <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2">
+                        <audio controls preload="metadata" src={pendingVoiceUrl} className="min-w-0 flex-1" />
+                        <button type="button" onClick={clearPendingVoice} disabled={voiceUploading} title="Delete voice" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
+                        <button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button>
+                      </div>
+                    )}
                     <form onSubmit={send} className="flex items-end gap-2 p-4">
-                      <button type="button" onClick={toggleRecording} title={recording ? 'Stop & send voice message' : 'Record voice message'} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${recording ? 'bg-red-50 text-red-600' : 'text-primary hover:bg-primary/5'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
+                      <button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${recording ? 'bg-red-50 text-red-600' : 'text-primary hover:bg-primary/5'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
                       <textarea rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); } }} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Write a reply...  Enter to send" className="min-h-[44px] min-w-0 flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-primary focus:bg-white" />
                       <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setChatImage(e.target.files?.[0] || null); setChatImageUrl(null); }} />
                       <button type="button" onClick={() => imageInputRef.current?.click()} title="Picture" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-gray-600 hover:bg-gray-50"><ImagePlus className="h-4 w-4" /></button>

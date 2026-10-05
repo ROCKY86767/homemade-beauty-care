@@ -633,18 +633,12 @@ export function ChatAdminView() {
                   {chatError && <div className="border-b bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
                   {showSavedReplies && (
                     <div className="max-h-48 overflow-y-auto border-b bg-gray-50 p-2">
-                      {savedReplies.length ? savedReplies.map((reply) => (
-                        <button
-                          key={reply}
-                          type="button"
-                          onClick={() => { setMessage(reply); setShowSavedReplies(false); }}
-                          className="mb-1 block w-full rounded-lg border bg-white px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100"
-                        >
-                          {reply}
+                      <div className="mb-1 flex items-center justify-between"><span className="text-[11px] font-semibold text-gray-500">Quick Responses</span><button type="button" onClick={()=>setQuickReplyOpen(true)} className="rounded border px-2 py-0.5 text-[10px]">+ Add</button></div>
+                      {quickReplies.length ? quickReplies.map((item) => (
+                        <button key={item.id} type="button" onClick={() => { setMessage(item.message || ''); setShowSavedReplies(false); }} className="mb-1 block w-full rounded-lg border bg-white px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100">
+                          <span className="font-medium">{item.title || 'Quick response'}</span>{item.message && <span className="ml-1 text-gray-500">— {item.message}</span>}{item.media_url && <span className="ml-1">🖼️</span>}
                         </button>
-                      )) : (
-                        <div className="px-2 py-3 text-center text-xs text-gray-400">কোনো saved reply নেই।</div>
-                      )}
+                      )) : <div className="px-2 py-3 text-center text-xs text-gray-400">কোনো quick response নেই। + Add দিয়ে save করুন।</div>}
                     </div>
                   )}
                   <form onSubmit={send} className="flex shrink-0 items-end gap-2 p-3">

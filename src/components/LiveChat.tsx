@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -9,6 +9,8 @@ type ChatMessage = {
   sender_name: string | null;
   message: string;
   is_read: boolean;
+  message_type: 'text' | 'audio';
+  media_url: string | null;
   created_at: string;
 };
 
@@ -23,6 +25,26 @@ type Conversation = {
 
 const TOKEN_KEY = 'hbc-live-chat-token';
 const CONVERSATION_KEY = 'hbc-live-chat-conversation';
+
+async function uploadChatAudio(blob: Blob, prefix: string) {
+  const ext = blob.type.includes('webm') ? 'webm' : blob.type.includes('ogg') ? 'ogg' : 'mp4';
+  const path = `${prefix}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from('chat-audio').upload(path, blob, {
+    contentType: blob.type || 'audio/webm',
+    cacheControl: '3600',
+    upsert: false,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from('chat-audio').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+function getRecorderOptions() {
+  if (typeof MediaRecorder === 'undefined') return undefined;
+  const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+  const mimeType = types.find((type) => MediaRecorder.isTypeSupported(type));
+  return mimeType ? { mimeType } : undefined;
+}
 
 function token() {
   let value = localStorage.getItem(TOKEN_KEY);
@@ -116,28 +138,61 @@ export default function LiveChat() {
     }
   };
 
-  const toggleRecording = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('এই ব্রাউজারে voice typing support নেই। Chrome ব্যবহার করুন।');
-      return;
-    }
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [voiceUploading, setVoiceUploading] = useState(false);
+
+  const toggleRecording = async () => {
     if (recording) {
-      setRecording(false);
+      mediaRecorderRef.current?.stop();
       return;
     }
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'bn-BD';
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.onresult = (event: any) => {
-      const text = Array.from(event.results).slice(event.resultIndex).map((r: any) => r[0].transcript).join(' ');
-      setMessage((prev) => (prev ? prev + ' ' : '') + text);
-    };
-    recognition.onend = () => setRecording(false);
-    recognition.onerror = () => setRecording(false);
-    recognition.start();
-    setRecording(true);
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      setChatError('এই ব্রাউজারে voice message support নেই। Chrome/Edge ব্যবহার করুন।');
+      return;
+    }
+    try {
+      setChatError('');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, getRecorderOptions());
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        if (!conversation?.id || !audioChunksRef.current.length) return;
+        try {
+          setVoiceUploading(true);
+          const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+          const url = await uploadChatAudio(blob, `customer/${conversation.id}`);
+          const { error } = await supabase.rpc('send_guest_chat_audio', {
+            p_visitor_token: token(),
+            p_conversation_id: conversation.id,
+            p_media_url: url,
+          });
+          if (error) throw error;
+          await loadMessages(conversation.id);
+        } catch (err: any) {
+          console.error(err);
+          setChatError(err?.message || 'Voice message পাঠানো যায়নি।');
+        } finally {
+          setVoiceUploading(false);
+        }
+      };
+      recorder.onerror = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        setChatError('Voice recording বন্ধ হয়ে গেছে। আবার চেষ্টা করুন।');
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setRecording(true);
+    } catch (err: any) {
+      setChatError(err?.message || 'Microphone permission দেওয়া হয়নি।');
+      setRecording(false);
+    }
   };
 
   const saveReply = () => {
@@ -201,16 +256,16 @@ export default function LiveChat() {
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'customer' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'customer' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm bg-white border text-gray-800'}`}>
-                      {item.message}
+                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message}
                     </div>
                   </div>
                 ))}
                 {!messages.length && <p className="text-center text-xs text-gray-400 pt-8">মেসেজ লোড হচ্ছে...</p>}
               </div>
               {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
-              <form onSubmit={sendMessage} className="flex items-center gap-2 border-t bg-white p-3">
-                <button type="button" onClick={toggleRecording} title={recording ? "Stop voice" : "Voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
+              <form onSubmit={sendMessage} className="flex items-end gap-2 border-t bg-white p-3">
+                <button type="button" onClick={toggleRecording} title={recording ? "Stop & send voice message" : "Record voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || voiceUploading || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
                   <Send className="h-4 w-4" />
                 </button>
               </form>
@@ -284,22 +339,67 @@ export function ChatAdminView() {
     if (selected) loadMessages(selected.id);
   }, [selected?.id]);
 
-  const toggleRecording = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) { alert('এই ব্রাউজারে voice typing support নেই। Chrome ব্যবহার করুন।'); return; }
-    if (recording) { setRecording(false); return; }
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'bn-BD';
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.onresult = (event: any) => {
-      const text = Array.from(event.results).slice(event.resultIndex).map((r: any) => r[0].transcript).join(' ');
-      setMessage((prev) => (prev ? prev + ' ' : '') + text);
-    };
-    recognition.onend = () => setRecording(false);
-    recognition.onerror = () => setRecording(false);
-    recognition.start();
-    setRecording(true);
+  const adminRecorderRef = useRef<MediaRecorder | null>(null);
+  const adminAudioChunksRef = useRef<Blob[]>([]);
+  const [voiceUploading, setVoiceUploading] = useState(false);
+
+  const toggleRecording = async () => {
+    if (recording) {
+      adminRecorderRef.current?.stop();
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      setChatError('এই ব্রাউজারে voice message support নেই। Chrome/Edge ব্যবহার করুন।');
+      return;
+    }
+    if (!selected) return;
+    try {
+      setChatError('');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, getRecorderOptions());
+      adminAudioChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) adminAudioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        if (!selected?.id || !adminAudioChunksRef.current.length) return;
+        try {
+          setVoiceUploading(true);
+          const blob = new Blob(adminAudioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+          const url = await uploadChatAudio(blob, `admin/${selected.id}`);
+          const { error } = await supabase.from('chat_messages').insert({
+            conversation_id: selected.id,
+            sender_type: 'admin',
+            sender_name: 'Admin',
+            message: 'Voice message',
+            is_read: true,
+            message_type: 'audio',
+            media_url: url,
+          });
+          if (error) throw error;
+          await supabase.from('chat_conversations').update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', selected.id);
+          await loadMessages(selected.id);
+        } catch (err: any) {
+          console.error(err);
+          setChatError(err?.message || 'Voice message পাঠানো যায়নি।');
+        } finally {
+          setVoiceUploading(false);
+        }
+      };
+      recorder.onerror = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        setChatError('Voice recording বন্ধ হয়ে গেছে। আবার চেষ্টা করুন।');
+      };
+      recorder.start();
+      adminRecorderRef.current = recorder;
+      setRecording(true);
+    } catch (err: any) {
+      setChatError(err?.message || 'Microphone permission দেওয়া হয়নি।');
+      setRecording(false);
+    }
   };
   const saveCurrentReply = () => { const text = message.trim(); if (!text) return; const next=[text,...savedReplies.filter(x=>x!==text)].slice(0,30); setSavedReplies(next); localStorage.setItem('hbc-saved-replies', JSON.stringify(next)); };
 
@@ -322,6 +422,20 @@ export function ChatAdminView() {
       console.error(error);
       setChatError(error.message || 'মেসেজ পাঠানো যায়নি।');
     }
+  };
+
+  const reopenChat = async () => {
+    if (!selected) return;
+    const { error } = await supabase.from('chat_conversations')
+      .update({ status: 'open', updated_at: new Date().toISOString(), last_message_at: new Date().toISOString() })
+      .eq('id', selected.id);
+    if (error) {
+      setChatError(error.message || 'Chat reopen করা যায়নি।');
+      return;
+    }
+    setChatError('');
+    setSelected({ ...selected, status: 'open' });
+    await loadConversations();
   };
 
   const closeChat = async () => {
@@ -372,13 +486,15 @@ export function ChatAdminView() {
                   <div className="font-semibold">{selected.customer_name}</div>
                   <div className="text-xs text-gray-500">{selected.customer_mobile || 'No phone number'}</div>
                 </div>
-                {selected.status === 'open' && <button onClick={closeChat} className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50">Close Chat</button>}
+                {selected.status === 'open'
+    ? <button onClick={closeChat} className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50">Close Chat</button>
+    : <button onClick={reopenChat} className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90">Reopen Chat</button>}
               </div>
               <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-cream/30 p-5">
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'admin' ? 'bg-primary text-white' : 'border bg-white text-gray-800'}`}>
-                      {item.message}
+                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message}
                     </div>
                   </div>
                 ))}
@@ -386,8 +502,8 @@ export function ChatAdminView() {
               {selected.status === 'open' ? (
                 <>
                 {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
-                <form onSubmit={send} className="flex items-center gap-2 border-t p-3"><button type="button" onClick={toggleRecording} title={recording ? "Stop voice" : "Voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Reply to customer..." className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" /><button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save reply" className="flex h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
-                  <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white"><Send className="h-4 w-4" />Send</button>
+                <form onSubmit={send} className="flex items-end gap-2 border-t bg-white p-3"><button type="button" onClick={toggleRecording} title={recording ? "Stop & send voice message" : "Record voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Reply to customer..." className="min-w-0 flex-1 resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" /><button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save reply" className="flex h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
+                  <button disabled={voiceUploading || !message.trim()} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"><Send className="h-4 w-4" />Send</button>
                 </form>
                 </>
               ) : (

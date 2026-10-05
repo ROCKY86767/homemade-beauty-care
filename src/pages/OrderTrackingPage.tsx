@@ -171,7 +171,7 @@ export default function OrderTrackingPage() {
                 value={mobileNumber}
                 onChange={e => setMobileNumber(e.target.value)}
                 className="input-field"
-                placeholder="01999478203"
+                placeholder="01XXXXXXXXX"
                 autoComplete="tel"
               />
 

@@ -121,9 +121,9 @@ export function getDeliveryCharge(_settings: SiteSettings, district: string, _su
     ]);
     if (cityThanas.has(thana.trim())) return _settings.delivery_inside_dhaka;
 
-    if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ'].includes(thana.trim())) return 100;
+    if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ','ধামরাই'].includes(thana.trim())) return 100;
   }
   if (district === 'গাজীপুর' || district === 'নারায়ণগঞ্জ') return Math.min(100, _settings.delivery_outside_dhaka);
-  if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ'].includes(thana.trim())) return 100;
+  if (['সাভার','নবাবগঞ্জ','দোহার','কেরাণীগঞ্জ','কেরানীগঞ্জ','ধামরাই'].includes(thana.trim())) return 100;
   return _settings.delivery_outside_dhaka;
 }

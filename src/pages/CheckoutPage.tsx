@@ -756,29 +756,20 @@ export default function CheckoutPage() {
         console.error('Meta CAPI purchase event error:', metaError);
       }
 
-      // Browser-side Purchase event for Meta Pixel.
-      try {
-        const fbq = (window as Window & {
-          fbq?: (...args: any[]) => void;
-        }).fbq;
-
-        if (fbq) {
-          fbq('track', 'Purchase', {
-            value: Number(grandTotal),
-            currency: 'BDT',
-            content_ids: items.map(item => item.product.id),
-            content_type: 'product',
-            num_items: items.reduce((sum, item) => sum + item.quantity, 0),
-          });
-        }
-      } catch (pixelError) {
-        console.error('Meta Pixel purchase event error:', pixelError);
-      }
-
       clearCart();
 
+      try {
+        sessionStorage.setItem(
+          `hbc-order-mobile-${orderNumber}`,
+          cleanMobile
+        );
+      } catch {
+        // Ignore storage failures; the order itself is already confirmed.
+      }
+
       navigate(
-        `/order-success/${orderNumber}`
+        `/order-success/${orderNumber}`,
+        { state: { mobile: cleanMobile } }
       );
     } catch (err) {
       console.error('Checkout order creation failed:', err);

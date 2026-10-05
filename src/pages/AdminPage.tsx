@@ -15,6 +15,7 @@ import {
   FolderTree,
   ShoppingBag,
   Users,
+  MessageCircle,
   Star,
   Tag,
   ImageIcon,
@@ -40,6 +41,7 @@ import {
 
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
+import { ChatAdminView } from '../components/LiveChat';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import AdminSettingsCenter from '../components/AdminSettingsCenter';
 import OrderManagementIntegrationCenter from '../components/OrderManagementIntegrationCenter';
@@ -57,6 +59,7 @@ type Tab =
   | 'categories'
   | 'orders'
   | 'customers'
+  | 'chat'
   | 'reviews'
   | 'coupons'
   | 'banners'
@@ -245,6 +248,7 @@ export default function AdminPage() {
       'categories',
       'orders',
       'customers',
+      'chat',
       'reviews',
       'coupons',
       'banners',
@@ -348,6 +352,11 @@ export default function AdminPage() {
       id: 'customers' as Tab,
       label: 'Customers',
       icon: Users,
+    },
+    {
+      id: 'chat' as Tab,
+      label: 'Live Chat',
+      icon: MessageCircle,
     },
     {
       id: 'reviews' as Tab,
@@ -495,6 +504,10 @@ export default function AdminPage() {
 
             {activeTab === 'customers' && (
               <CustomersView />
+            )}
+
+            {activeTab === 'chat' && (
+              <ChatAdminView />
             )}
 
             {activeTab === 'reviews' && (

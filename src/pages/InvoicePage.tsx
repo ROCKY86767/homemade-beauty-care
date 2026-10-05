@@ -11,12 +11,56 @@ export default function InvoicePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
+
   useEffect(() => {
+    const orderId = searchParams.get('order_id');
     const mobileParam = searchParams.get('mobile');
-    if (!mobileParam) return;
-    setMobile(mobileParam);
-    void loadInvoice(mobileParam);
+
+    if (orderId) {
+      void loadInvoiceByOrderId(orderId);
+      return;
+    }
+
+    if (mobileParam) {
+      setMobile(mobileParam);
+      void loadInvoice(mobileParam);
+    }
   }, [searchParams]);
+
+  async function loadInvoiceByOrderId(orderId: string) {
+    setError('');
+    setResult(null);
+    setLoading(true);
+
+    const [
+      { data: order, error: orderError },
+      { data: items, error: itemsError },
+    ] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .maybeSingle(),
+      supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: true }),
+    ]);
+
+    setLoading(false);
+
+    if (orderError || itemsError || !order) {
+      setError('Invoice পাওয়া যায়নি।');
+      return;
+    }
+
+    setResult({
+      success: true,
+      order,
+      items: items || [],
+    });
+  }
 
   async function loadInvoice(phone: string) {
     setError('');
@@ -39,10 +83,6 @@ export default function InvoicePage() {
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setResult(null);
-    setLoading(true);
-
     await loadInvoice(mobile);
   };
 

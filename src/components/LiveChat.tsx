@@ -609,7 +609,7 @@ export function ChatAdminView() {
                     {chatImage && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2"><img src={URL.createObjectURL(chatImage)} alt="selected" className="h-12 w-12 rounded-lg object-cover" /><span className="truncate text-xs text-gray-600">{chatImage.name}</span><button type="button" onClick={() => setChatImage(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
                     {pendingVoiceUrl && (
                       <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2">
-                        <audio controls preload="metadata" src={pendingVoiceUrl} className="min-w-0 flex-1" />
+                        <audio controls preload="metadata" src={pendingVoiceUrl} className="h-9 w-[180px] max-w-[45%] min-w-0 shrink" />
                         <button type="button" onClick={clearPendingVoice} disabled={voiceUploading} title="Delete voice" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
                         <button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button>
                       </div>

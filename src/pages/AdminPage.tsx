@@ -2555,6 +2555,7 @@ function OrdersView() {
   // Compact order rows + dedicated View modal.
   const [orders, setOrders] = useState<Order[]>([]);
   const [items, setItems] = useState<OrderItem[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -2585,21 +2586,32 @@ function OrdersView() {
       const [
         { data: ordersData, error: ordersError },
         { data: itemsData, error: itemsError },
+        { data: productsData, error: productsError },
       ] = await Promise.all([
         supabase
           .from('orders')
           .select('*')
           .order('created_at', { ascending: false }),
 
-        supabase.from('order_items').select('*').order('created_at', { ascending: true }),
-        supabase.from('products').select('*').eq('is_active', true).order('name'),
+        supabase
+          .from('order_items')
+          .select('*')
+          .order('created_at', { ascending: true }),
+
+        supabase
+          .from('products')
+          .select('*')
+          .eq('is_active', true)
+          .order('name_en', { ascending: true }),
       ]);
 
       if (ordersError) throw ordersError;
       if (itemsError) throw itemsError;
+      if (productsError) throw productsError;
 
       setOrders(ordersData || []);
       setItems(itemsData || []);
+      setProducts(productsData || []);
     } catch (err: any) {
       setError(err.message || 'Orders load failed.');
     } finally {
@@ -2730,26 +2742,91 @@ function OrdersView() {
 
   const addProductToOrder = async () => {
     if (!viewOrder || !editAddingProduct) return;
+
     const product = products.find((p) => p.id === editAddingProduct);
     const quantity = Math.max(1, Number(editAddingQty || 1));
     if (!product) return;
+
     setSavingOrderEdit(true);
+    setError('');
+
     try {
-      const existing = items.find((i) => i.order_id === viewOrder.id && i.product_id === product.id);
+      const existing = items.find(
+        (i) => i.order_id === viewOrder.id && i.product_id === product.id
+      );
+
       if (existing) {
         const newQty = Number(existing.quantity || 0) + quantity;
-        const { error } = await supabase.from('order_items').update({ quantity:newQty }).eq('id', existing.id);
+        const { error } = await supabase
+          .from('order_items')
+          .update({ quantity: newQty })
+          .eq('id', existing.id);
         if (error) throw error;
-        setItems((prev) => prev.map((i) => i.id === existing.id ? {...i, quantity:newQty} : i));
       } else {
-        const { data, error } = await supabase.from('order_items').insert({ order_id:viewOrder.id, product_id:product.id, product_name:product.name, price:Number(product.sale_price ?? product.price ?? 0), quantity, image_url:product.image_url || null }).select().single();
+        const { error } = await supabase
+          .from('order_items')
+          .insert({
+            order_id: viewOrder.id,
+            product_id: product.id,
+            product_name: product.name_en || product.name_bn || product.name || 'Product',
+            price: Number(product.sale_price ?? product.price ?? 0),
+            quantity,
+            image_url: product.image_url || null,
+          });
         if (error) throw error;
-        setItems((prev) => [...prev, data]);
       }
+
+      const { data: refreshedItems, error: refreshError } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', viewOrder.id)
+        .order('created_at', { ascending: true });
+      if (refreshError) throw refreshError;
+
+      setItems((prev) => [
+        ...prev.filter((i) => i.order_id !== viewOrder.id),
+        ...(refreshedItems || []),
+      ]);
+
+      const subtotal = (refreshedItems || []).reduce(
+        (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+        0
+      );
+      const discount = Math.max(0, Number(editDiscount || 0));
+      const delivery = editFreeDelivery ? 0 : Number(viewOrder.delivery_charge || 0);
+      const grandTotal = Math.max(0, subtotal - discount + delivery);
+
+      const { error: totalError } = await supabase
+        .from('orders')
+        .update({
+          subtotal,
+          discount,
+          delivery_charge: delivery,
+          grand_total: grandTotal,
+          total: grandTotal,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', viewOrder.id);
+      if (totalError) throw totalError;
+
+      const updatedView = {
+        ...viewOrder,
+        subtotal,
+        discount,
+        delivery_charge: delivery,
+        grand_total: grandTotal,
+        total: grandTotal,
+      };
+      setViewOrder(updatedView);
+      setOrders((prev) => prev.map((o) => o.id === updatedView.id ? updatedView : o));
+
       setEditAddingProduct('');
       setEditAddingQty('1');
-    } catch (err:any) { setError(err.message || 'Product add failed.'); }
-    finally { setSavingOrderEdit(false); }
+    } catch (err:any) {
+      setError(err.message || 'Product add failed.');
+    } finally {
+      setSavingOrderEdit(false);
+    }
   };
 
   const createManualOrder = async () => {
@@ -2771,7 +2848,7 @@ function OrdersView() {
         subtotal, discount, delivery_charge:0, grand_total:Math.max(0, subtotal-discount), total:Math.max(0, subtotal-discount)
       }).select().single();
       if (orderError) throw orderError;
-      const { data:item, error:itemError } = await supabase.from('order_items').insert({ order_id:order.id, product_id:product.id, product_name:product.name, price, quantity, image_url:product.image_url || null }).select().single();
+      const { data:item, error:itemError } = await supabase.from('order_items').insert({ order_id:order.id, product_id:product.id, product_name:(product.name_en || product.name_bn || product.name || 'Product'), price, quantity, image_url:product.image_url || null }).select().single();
       if (itemError) throw itemError;
       setOrders((prev) => [order, ...prev]);
       setItems((prev) => [item, ...prev]);
@@ -3271,7 +3348,7 @@ function OrdersView() {
               <Input label="Area" value={manualForm.area} onChange={(v) => setManualForm((f) => ({...f,area:v}))} />
               <div className="sm:col-span-2"><Input label="Address" value={manualForm.address} onChange={(v) => setManualForm((f) => ({...f,address:v}))} /></div>
               <div className="sm:col-span-2"><Input label="Order Note" value={manualForm.note} onChange={(v) => setManualForm((f) => ({...f,note:v}))} /></div>
-              <div><label className="block text-sm font-medium mb-1.5">Product</label><select value={manualForm.productId} onChange={(e) => setManualForm((f) => ({...f,productId:e.target.value}))} className="w-full rounded-lg border px-3 py-2.5 text-sm"><option value="">Select product</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+              <div><label className="block text-sm font-medium mb-1.5">Product</label><select value={manualForm.productId} onChange={(e) => setManualForm((f) => ({...f,productId:e.target.value}))} className="w-full rounded-lg border px-3 py-2.5 text-sm"><option value="">Select product</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name_en || p.name_bn || p.name}</option>)}</select></div>
               <Input label="Quantity" type="number" value={manualForm.quantity} onChange={(v) => setManualForm((f) => ({...f,quantity:v}))} />
               <Input label="Discount" type="number" value={manualForm.discount} onChange={(v) => setManualForm((f) => ({...f,discount:v}))} />
               <label className="flex items-center gap-2 text-sm pt-8"><input type="checkbox" checked={manualForm.freeDelivery} onChange={(e) => setManualForm((f) => ({...f,freeDelivery:e.target.checked}))} /> Free delivery</label>
@@ -3347,7 +3424,7 @@ function OrdersView() {
                   <div className="flex gap-2">
                     <select value={editAddingProduct} onChange={(e) => setEditAddingProduct(e.target.value)} className="rounded-lg border px-2 py-1.5 text-xs">
                       <option value="">Add product...</option>
-                      {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      {products.map((p) => <option key={p.id} value={p.id}>{p.name_en || p.name_bn || p.name}</option>)}
                     </select>
                     <input value={editAddingQty} onChange={(e) => setEditAddingQty(e.target.value)} type="number" min="1" className="w-16 rounded-lg border px-2 py-1.5 text-xs" />
                     <button onClick={addProductToOrder} disabled={!editAddingProduct || savingOrderEdit} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Add</button>

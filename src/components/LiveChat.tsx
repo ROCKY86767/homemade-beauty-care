@@ -68,8 +68,13 @@ export default function LiveChat() {
     });
     if (data) {
       setConversation(data as Conversation);
-      setStarted(true);
-      await loadMessages(id);
+      if ((data as Conversation).status === 'closed') {
+        setStarted(false);
+        setMessage('');
+      } else {
+        setStarted(true);
+        await loadMessages(id);
+      }
     }
   };
 
@@ -175,7 +180,7 @@ export default function LiveChat() {
 
           {!started ? (
             <form onSubmit={startChat} className="p-4 space-y-3">
-              <p className="text-sm text-gray-600">আপনার তথ্য দিন, আমরা এখানেই উত্তর দেব।</p>
+              <p className="text-sm text-gray-600">{conversation?.status === 'closed' ? 'আগের chatটি বন্ধ হয়েছে। নতুন করে chat শুরু করুন—আপনার নম্বর না দিলেও চলবে।' : 'আপনার তথ্য দিন, আমরা এখানেই উত্তর দেব।'}</p>
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="আপনার নাম *" required className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
               <input value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="মোবাইল নম্বর (ঐচ্ছিক — না দিলেও চলবে)" className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
               <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="আপনার মেসেজ লিখুন *" required rows={3} className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
@@ -326,10 +331,10 @@ export function ChatAdminView() {
         <button onClick={loadConversations} className="rounded-lg border bg-white px-4 py-2 text-sm">Refresh</button>
       </div>
 
-      <div className="grid min-h-[600px] overflow-hidden rounded-xl border bg-white lg:grid-cols-[300px_1fr]">
+      <div className="grid h-[calc(100vh-220px)] min-h-[560px] max-h-[760px] overflow-hidden rounded-xl border bg-white lg:grid-cols-[300px_1fr]">
         <div className="border-r bg-gray-50">
           <div className="border-b p-3"><div className="mb-2 text-sm font-semibold">Conversations</div><div className="flex items-center gap-2 rounded-lg border bg-white px-2"><Search className="h-4 w-4 text-gray-400" /><input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search customer..." className="w-full py-2 text-sm outline-none" /></div></div>
-          <div className="max-h-[550px] overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {conversations.filter(item => `${item.customer_name} ${item.customer_mobile || ''}`.toLowerCase().includes(search.toLowerCase())).map((item) => (
               <button key={item.id} onClick={() => setSelected(item)} className={`w-full border-b p-4 text-left hover:bg-white ${selected?.id === item.id ? 'bg-white' : ''}`}>
                 <div className="flex items-center gap-2">
@@ -347,7 +352,7 @@ export function ChatAdminView() {
           </div>
         </div>
 
-        <div className="flex min-h-[600px] flex-col">
+        <div className="flex min-h-0 flex-col overflow-hidden">
           {selected ? (
             <>
               <div className="flex items-center justify-between border-b p-4">
@@ -357,7 +362,7 @@ export function ChatAdminView() {
                 </div>
                 {selected.status === 'open' && <button onClick={closeChat} className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50">Close Chat</button>}
               </div>
-              <div className="flex-1 space-y-3 overflow-y-auto bg-cream/30 p-5">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-cream/30 p-5">
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'admin' ? 'bg-primary text-white' : 'border bg-white text-gray-800'}`}>
@@ -366,10 +371,14 @@ export function ChatAdminView() {
                   </div>
                 ))}
               </div>
-              {selected.status === 'open' && (
+              {selected.status === 'open' ? (
                 <form onSubmit={send} className="flex items-center gap-2 border-t p-3"><button type="button" onClick={toggleRecording} title={recording ? "Stop voice" : "Voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Reply to customer..." className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" /><button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save reply" className="flex h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
                   <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white"><Send className="h-4 w-4" />Send</button>
                 </form>
+              ) : (
+                <div className="border-t bg-white p-3 text-center text-sm text-gray-500">
+                  Chat is closed. Select another conversation or start a new chat from the customer side.
+                </div>
               )}
             </>
           ) : (

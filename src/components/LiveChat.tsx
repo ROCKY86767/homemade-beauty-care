@@ -588,10 +588,10 @@ export function ChatAdminView() {
         <button onClick={loadConversations} className="rounded-lg border bg-white px-4 py-2 text-sm">Refresh</button>
       </div>
 
-      <div className="grid h-[calc(100vh-64px)] min-h-[520px] overflow-hidden rounded-none border-0 bg-white lg:grid-cols-[260px_minmax(0,1fr)]">
-        <div className="flex min-h-0 flex-col border-r bg-gray-50">
+      <div className="min-h-0 flex-1 overflow-hidden border-t border-gray-200 bg-white shadow-sm lg:grid lg:grid-cols-[270px_minmax(0,1fr)]">
+        <div className="flex min-h-0 flex-col border-r bg-gray-50/90 overscroll-contain">
           <div className="border-b p-3"><div className="mb-2 text-sm font-semibold">Conversations</div><div className="flex items-center gap-2 rounded-lg border bg-white px-2"><Search className="h-4 w-4 text-gray-400" /><input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search customer..." className="w-full py-2 text-sm outline-none" /></div></div>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             {conversations.filter(item => `${item.customer_name} ${item.customer_mobile || ''}`.toLowerCase().includes(search.toLowerCase())).map((item) => (
               <button key={item.id} onClick={() => selectConversation(item)} className={`w-full border-b p-4 text-left hover:bg-white ${selected?.id === item.id ? 'bg-white' : ''}`}>
                 <div className="flex items-center gap-2">
@@ -609,10 +609,10 @@ export function ChatAdminView() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-col overflow-hidden bg-white overscroll-none">
           {selected ? (
             <>
-              <div className="flex items-center justify-between border-b p-4">
+              <div className="flex shrink-0 items-center justify-between border-b bg-white px-4 py-3">
                 <div>
                   <div className="font-semibold">{selected.customer_name}</div>
                   <div className="text-xs text-gray-500">{selected.customer_mobile || 'No phone number'}</div>
@@ -621,7 +621,7 @@ export function ChatAdminView() {
     ? <button onClick={closeChat} className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50">Close Chat</button>
     : <button onClick={reopenChat} className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90">Reopen Chat</button>}
               </div>
-              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-cream/30 p-3">
+              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain bg-cream/30 p-4">
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'admin' ? 'bg-primary text-white' : 'border bg-white text-gray-800'}`}>

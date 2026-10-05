@@ -35,6 +35,7 @@ import {
   XCircle,
   RefreshCw,
   AlertCircle,
+  Copy,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
@@ -118,6 +119,47 @@ function normalizePhone(value: any) {
   return String(value || '')
     .replace(/\D/g, '')
     .replace(/^88/, '');
+}
+
+function displayOrderNumber(order: Order) {
+  const raw = String(order.order_number || order.id?.slice(0, 8) || '');
+  return raw.replace(/^HBC/i, 'GRC');
+}
+
+function buildOrderCopyText(order: Order, orderItems: OrderItem[]) {
+  const address = [order.district, order.area, order.address].filter(Boolean).join(', ');
+  const itemsText = orderItems.length
+    ? orderItems.map((item) => {
+        const lineTotal = Number(item.price || 0) * Number(item.quantity || 0);
+        return '• ' + (item.product_name || 'Product') + ' — ' + item.quantity + ' × ' + money(item.price) + ' = ' + money(lineTotal);
+      }).join('\n')
+    : '• No items found';
+  return [
+    '🧾 ORDER DETAILS',
+    '━━━━━━━━━━━━━━━━━━━━',
+    'Order ID: ' + displayOrderNumber(order),
+    'Date: ' + dateTime(order.created_at),
+    '',
+    '👤 CUSTOMER',
+    'Name: ' + (order.customer_name || '—'),
+    'Phone: ' + (order.mobile || order.customer_phone || '—'),
+    order.email ? 'Email: ' + order.email : '',
+    '',
+    '📍 DELIVERY',
+    'Address: ' + (address || '—'),
+    order.order_note || order.note ? 'Note: ' + (order.order_note || order.note) : '',
+    '',
+    '🛍️ ITEMS',
+    itemsText,
+    '',
+    '💳 PAYMENT',
+    'Method: ' + (order.payment_method || 'COD'),
+    'Payment Status: ' + (order.payment_status || 'Unpaid'),
+    'Order Status: ' + (order.status || 'Pending'),
+    'Total: ' + money(order.grand_total ?? order.total),
+    '━━━━━━━━━━━━━━━━━━━━',
+    'Homemade Beauty Care',
+  ].filter(Boolean).join('\n');
 }
 
 function customerKey(order: Order) {
@@ -3035,9 +3077,25 @@ function OrdersView() {
                 <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
                   <div className="min-w-0 xl:w-[20%]">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <h3 className={`text-sm font-semibold ${duplicateOrderIds.has(order.id) ? 'text-red-700' : 'text-gray-900'}`}>
-                        #{order.order_number || order.id?.slice(0, 8)}
-                      </h3>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className={`text-sm font-semibold ${duplicateOrderIds.has(order.id) ? 'text-red-700' : 'text-gray-900'}`}>
+                          #{displayOrderNumber(order)}
+                        </h3>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(buildOrderCopyText(order, orderItems));
+                            } catch {
+                              setError('Order info copy করা যায়নি।');
+                            }
+                          }}
+                          title="Copy order info"
+                          aria-label="Copy order info"
+                          className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                       <StatusBadge status={order.status} />
                       {duplicateOrderIds.has(order.id) && (
                         <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
@@ -3123,7 +3181,7 @@ function OrdersView() {
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-5 py-4">
               <div>
                 <h3 className="text-lg font-bold">
-                  Order #{viewOrder.order_number || viewOrder.id?.slice(0, 8)}
+                  Order #{displayOrderNumber(viewOrder)}
                 </h3>
                 <p className="text-xs text-gray-500">{dateTime(viewOrder.created_at)}</p>
               </div>

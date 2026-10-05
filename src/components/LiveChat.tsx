@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, MoreVertical } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type ChatMessage = {
@@ -309,34 +309,54 @@ export function ChatAdminView() {
   };
 
   const loadMessages = async (conversationId: string) => {
+    const requestId = ++messageRequestRef.current;
     const { data } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
+
+    if (requestId !== messageRequestRef.current || selectedIdRef.current !== conversationId) return;
+
     setMessages((data || []) as ChatMessage[]);
-    await supabase.from('chat_messages').update({ is_read: true }).eq('conversation_id', conversationId).eq('sender_type', 'customer');
+    await supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .eq('conversation_id', conversationId)
+      .eq('sender_type', 'customer');
   };
 
   useEffect(() => {
     loadConversations().finally(() => setLoading(false));
+
     const channel = supabase
       .channel('admin-live-chat')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, () => {
         loadConversations();
-        if (selected?.id) loadMessages(selected.id);
+        const id = selectedIdRef.current;
+        if (id) loadMessages(id);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_conversations' }, () => loadConversations())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_conversations' }, () => {
+        loadConversations();
+      })
       .subscribe();
-    const timer = window.setInterval(loadConversations, 5000);
+
+    const timer = window.setInterval(() => {
+      loadConversations();
+      const id = selectedIdRef.current;
+      if (id) loadMessages(id);
+    }, 5000);
+
     return () => {
       window.clearInterval(timer);
       supabase.removeChannel(channel);
     };
-  }, [selected?.id]);
+  }, []);
 
   useEffect(() => {
-    if (selected) loadMessages(selected.id);
+    if (!selected?.id) return;
+    selectedIdRef.current = selected.id;
+    loadMessages(selected.id);
   }, [selected?.id]);
 
   const adminRecorderRef = useRef<MediaRecorder | null>(null);
@@ -401,7 +421,14 @@ export function ChatAdminView() {
       setRecording(false);
     }
   };
-  const saveCurrentReply = () => { const text = message.trim(); if (!text) return; const next=[text,...savedReplies.filter(x=>x!==text)].slice(0,30); setSavedReplies(next); localStorage.setItem('hbc-saved-replies', JSON.stringify(next)); };
+  const saveCurrentReply = () => {
+    const text = message.trim();
+    if (!text) return;
+    const next = [text, ...savedReplies.filter((item) => item !== text)].slice(0, 30);
+    setSavedReplies(next);
+    localStorage.setItem('hbc-saved-replies', JSON.stringify(next));
+    setShowSavedReplies(false);
+  };
 
   const send = async (e: FormEvent) => {
     e.preventDefault();
@@ -445,6 +472,16 @@ export function ChatAdminView() {
     await loadConversations();
   };
 
+  const selectConversation = (item: Conversation) => {
+    selectedIdRef.current = item.id;
+    messageRequestRef.current += 1;
+    setSelected(item);
+    setMessages([]);
+    setMessage('');
+    setChatError('');
+    setShowSavedReplies(false);
+  };
+
   if (loading) return <div className="min-h-[300px] flex items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>;
 
   return (
@@ -457,12 +494,12 @@ export function ChatAdminView() {
         <button onClick={loadConversations} className="rounded-lg border bg-white px-4 py-2 text-sm">Refresh</button>
       </div>
 
-      <div className="grid h-[calc(100vh-220px)] min-h-[560px] max-h-[760px] overflow-hidden rounded-xl border bg-white lg:grid-cols-[300px_1fr]">
-        <div className="border-r bg-gray-50">
+      <div className="grid h-[min(760px,calc(100vh-220px))] min-h-[560px] overflow-hidden rounded-xl border bg-white lg:grid-cols-[300px_minmax(0,1fr)]">
+        <div className="flex min-h-0 flex-col border-r bg-gray-50">
           <div className="border-b p-3"><div className="mb-2 text-sm font-semibold">Conversations</div><div className="flex items-center gap-2 rounded-lg border bg-white px-2"><Search className="h-4 w-4 text-gray-400" /><input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search customer..." className="w-full py-2 text-sm outline-none" /></div></div>
           <div className="min-h-0 flex-1 overflow-y-auto">
             {conversations.filter(item => `${item.customer_name} ${item.customer_mobile || ''}`.toLowerCase().includes(search.toLowerCase())).map((item) => (
-              <button key={item.id} onClick={() => setSelected(item)} className={`w-full border-b p-4 text-left hover:bg-white ${selected?.id === item.id ? 'bg-white' : ''}`}>
+              <button key={item.id} onClick={() => selectConversation(item)} className={`w-full border-b p-4 text-left hover:bg-white ${selected?.id === item.id ? 'bg-white' : ''}`}>
                 <div className="flex items-center gap-2">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary"><User className="h-4 w-4" /></div>
                   <div className="min-w-0 flex-1">
@@ -501,10 +538,48 @@ export function ChatAdminView() {
               </div>
               {selected.status === 'open' ? (
                 <>
-                {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
-                <form onSubmit={send} className="flex items-end gap-2 border-t bg-white p-3"><button type="button" onClick={toggleRecording} title={recording ? "Stop & send voice message" : "Record voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Reply to customer..." className="min-w-0 flex-1 resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" /><button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save reply" className="flex h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
-                  <button disabled={voiceUploading || !message.trim()} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"><Send className="h-4 w-4" />Send</button>
-                </form>
+                <div className="shrink-0 border-t bg-white">
+                  {chatError && <div className="border-b bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
+                  {showSavedReplies && (
+                    <div className="max-h-48 overflow-y-auto border-b bg-gray-50 p-2">
+                      {savedReplies.length ? savedReplies.map((reply) => (
+                        <button
+                          key={reply}
+                          type="button"
+                          onClick={() => { setMessage(reply); setShowSavedReplies(false); }}
+                          className="mb-1 block w-full rounded-lg border bg-white px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100"
+                        >
+                          {reply}
+                        </button>
+                      )) : (
+                        <div className="px-2 py-3 text-center text-xs text-gray-400">কোনো saved reply নেই।</div>
+                      )}
+                    </div>
+                  )}
+                  <form onSubmit={send} className="flex shrink-0 items-end gap-2 p-3">
+                    <button type="button" onClick={toggleRecording} title={recording ? "Stop & send voice message" : "Record voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>
+                      {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </button>
+                    <textarea
+                      rows={2}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Reply to customer..."
+                      className="min-w-0 flex-1 resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary"
+                    />
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button type="button" onClick={() => setShowSavedReplies((value) => !value)} title="Saved replies" className={`flex h-10 w-10 items-center justify-center rounded-lg border ${showSavedReplies ? "bg-primary/10 text-primary" : "text-gray-600"}`}>
+                        <Bookmark className="h-4 w-4" />
+                      </button>
+                      <button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save current reply" className="hidden h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40 sm:flex">
+                        <Bookmark className="h-4 w-4" />
+                      </button>
+                      <button disabled={voiceUploading || !message.trim()} className="flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50">
+                        <Send className="h-4 w-4" />Send
+                      </button>
+                    </div>
+                  </form>
+                </div>
                 </>
               ) : (
                 <div className="border-t bg-white p-3 text-center text-sm text-gray-500">

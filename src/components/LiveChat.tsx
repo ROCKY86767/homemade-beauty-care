@@ -266,7 +266,7 @@ export default function LiveChat() {
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'customer' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'customer' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border bg-white text-gray-800'}`}>
-                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message_type === 'image' && item.media_url ? <img src={item.media_url} alt="chat attachment" className="max-h-56 max-w-full rounded-lg" /> : item.message}
+                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="h-8 w-[180px] max-w-full" /> : item.message_type === 'image' && item.media_url ? <img src={item.media_url} alt="chat attachment" className="max-h-56 max-w-full rounded-lg" /> : item.message}
                     </div>
                   </div>
                 ))}
@@ -582,7 +582,7 @@ export function ChatAdminView() {
                   <div className="mx-auto flex max-w-4xl flex-col gap-3">
                     {messages.map((item) => (
                       <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[72%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${item.sender_type === 'admin' ? 'rounded-br-md bg-primary text-white' : 'rounded-bl-md border border-gray-200 bg-white text-gray-800'}`}>
+                        <div className={`max-w-[68%] rounded-xl px-3 py-2 text-[13px] shadow-sm ${item.sender_type === 'admin' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border border-gray-200 bg-white text-gray-800'}`}>
                           {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message_type === 'image' && item.media_url ? <><img src={item.media_url} alt="chat attachment" className="max-h-72 max-w-full rounded-xl object-contain" />{item.message && item.message !== 'Image' && <div className="mt-2">{item.message}</div>}</> : item.message}
                           <div className={`mt-1 text-[9px] ${item.sender_type === 'admin' ? 'text-white/60' : 'text-gray-400'}`}>{new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         </div>

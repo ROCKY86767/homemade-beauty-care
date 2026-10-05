@@ -14,6 +14,7 @@ import type { Banner, Product, Category, Review, SiteSettings } from '@/lib/type
 import { getSettings } from '@/lib/settings';
 import ProductCard from '@/components/ProductCard';
 import StarRating from '@/components/StarRating';
+import SEO from '@/components/SEO';
 
 const TRUST_FEATURES = [
   {
@@ -266,6 +267,7 @@ export default function HomePage() { // centralized storefront settings
 
   return (
     <div>
+      <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
       {/* Hero Slider */}
       {banners.length > 0 && (
         <section className="relative hero-premium h-[500px] sm:h-[550px] lg:h-[600px] overflow-hidden">

@@ -404,8 +404,8 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex min-h-screen">
+    <div className={`bg-gray-50 ${activeTab === "chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>
+      <div className={`${activeTab === "chat" ? "h-full" : "min-h-screen"} flex`} >
         {/* SIDEBAR */}
         <aside
           className={`fixed lg:static z-50 inset-y-0 left-0 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ${
@@ -479,8 +479,8 @@ export default function AdminPage() {
         )}
 
         {/* MAIN */}
-        <main className="flex-1 min-w-0">
-          <header className="h-16 bg-white border-b flex items-center px-4 lg:px-6 sticky top-0 z-30">
+        <main className={`flex-1 min-w-0 ${activeTab === "chat" ? "h-full overflow-hidden flex flex-col overscroll-none" : ""}`}>
+          <header className="h-16 shrink-0 bg-white border-b flex items-center px-4 lg:px-6 sticky top-0 z-30">
             <button
               onClick={() => setMobileMenu(true)}
               className="lg:hidden mr-3"
@@ -493,7 +493,7 @@ export default function AdminPage() {
             </div>
           </header>
 
-          <div className="p-4 lg:p-6">
+          <div className={activeTab === "chat" ? "flex-1 min-h-0 overflow-hidden p-0" : "p-4 lg:p-6"}>
             {activeTab === 'dashboard' && (
               <DashboardView />
             )}
@@ -515,9 +515,7 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'chat' && (
-              <div className="-m-4 lg:-m-6">
-                <ChatAdminView />
-              </div>
+              <ChatAdminView />
             )}
 
             {activeTab === 'quick-responses' && (

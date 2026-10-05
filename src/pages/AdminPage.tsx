@@ -2526,7 +2526,6 @@ function OrdersView() {
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
 
-  const [expanded, setExpanded] = useState<string | null>(null);
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
 
@@ -2887,13 +2886,10 @@ function OrdersView() {
 
       <ErrorBox error={error} retry={load} />
 
-      {/* FILTER AREA */}
       <div className="mb-5 rounded-xl border border-gray-200 bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-5">
-          {/* Search */}
           <div className="relative lg:col-span-2">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -2902,42 +2898,32 @@ function OrdersView() {
             />
           </div>
 
-          {/* Status */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-gray-500"
           >
             <option value="">All Status</option>
-
             {ORDER_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
+              <option key={status} value={status}>{status}</option>
             ))}
           </select>
 
-          {/* Payment Status */}
           <select
             value={paymentFilter}
             onChange={(e) => setPaymentFilter(e.target.value)}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-gray-500"
           >
             <option value="">All Payment</option>
-
             {paymentStatuses.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
+              <option key={status} value={status}>{status}</option>
             ))}
           </select>
 
-          {/* Date */}
           <select
             value={dateFilter}
             onChange={(e) => {
               setDateFilter(e.target.value);
-
               if (e.target.value !== 'custom') {
                 setCustomFrom('');
                 setCustomTo('');
@@ -2954,14 +2940,10 @@ function OrdersView() {
           </select>
         </div>
 
-        {/* Custom Date */}
         {dateFilter === 'custom' && (
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">
-                From Date
-              </label>
-
+              <label className="mb-1 block text-xs font-medium text-gray-600">From Date</label>
               <input
                 type="date"
                 value={customFrom}
@@ -2969,12 +2951,8 @@ function OrdersView() {
                 className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-gray-500"
               />
             </div>
-
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">
-                To Date
-              </label>
-
+              <label className="mb-1 block text-xs font-medium text-gray-600">To Date</label>
               <input
                 type="date"
                 value={customTo}
@@ -2982,7 +2960,6 @@ function OrdersView() {
                 className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-gray-500"
               />
             </div>
-
             <div className="flex items-end">
               <button
                 onClick={resetFilters}
@@ -2994,20 +2971,11 @@ function OrdersView() {
           </div>
         )}
 
-        {/* Result + Reset */}
         <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-600">
-            Showing{' '}
-            <span className="text-sm font-semibold text-gray-900">
-              {filtered.length}
-            </span>{' '}
-            of{' '}
-            <span className="text-sm font-semibold text-gray-900">
-              {orders.length}
-            </span>{' '}
-            orders
+            Showing <span className="font-semibold text-gray-900">{filtered.length}</span> of{' '}
+            <span className="font-semibold text-gray-900">{orders.length}</span> orders
           </div>
-
           {dateFilter !== 'custom' && (
             <button
               onClick={resetFilters}
@@ -3019,273 +2987,83 @@ function OrdersView() {
         </div>
       </div>
 
-      {/* ORDERS */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         {filtered.map((order) => {
           const orderItems = itemsForOrder(order.id);
-
-          const knownStatuses = ORDER_STATUSES.includes(
-            order.status
-          )
+          const knownStatuses = ORDER_STATUSES.includes(order.status)
             ? ORDER_STATUSES
             : [order.status, ...ORDER_STATUSES];
-
-          const isExpanded =
-            expanded === order.id;
 
           return (
             <div
               key={order.id}
               className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
             >
-              <div className="px-3 py-2">
-                <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-                  {/* Order */}
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
-                      <h3 className="font-semibold text-gray-900">
-                        #
-                        {order.order_number ||
-                          order.id?.slice(0, 8)}
+              <div className="px-3 py-2.5">
+                <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+                  <div className="min-w-0 xl:w-[20%]">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        #{order.order_number || order.id?.slice(0, 8)}
                       </h3>
-
-                      <StatusBadge
-                        status={order.status}
-                      />
+                      <StatusBadge status={order.status} />
                     </div>
-
-                    <p className="text-xs text-gray-500">
-                      {dateTime(order.created_at)}
-                    </p>
+                    <p className="text-[11px] text-gray-500">{dateTime(order.created_at)}</p>
                   </div>
 
-                  {/* Customer */}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {order.customer_name || '—'}
-                    </p>
-
-                    <p className="text-sm text-gray-600">
-                      {order.mobile ||
-                        order.customer_phone ||
-                        '—'}
-                    </p>
-
-                    {order.email && (
-                      <p className="break-all text-[11px] text-gray-500">
-                        {order.email}
-                      </p>
-                    )}
+                  <div className="min-w-0 xl:w-[22%]">
+                    <p className="truncate text-sm font-medium text-gray-900">{order.customer_name || '—'}</p>
+                    <p className="text-xs text-gray-600">{order.mobile || order.customer_phone || '—'}</p>
                   </div>
 
-                  {/* Amount */}
-                  <div className="min-w-[130px]">
+                  <div className="xl:w-[13%]">
                     <p className="text-sm font-bold text-gray-900">
-                      {formatPrice(
-                        Number(
-                          order.grand_total ??
-                            order.total ??
-                            0
-                        )
-                      )}
+                      {formatPrice(Number(order.grand_total ?? order.total ?? 0))}
                     </p>
-
-                    <p className="text-xs text-gray-500">
-                      {order.payment_method ||
-                        'COD'}
-                    </p>
+                    <p className="text-[11px] text-gray-500">{order.payment_method || 'COD'}</p>
                   </div>
 
-                  {/* Status */}
-                  <div className="flex min-w-[180px] flex-col gap-2">
+                  <div className="xl:w-[17%]">
                     <select
                       value={order.status || ''}
                       disabled={updating === order.id}
-                      onChange={(e) =>
-                        updateStatus(
-                          order,
-                          e.target.value
-                        )
-                      }
-                      className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-gray-500 disabled:bg-gray-100"
+                      onChange={(e) => updateStatus(order, e.target.value)}
+                      className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-gray-500 disabled:bg-gray-100"
                     >
-                      {knownStatuses.map(
-                        (status) => (
-                          <option
-                            key={status}
-                            value={status}
-                          >
-                            {status}
-                          </option>
-                        )
-                      )}
+                      {knownStatuses.map((status) => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
                     </select>
-
-                    {updating === order.id && (
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Updating...
-                      </div>
-                    )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 xl:ml-auto xl:w-auto">
                     <button
-                      onClick={() =>
-                        setExpanded(
-                          isExpanded
-                            ? null
-                            : order.id
-                        )
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                      onClick={() => setViewOrder(order)}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                     >
-                      <Eye className="h-4 w-4" />
-
+                      <Eye className="h-3.5 w-3.5" />
                       View
                     </button>
 
                     <Link
                       to={`/invoice?id=${encodeURIComponent(order.order_number || '')}`}
                       target="_blank"
-                      className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
+                      className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
                     >
                       Invoice
                     </Link>
 
-                    {order.status !==
-                      'Cancelled' &&
-                      order.status !==
-                        'Delivered' && (
-                        <button
-                          onClick={() =>
-                            cancelOrder(order)
-                          }
-                          className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Cancel
-                        </button>
-                      )}
-                  </div>
-                </div>
-
-                {/* Customer / Payment / Address / Note */}
-                <div className="mt-5 grid gap-4 border-t border-gray-100 pt-5 md:grid-cols-3">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      District
-                    </p>
-                    <p className="mt-1 text-sm text-gray-800">
-                      {order.district || '—'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Area
-                    </p>
-                    <p className="mt-1 text-sm text-gray-800">
-                      {order.area || '—'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Payment
-                    </p>
-                    <p className="mt-1 text-sm text-gray-800">
-                      {order.payment_status ||
-                        'Unpaid'}
-                    </p>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Address
-                    </p>
-                    <p className="mt-1 break-words text-sm text-gray-800">
-                      {order.address || '—'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Note
-                    </p>
-                    <p className="mt-1 break-words text-sm text-gray-800">
-                      {order.order_note ||
-                        order.note ||
-                        '—'}
-                    </p>
-                  </div>
-                </div>
-                  <div className="mt-5 border-t border-gray-100 pt-5">
-                    <h4 className="mb-3 text-sm font-semibold text-gray-900">
-                      Order Items
-                    </h4>
-
-                    {orderItems.length === 0 ? (
-                      <p className="text-sm text-gray-500">
-                        No items found for this
-                        order.
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {orderItems.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3"
-                          >
-                            {item.image_url ? (
-                              <img
-                                src={
-                                  item.image_url
-                                }
-                                alt={
-                                  item.product_name
-                                }
-                                className="h-14 w-14 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-500">
-                                No Image
-                              </div>
-                            )}
-
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-gray-900">
-                                {item.product_name}
-                              </p>
-
-                              <p className="text-xs text-gray-500">
-                                {formatPrice(
-                                  Number(
-                                    item.price || 0
-                                  )
-                                )}{' '}
-                                ×{' '}
-                                {item.quantity}
-                              </p>
-                            </div>
-
-                            <div className="text-sm font-semibold text-gray-900">
-                              {formatPrice(
-                                Number(
-                                  item.price || 0
-                                ) *
-                                  Number(
-                                    item.quantity || 0
-                                  )
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
+                      <button
+                        onClick={() => cancelOrder(order)}
+                        className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        Cancel
+                      </button>
                     )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           );
@@ -3293,24 +3071,101 @@ function OrdersView() {
       </div>
 
       {filtered.length === 0 && (
-        <EmptyState
-          title="No orders found"
-          description="Try changing your search or filters."
-        />
+        <EmptyState text="No orders found. Try changing your search or filters." />
       )}
 
       {viewOrder && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4" onClick={() => setViewOrder(null)}>
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setViewOrder(null)}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-5 py-4">
-              <div><h3 className="text-lg font-bold">Order #{viewOrder.order_number || viewOrder.id?.slice(0, 8)}</h3><p className="text-xs text-gray-500">{dateTime(viewOrder.created_at)}</p></div>
-              <button onClick={() => setViewOrder(null)} className="rounded-lg p-2 hover:bg-gray-100"><X className="h-5 w-5" /></button>
+              <div>
+                <h3 className="text-lg font-bold">
+                  Order #{viewOrder.order_number || viewOrder.id?.slice(0, 8)}
+                </h3>
+                <p className="text-xs text-gray-500">{dateTime(viewOrder.created_at)}</p>
+              </div>
+              <button
+                onClick={() => setViewOrder(null)}
+                className="rounded-lg p-2 hover:bg-gray-100"
+                aria-label="Close order view"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
+
             <div className="grid gap-4 p-5 sm:grid-cols-2">
-              <div className="rounded-xl bg-gray-50 p-4"><p className="text-xs text-gray-400">Customer</p><p className="font-semibold">{viewOrder.customer_name || '—'}</p><p className="text-sm">{viewOrder.mobile || viewOrder.customer_phone || '—'}</p></div>
-              <div className="rounded-xl bg-gray-50 p-4"><p className="text-xs text-gray-400">Total</p><p className="text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p><p className="text-sm">{viewOrder.payment_method || 'COD'} · {viewOrder.payment_status || 'Unpaid'}</p></div>
-              <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2"><p className="text-xs text-gray-400">Address</p><p className="text-sm">{[viewOrder.district, viewOrder.area, viewOrder.address].filter(Boolean).join(', ') || '—'}</p></div>
-              <div className="sm:col-span-2"><h4 className="mb-2 font-semibold">Order Items ({itemsForOrder(viewOrder.id).length})</h4>{itemsForOrder(viewOrder.id).map((item) => <div key={item.id} className="mb-2 flex items-center gap-3 rounded-lg border bg-gray-50 p-2.5"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.product_name}</p><p className="text-xs text-gray-500">{money(item.price)} × {item.quantity}</p></div><p className="text-sm font-semibold">{money(Number(item.price || 0) * Number(item.quantity || 0))}</p></div>)}</div>
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-xs text-gray-400">Customer</p>
+                <p className="font-semibold">{viewOrder.customer_name || '—'}</p>
+                <p className="text-sm">{viewOrder.mobile || viewOrder.customer_phone || '—'}</p>
+                {viewOrder.email && <p className="break-all text-xs text-gray-500">{viewOrder.email}</p>}
+              </div>
+
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-xs text-gray-400">Total</p>
+                <p className="text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p>
+                <p className="text-sm">
+                  {viewOrder.payment_method || 'COD'} · {viewOrder.payment_status || 'Unpaid'}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2">
+                <p className="text-xs text-gray-400">Delivery Address</p>
+                <p className="text-sm">
+                  {[viewOrder.district, viewOrder.area, viewOrder.address].filter(Boolean).join(', ') || '—'}
+                </p>
+                {(viewOrder.order_note || viewOrder.note) && (
+                  <p className="mt-2 text-xs text-gray-500">Note: {viewOrder.order_note || viewOrder.note}</p>
+                )}
+              </div>
+
+              <div className="sm:col-span-2">
+                <h4 className="mb-2 font-semibold">
+                  Order Items ({itemsForOrder(viewOrder.id).length})
+                </h4>
+
+                <div className="space-y-2">
+                  {itemsForOrder(viewOrder.id).length === 0 ? (
+                    <p className="text-sm text-gray-500">No items found for this order.</p>
+                  ) : (
+                    itemsForOrder(viewOrder.id).map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-lg border bg-gray-50 p-2.5"
+                      >
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.product_name || 'Product'}
+                            className="h-12 w-12 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-[10px] text-gray-500">
+                            No Image
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{item.product_name}</p>
+                          <p className="text-xs text-gray-500">
+                            {money(item.price)} × {item.quantity}
+                          </p>
+                        </div>
+
+                        <p className="text-sm font-semibold">
+                          {money(Number(item.price || 0) * Number(item.quantity || 0))}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

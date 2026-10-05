@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type ChatMessage = {
@@ -156,9 +156,37 @@ export default function LiveChat() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const [voiceUploading, setVoiceUploading] = useState(false);
+  const [pendingVoice, setPendingVoice] = useState<Blob | null>(null);
+  const [pendingVoiceUrl, setPendingVoiceUrl] = useState('');
+
+  const clearPendingVoice = () => {
+    if (pendingVoiceUrl) URL.revokeObjectURL(pendingVoiceUrl);
+    setPendingVoice(null);
+    setPendingVoiceUrl('');
+  };
+
+  const sendPendingVoice = async () => {
+    if (!conversation?.id || !pendingVoice) return;
+    setVoiceUploading(true);
+    setChatError('');
+    try {
+      const url = await uploadChatAudio(pendingVoice, `customer/${conversation.id}`);
+      const { error } = await supabase.rpc('send_guest_chat_audio', {
+        p_visitor_token: token(), p_conversation_id: conversation.id, p_media_url: url,
+      });
+      if (error) throw error;
+      clearPendingVoice();
+      await loadMessages(conversation.id);
+    } catch (err: any) {
+      setChatError(err?.message || 'Voice message পাঠানো যায়নি।');
+    } finally {
+      setVoiceUploading(false);
+    }
+  };
 
   const toggleRecording = async () => {
     if (recording) { mediaRecorderRef.current?.stop(); return; }
+    if (pendingVoice) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
       setChatError('এই ব্রাউজারে voice message support নেই। Chrome/Edge ব্যবহার করুন.');
       return;
@@ -169,22 +197,13 @@ export default function LiveChat() {
       const recorder = new MediaRecorder(stream, getRecorderOptions());
       audioChunksRef.current = [];
       recorder.ondataavailable = (event) => { if (event.data.size > 0) audioChunksRef.current.push(event.data); };
-      recorder.onstop = async () => {
+      recorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
         setRecording(false);
-        if (!conversation?.id || !audioChunksRef.current.length) return;
-        try {
-          setVoiceUploading(true);
-          const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-          const url = await uploadChatAudio(blob, `customer/${conversation.id}`);
-          const { error } = await supabase.rpc('send_guest_chat_audio', {
-            p_visitor_token: token(), p_conversation_id: conversation.id, p_media_url: url,
-          });
-          if (error) throw error;
-          await loadMessages(conversation.id);
-        } catch (err: any) {
-          setChatError(err?.message || 'Voice message পাঠানো যায়নি।');
-        } finally { setVoiceUploading(false); }
+        if (!audioChunksRef.current.length) return;
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        setPendingVoice(blob);
+        setPendingVoiceUrl(URL.createObjectURL(blob));
       };
       recorder.onerror = () => {
         stream.getTracks().forEach((track) => track.stop());
@@ -254,8 +273,15 @@ export default function LiveChat() {
                 {!messages.length && <p className="pt-8 text-center text-xs text-gray-400">মেসেজ লোড হচ্ছে...</p>}
               </div>
               {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
+              {pendingVoiceUrl && (
+                <div className="flex items-center gap-2 border-t bg-gray-50 px-3 py-2">
+                  <audio controls preload="metadata" src={pendingVoiceUrl} className="min-w-0 flex-1" />
+                  <button type="button" onClick={clearPendingVoice} disabled={voiceUploading} title="Delete voice" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-10 shrink-0 items-center gap-1 rounded-lg bg-primary px-3 text-sm font-medium text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button>
+                </div>
+              )}
               <form onSubmit={sendMessage} className="flex items-end gap-2 border-t bg-white p-3">
-                <button type="button" onClick={toggleRecording} title={recording ? 'Stop & send voice message' : 'Record voice message'} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? 'bg-red-50 text-red-600' : 'text-primary'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
+                <button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? 'bg-red-50 text-red-600' : 'text-primary'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
                 <textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
                 <button disabled={sending || voiceUploading || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50"><Send className="h-4 w-4" /></button>

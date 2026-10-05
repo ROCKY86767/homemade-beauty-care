@@ -515,7 +515,9 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'chat' && (
-              <ChatAdminView />
+              <div className="-m-4 lg:-m-6">
+                <ChatAdminView />
+              </div>
             )}
 
             {activeTab === 'quick-responses' && (

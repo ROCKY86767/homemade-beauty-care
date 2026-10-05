@@ -45,6 +45,7 @@ export default function LiveChat() {
   const [savedReplies, setSavedReplies] = useState<string[]>(() => JSON.parse(localStorage.getItem('hbc-saved-replies') || '[]'));
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [chatError, setChatError] = useState('');
 
   const savedConversationId = useMemo(
     () => localStorage.getItem(CONVERSATION_KEY),
@@ -92,6 +93,7 @@ export default function LiveChat() {
     e.preventDefault();
     if (!name.trim() || !message.trim()) return;
     setSending(true);
+    setChatError('');
     try {
       const { data, error } = await supabase.rpc('create_guest_chat', {
         p_customer_name: name.trim(),
@@ -100,13 +102,15 @@ export default function LiveChat() {
         p_message: message.trim(),
       });
       if (error) throw error;
+      if (!data?.id) throw new Error('Chat তৈরি হয়নি। আবার চেষ্টা করুন।');
       localStorage.setItem(CONVERSATION_KEY, data.id);
       setConversation(data as Conversation);
       setStarted(true);
       setMessage('');
       await loadMessages(data.id);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setChatError(err?.message || 'মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন।');
     } finally {
       setSending(false);
     }
@@ -148,6 +152,7 @@ export default function LiveChat() {
     e.preventDefault();
     if (!conversation?.id || !message.trim()) return;
     setSending(true);
+    setChatError('');
     try {
       const { error } = await supabase.rpc('send_guest_chat', {
         p_visitor_token: token(),
@@ -157,8 +162,9 @@ export default function LiveChat() {
       if (error) throw error;
       setMessage('');
       await loadMessages(conversation.id);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setChatError(err?.message || 'মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন।');
     } finally {
       setSending(false);
     }
@@ -201,6 +207,7 @@ export default function LiveChat() {
                 ))}
                 {!messages.length && <p className="text-center text-xs text-gray-400 pt-8">মেসেজ লোড হচ্ছে...</p>}
               </div>
+              {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
               <form onSubmit={sendMessage} className="flex items-center gap-2 border-t bg-white p-3">
                 <button type="button" onClick={toggleRecording} title={recording ? "Stop voice" : "Voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
@@ -234,6 +241,7 @@ export function ChatAdminView() {
   const [savedReplies, setSavedReplies] = useState<string[]>(() => JSON.parse(localStorage.getItem('hbc-saved-replies') || '[]'));
   const [search, setSearch] = useState('');
   const [recording, setRecording] = useState(false);
+  const [chatError, setChatError] = useState('');
 
   const loadConversations = async () => {
     const { data } = await supabase
@@ -297,6 +305,7 @@ export function ChatAdminView() {
 
   const send = async (e: FormEvent) => {
     e.preventDefault();
+    setChatError('');
     if (!selected || !message.trim()) return;
     const { error } = await supabase.from('chat_messages').insert({
       conversation_id: selected.id,
@@ -309,6 +318,9 @@ export function ChatAdminView() {
       await supabase.from('chat_conversations').update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', selected.id);
       setMessage('');
       await loadMessages(selected.id);
+    } else {
+      console.error(error);
+      setChatError(error.message || 'মেসেজ পাঠানো যায়নি।');
     }
   };
 
@@ -372,9 +384,12 @@ export function ChatAdminView() {
                 ))}
               </div>
               {selected.status === 'open' ? (
+                <>
+                {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
                 <form onSubmit={send} className="flex items-center gap-2 border-t p-3"><button type="button" onClick={toggleRecording} title={recording ? "Stop voice" : "Voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Reply to customer..." className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" /><button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save reply" className="flex h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
                   <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white"><Send className="h-4 w-4" />Send</button>
                 </form>
+                </>
               ) : (
                 <div className="border-t bg-white p-3 text-center text-sm text-gray-500">
                   Chat is closed. Select another conversation or start a new chat from the customer side.

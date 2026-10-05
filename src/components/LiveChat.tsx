@@ -68,14 +68,56 @@ export default function LiveChat() {
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState('');
 
-  const savedConversationId = useMemo(() => localStorage.getItem(CONVERSATION_KEY), []);
+  const savedConversationId = useMemo(() => localStorage.getItem(CONVERSATION_KEY), []);\n  const notifiedMessageIdsRef = useRef<Set<string>>(new Set());
+  const chatLoadedRef = useRef(false);
+
+  const enableBrowserNotifications = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      try { await Notification.requestPermission(); } catch {}
+    }
+  };
+
+  const notifyNewAdminMessages = (nextMessages: ChatMessage[]) => {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
+    const newAdminMessages = nextMessages.filter(
+      (item) => item.sender_type === 'admin' && !notifiedMessageIdsRef.current.has(item.id)
+    );
+    if (!chatLoadedRef.current) {
+      nextMessages.forEach((item) => notifiedMessageIdsRef.current.add(item.id));
+      chatLoadedRef.current = true;
+      return;
+    }
+    newAdminMessages.forEach((item) => {
+      notifiedMessageIdsRef.current.add(item.id);
+      if (document.visibilityState !== 'visible' || !open) {
+        const body = item.message_type === 'audio' ? '🎤 নতুন voice message' : item.message_type === 'image' ? '🖼️ নতুন picture message' : item.message;
+        const notification = new Notification('Homemade Beauty Care — Live Chat', {
+          body: body || 'আপনার জন্য নতুন message এসেছে।',
+          icon: '/homemade-logo.png',
+          tag: 'hbc-live-chat',
+        });
+        notification.onclick = () => {
+          window.focus();
+          setOpen(true);
+          notification.close();
+        };
+      }
+    });
+  };
+
+
 
   const loadMessages = async (conversationId: string) => {
     const { data, error } = await supabase.rpc('get_guest_chat', {
       p_visitor_token: token(),
       p_conversation_id: conversationId,
     });
-    if (!error) setMessages((data || []) as ChatMessage[]);
+    if (!error) {
+      const nextMessages = (data || []) as ChatMessage[];
+      setMessages(nextMessages);
+      notifyNewAdminMessages(nextMessages);
+    }
   };
 
   const loadConversation = async () => {
@@ -97,7 +139,12 @@ export default function LiveChat() {
     }
   };
 
-  useEffect(() => { if (open) loadConversation(); }, [open]);
+  useEffect(() => {
+    if (open) {
+      enableBrowserNotifications();
+      loadConversation();
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open || !conversation?.id) return;

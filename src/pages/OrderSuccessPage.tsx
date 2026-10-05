@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Package, Home, Truck, MapPin, CreditCard, PackageCheck, Box, MapPinCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -18,71 +18,75 @@ export default function OrderSuccessPage() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const location = useLocation();
+
   useEffect(() => {
     if (!orderNumber) return;
-    (async () => {
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('order_number', orderNumber)
-        .maybeSingle();
-      if (orderData) {
-        setOrder(orderData);
-        const { data: itemData } = await supabase
-          .from('order_items')
-          .select('*')
-          .eq('order_id', orderData.id);
-        setItems(itemData || []);
 
-        // Browser Pixel Purchase + server-side CAPI use the same event ID
-        // so Meta can deduplicate the conversion.
+    (async () => {
+      setLoading(true);
+
+      let mobile = '';
+      const stateMobile = (location.state as { mobile?: string } | null)?.mobile;
+
+      try {
+        mobile =
+          stateMobile?.replace(/\s/g, '').trim() ||
+          sessionStorage.getItem(`hbc-order-mobile-${orderNumber}`)?.replace(/\s/g, '').trim() ||
+          '';
+      } catch {
+        mobile = stateMobile?.replace(/\s/g, '').trim() || '';
+      }
+
+      if (!mobile) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc('track_order', {
+          p_mobile_number: mobile,
+        });
+
+        if (error || !data?.success || data.order?.order_number !== orderNumber) {
+          setLoading(false);
+          return;
+        }
+
+        const trackedOrder = data.order as Order;
+        const trackedItems = (data.items || []) as OrderItem[];
+
+        setOrder(trackedOrder);
+        setItems(trackedItems);
+
         if (window.fbq) {
           window.fbq(
             'track',
             'Purchase',
             {
-              value: Number(orderData.grand_total || 0),
+              value: Number(trackedOrder.grand_total || 0),
               currency: 'BDT',
-              content_ids: (itemData || [])
+              content_ids: trackedItems
                 .map((item: any) => item.product_id || item.product_name)
                 .filter(Boolean),
               content_type: 'product',
-              num_items: (itemData || []).reduce(
+              num_items: trackedItems.reduce(
                 (sum: number, item: any) => sum + Number(item.quantity || 0),
                 0
               ),
             },
             {
-              eventID: orderData.order_number,
+              eventID: trackedOrder.order_number,
             }
           );
         }
-
-        const fbp = document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('_fbp='))
-          ?.split('=')[1] || '';
-        const fbc = document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('_fbc='))
-          ?.split('=')[1] || '';
-
-        supabase.functions
-          .invoke('integrations', {
-            body: {
-              action: 'send_meta_purchase',
-              order_number: orderData.order_number,
-              fbp,
-              fbc,
-            },
-          })
-          .catch((integrationError) => {
-            console.error('Meta CAPI error:', integrationError);
-          });
+      } catch (error) {
+        console.error('Order success lookup error:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
-  }, [orderNumber]);
+  }, [orderNumber, location.state]);
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center bg-cream px-4 py-12">

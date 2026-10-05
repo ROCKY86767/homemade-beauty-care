@@ -2788,7 +2788,7 @@ function OrdersView() {
   };
 
   const saveOrderEdits = async () => {
-    if (!viewOrder) return;
+    if (!viewOrder || viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered') return;
     setSavingOrderEdit(true);
     try {
       const orderItems = itemsForOrder(viewOrder.id);
@@ -2815,7 +2815,7 @@ function OrdersView() {
   };
 
   const addProductToOrder = async () => {
-    if (!viewOrder || !editAddingProduct) return;
+    if (!viewOrder || viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered' || !editAddingProduct) return;
 
     const product = products.find((p) => p.id === editAddingProduct);
     const quantity = Math.max(1, Number(editAddingQty || 1));
@@ -3612,31 +3612,50 @@ function OrdersView() {
               </div>
 
               <div className="sm:col-span-2 rounded-xl border bg-gray-50 p-4">
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div><label className="text-xs text-gray-500">Discount</label><input type="number" min="0" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></div>
-                  <div>
-                     <label className="text-xs text-gray-500">Delivery Charge</label>
-                     <p className="mt-1 text-lg font-semibold">{money(editFreeDelivery ? 0 : getDeliveryCharge(settings, String(viewOrder.district || ''), Number(viewOrder.subtotal || 0), String(viewOrder.area || '')))}</p>
-                   </div>
-                   <div><label className="text-xs text-gray-500">Delivery</label><label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => setEditFreeDelivery(e.target.checked)} /> Free delivery</label></div>
-                  <div><label className="text-xs text-gray-500">Advance Payment</label><input type="number" min="0" value={editAdvancePayment} onChange={(e) => setEditAdvancePayment(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="0" /></div>
-                  <div><label className="text-xs text-gray-500">Due</label><p className="mt-1 text-lg font-bold">{money(Math.max(0, Number(viewOrder.grand_total ?? viewOrder.total ?? 0) - Number(editAdvancePayment || 0)))}</p></div>
-                  <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
-                </div>
-                <div className="mt-3 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Save Order Changes'}</button></div>
+                {viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered' ? (
+                  <div className="space-y-3">
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                      This order is <strong>{viewOrder.status}</strong>. Only the order status can be changed.
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div><label className="text-xs text-gray-500">Discount</label><p className="mt-1 text-lg font-semibold">{money(viewOrder.discount || 0)}</p></div>
+                      <div><label className="text-xs text-gray-500">Delivery Charge</label><p className="mt-1 text-lg font-semibold">{money(viewOrder.delivery_charge || 0)}</p></div>
+                      <div><label className="text-xs text-gray-500">Advance Payment</label><p className="mt-1 text-lg font-semibold">{money(viewOrder.advance_payment || 0)}</p></div>
+                      <div><label className="text-xs text-gray-500">Due</label><p className="mt-1 text-lg font-bold">{money(Math.max(0, Number(viewOrder.grand_total ?? viewOrder.total ?? 0) - Number(viewOrder.advance_payment || 0)))}</p></div>
+                      <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div><label className="text-xs text-gray-500">Discount</label><input type="number" min="0" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></div>
+                      <div>
+                        <label className="text-xs text-gray-500">Delivery Charge</label>
+                        <p className="mt-1 text-lg font-semibold">{money(editFreeDelivery ? 0 : getDeliveryCharge(settings, String(viewOrder.district || ''), Number(viewOrder.subtotal || 0), String(viewOrder.area || '')))}</p>
+                      </div>
+                      <div><label className="text-xs text-gray-500">Delivery</label><label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => setEditFreeDelivery(e.target.checked)} /> Free delivery</label></div>
+                      <div><label className="text-xs text-gray-500">Advance Payment</label><input type="number" min="0" value={editAdvancePayment} onChange={(e) => setEditAdvancePayment(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="0" /></div>
+                      <div><label className="text-xs text-gray-500">Due</label><p className="mt-1 text-lg font-bold">{money(Math.max(0, Number(viewOrder.grand_total ?? viewOrder.total ?? 0) - Number(editAdvancePayment || 0)))}</p></div>
+                      <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
+                    </div>
+                    <div className="mt-3 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Save Order Changes'}</button></div>
+                  </>
+                )}
               </div>
 
               <div className="sm:col-span-2">
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h4 className="font-semibold">Order Items ({itemsForOrder(viewOrder.id).length})</h4>
-                  <div className="flex gap-2">
-                    <select value={editAddingProduct} onChange={(e) => setEditAddingProduct(e.target.value)} className="rounded-lg border px-2 py-1.5 text-xs">
-                      <option value="">Add product...</option>
-                      {products.map((p) => <option key={p.id} value={p.id}>{p.name_en || p.name_bn || p.name}</option>)}
-                    </select>
-                    <input value={editAddingQty} onChange={(e) => setEditAddingQty(e.target.value)} type="number" min="1" className="w-16 rounded-lg border px-2 py-1.5 text-xs" />
-                    <button onClick={addProductToOrder} disabled={!editAddingProduct || savingOrderEdit} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Add</button>
-                  </div>
+                  {!(viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered') && (
+                    <div className="flex gap-2">
+                      <select value={editAddingProduct} onChange={(e) => setEditAddingProduct(e.target.value)} className="rounded-lg border px-2 py-1.5 text-xs">
+                        <option value="">Add product...</option>
+                        {products.map((p) => <option key={p.id} value={p.id}>{p.name_en || p.name_bn || p.name}</option>)}
+                      </select>
+                      <input value={editAddingQty} onChange={(e) => setEditAddingQty(e.target.value)} type="number" min="1" className="w-16 rounded-lg border px-2 py-1.5 text-xs" />
+                      <button onClick={addProductToOrder} disabled={!editAddingProduct || savingOrderEdit} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Add</button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

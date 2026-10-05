@@ -1452,6 +1452,9 @@ function ProductsView() {
                   setForm((p: any) => ({
                     ...p,
                     name_en: value,
+                    slug: p.slug && p.slug !== slugify(p.name_en || '')
+                      ? p.slug
+                      : slugify(value),
                   }))
                 }
               />

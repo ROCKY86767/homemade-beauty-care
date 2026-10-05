@@ -125,6 +125,7 @@ export default function HomePage() { // centralized storefront settings
           supabase
             .from('reviews')
             .select('*')
+            .eq('is_approved', true)
             .order('sort_order')
             .limit(6),
         ]);

@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type ChatMessage = {
@@ -9,7 +9,7 @@ type ChatMessage = {
   sender_name: string | null;
   message: string;
   is_read: boolean;
-  message_type: 'text' | 'audio';
+  message_type: 'text' | 'audio' | 'image';
   media_url: string | null;
   created_at: string;
 };
@@ -286,7 +286,7 @@ export default function LiveChat() {
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'customer' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'customer' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm bg-white border text-gray-800'}`}>
-                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message}
+                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message_type === 'image' && item.media_url ? <img src={item.media_url} alt="chat attachment" className="max-h-56 max-w-full rounded-lg" /> : item.message}
                     </div>
                   </div>
                 ))}
@@ -295,7 +295,7 @@ export default function LiveChat() {
               {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
               <form onSubmit={sendMessage} className="flex items-end gap-2 border-t bg-white p-3">
                 <button type="button" onClick={toggleRecording} title={recording ? "Stop & send voice message" : "Record voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || voiceUploading || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
+                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || voiceUploading || (!message.trim() && !chatImage)} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
                   <Send className="h-4 w-4" />
                 </button>
               </form>
@@ -328,8 +328,27 @@ export function ChatAdminView() {
   const [recording, setRecording] = useState(false);
   const [chatError, setChatError] = useState('');
   const [showSavedReplies, setShowSavedReplies] = useState(false);
+  const [quickReplies, setQuickReplies] = useState<any[]>([]);
+  const [quickReplyOpen, setQuickReplyOpen] = useState(false);
+  const [quickReplyTitle, setQuickReplyTitle] = useState('');
+  const [quickReplyMessage, setQuickReplyMessage] = useState('');
+  const [quickReplyImage, setQuickReplyImage] = useState<File | null>(null);
+  const [chatImage, setChatImage] = useState<File | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const selectedIdRef = useRef<string | null>(null);
   const messageRequestRef = useRef(0);
+
+  const loadQuickReplies = async () => {
+    const { data } = await supabase.from('chat_quick_replies').select('id,title,message,media_url').order('created_at', { ascending: false });
+    setQuickReplies(data || []);
+  };
+
+  const uploadImage = async (file: File, prefix: string) => {
+    const path = prefix + '/' + crypto.randomUUID() + '-' + file.name;
+    const { error } = await supabase.storage.from('chat-quick-replies').upload(path, file, { contentType: file.type, upsert: false });
+    if (error) throw error;
+    return supabase.storage.from('chat-quick-replies').getPublicUrl(path).data.publicUrl;
+  };
 
   const loadConversations = async () => {
     const { data } = await supabase
@@ -361,6 +380,7 @@ export function ChatAdminView() {
 
   useEffect(() => {
     loadConversations().finally(() => setLoading(false));
+    loadQuickReplies();
 
     const channel = supabase
       .channel('admin-live-chat')
@@ -466,7 +486,7 @@ export function ChatAdminView() {
   const send = async (e: FormEvent) => {
     e.preventDefault();
     setChatError('');
-    if (!selected || !message.trim()) return;
+    if (!selected || (!message.trim() && !chatImage)) return;
 
     try {
       // Refresh the conversation first so a stale closed/open state cannot block sending.
@@ -492,14 +512,16 @@ export function ChatAdminView() {
         fresh.status = 'open';
       }
 
+      let media_url = null;
+      if (chatImage) media_url = await uploadImage(chatImage, 'chat/' + selected.id);
       const { error } = await supabase.from('chat_messages').insert({
         conversation_id: selected.id,
         sender_type: 'admin',
         sender_name: 'Admin',
-        message: message.trim(),
+        message: message.trim() || 'Image',
         is_read: true,
-        message_type: 'text',
-        media_url: null,
+        message_type: chatImage ? 'image' : 'text',
+        media_url,
       });
       if (error) throw error;
 
@@ -512,6 +534,7 @@ export function ChatAdminView() {
       const nextSelected = { ...selected, status: 'open' as const, last_message_at: new Date().toISOString() };
       setSelected(nextSelected);
       setMessage('');
+      setChatImage(null);
       await Promise.all([loadMessages(selected.id), loadConversations()]);
     } catch (err: any) {
       console.error(err);
@@ -562,7 +585,7 @@ export function ChatAdminView() {
         <button onClick={loadConversations} className="rounded-lg border bg-white px-4 py-2 text-sm">Refresh</button>
       </div>
 
-      <div className="grid h-[min(760px,calc(100vh-220px))] min-h-[560px] overflow-hidden rounded-xl border bg-white lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid h-[min(600px,calc(100vh-280px))] min-h-[420px] overflow-hidden rounded-xl border bg-white lg:grid-cols-[240px_minmax(0,1fr)]">
         <div className="flex min-h-0 flex-col border-r bg-gray-50">
           <div className="border-b p-3"><div className="mb-2 text-sm font-semibold">Conversations</div><div className="flex items-center gap-2 rounded-lg border bg-white px-2"><Search className="h-4 w-4 text-gray-400" /><input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search customer..." className="w-full py-2 text-sm outline-none" /></div></div>
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -595,7 +618,7 @@ export function ChatAdminView() {
     ? <button onClick={closeChat} className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50">Close Chat</button>
     : <button onClick={reopenChat} className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90">Reopen Chat</button>}
               </div>
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-cream/30 p-5">
+              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-cream/30 p-3">
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'admin' ? 'bg-primary text-white' : 'border bg-white text-gray-800'}`}>
@@ -629,14 +652,17 @@ export function ChatAdminView() {
                       {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                     </button>
                     <textarea
-                      rows={2}
+                      rows={1}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); } }}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Reply to customer..."
+                      placeholder="Reply... (Enter = send, Shift+Enter = new line)"
                       className="min-w-0 flex-1 resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary"
                     />
                     <div className="flex shrink-0 items-center gap-2">
-                      <button type="button" onClick={() => setShowSavedReplies((value) => !value)} title="Saved replies" className={`flex h-10 w-10 items-center justify-center rounded-lg border ${showSavedReplies ? "bg-primary/10 text-primary" : "text-gray-600"}`}>
+                      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e)=>setChatImage(e.target.files?.[0] || null)} />
+                      <button type="button" onClick={()=>imageInputRef.current?.click()} title="Picture" className="flex h-10 w-10 items-center justify-center rounded-lg border"><ImagePlus className="h-4 w-4"/></button>
+                      <button type="button" onClick={() => setShowSavedReplies((value) => !value)} title="Quick responses" className={`flex h-10 w-10 items-center justify-center rounded-lg border ${showSavedReplies ? "bg-primary/10 text-primary" : "text-gray-600"}`}>
                         <Bookmark className="h-4 w-4" />
                       </button>
                       <button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save current reply" className="hidden h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40 sm:flex">
@@ -660,6 +686,17 @@ export function ChatAdminView() {
           )}
         </div>
       </div>
+      {quickReplyOpen && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-4 shadow-xl">
+            <div className="mb-3 flex items-center justify-between"><h3 className="font-semibold">Quick Response</h3><button onClick={()=>setQuickReplyOpen(false)}><X className="h-5 w-5"/></button></div>
+            <input value={quickReplyTitle} onChange={e=>setQuickReplyTitle(e.target.value)} placeholder="Name / title" className="mb-2 w-full rounded-lg border px-3 py-2 text-sm"/>
+            <textarea value={quickReplyMessage} onChange={e=>setQuickReplyMessage(e.target.value)} placeholder="Message" rows={3} className="mb-2 w-full rounded-lg border px-3 py-2 text-sm"/>
+            <input type="file" accept="image/*" onChange={e=>setQuickReplyImage(e.target.files?.[0] || null)} className="mb-3 w-full text-sm"/>
+            <button onClick={async()=>{try{let url=null;if(quickReplyImage)url=await uploadImage(quickReplyImage,'quick-replies');const r=await supabase.from('chat_quick_replies').insert({title:quickReplyTitle||quickReplyMessage.slice(0,40)||'Quick response',message:quickReplyMessage||null,media_url:url});if(r.error)throw r.error;await loadQuickReplies();setQuickReplyTitle('');setQuickReplyMessage('');setQuickReplyImage(null);setQuickReplyOpen(false)}catch(err:any){setChatError(err.message)}}} className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Save Quick Response</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

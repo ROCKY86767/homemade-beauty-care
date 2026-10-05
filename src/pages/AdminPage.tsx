@@ -649,6 +649,7 @@ function DashboardView() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<OrderItem[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -682,10 +683,12 @@ function DashboardView() {
       if (ordersError) throw ordersError;
       if (productsError) throw productsError;
       if (itemsError) throw itemsError;
+      if (productsError) throw productsError;
 
       setOrders(ordersData || []);
       setProducts(productsData || []);
       setItems(itemsData || []);
+      setProducts(productsData || []);
     } catch (err: any) {
       setError(
         err.message || 'Dashboard load failed.'
@@ -2569,6 +2572,14 @@ function OrdersView() {
   const [customTo, setCustomTo] = useState('');
 
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
+  const [editDiscount, setEditDiscount] = useState('');
+  const [editFreeDelivery, setEditFreeDelivery] = useState(false);
+  const [editAddingProduct, setEditAddingProduct] = useState('');
+  const [editAddingQty, setEditAddingQty] = useState('1');
+  const [savingOrderEdit, setSavingOrderEdit] = useState(false);
+  const [showManualOrder, setShowManualOrder] = useState(false);
+  const [manualSaving, setManualSaving] = useState(false);
+  const [manualForm, setManualForm] = useState({ name:'', phone:'', district:'', area:'', address:'', note:'', productId:'', quantity:'1', discount:'0', freeDelivery:false });
   const [updating, setUpdating] = useState<string | null>(null);
 
   const load = async () => {
@@ -2585,10 +2596,8 @@ function OrdersView() {
           .select('*')
           .order('created_at', { ascending: false }),
 
-        supabase
-          .from('order_items')
-          .select('*')
-          .order('created_at', { ascending: true }),
+        supabase.from('order_items').select('*').order('created_at', { ascending: true }),
+        supabase.from('products').select('*').eq('is_active', true).order('name'),
       ]);
 
       if (ordersError) throw ordersError;
@@ -2697,6 +2706,84 @@ function OrdersView() {
     } finally {
       setUpdating(null);
     }
+  };
+
+
+  const openOrderEditor = (order: Order) => {
+    setViewOrder(order);
+    setEditDiscount(String(Number(order.discount || 0)));
+    setEditFreeDelivery(Number(order.delivery_charge || 0) === 0);
+  };
+
+  const saveOrderEdits = async () => {
+    if (!viewOrder) return;
+    setSavingOrderEdit(true);
+    try {
+      const orderItems = itemsForOrder(viewOrder.id);
+      const subtotal = orderItems.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
+      const discount = Math.max(0, Number(editDiscount || 0));
+      const delivery = editFreeDelivery ? 0 : Number(viewOrder.delivery_charge || 0);
+      const grandTotal = Math.max(0, subtotal - discount + delivery);
+      const { error } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      if (error) throw error;
+      const updated = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal };
+      setViewOrder(updated);
+      setOrders((prev) => prev.map((o) => o.id === updated.id ? updated : o));
+    } catch (err:any) { setError(err.message || 'Order save failed.'); }
+    finally { setSavingOrderEdit(false); }
+  };
+
+  const addProductToOrder = async () => {
+    if (!viewOrder || !editAddingProduct) return;
+    const product = products.find((p) => p.id === editAddingProduct);
+    const quantity = Math.max(1, Number(editAddingQty || 1));
+    if (!product) return;
+    setSavingOrderEdit(true);
+    try {
+      const existing = items.find((i) => i.order_id === viewOrder.id && i.product_id === product.id);
+      if (existing) {
+        const newQty = Number(existing.quantity || 0) + quantity;
+        const { error } = await supabase.from('order_items').update({ quantity:newQty }).eq('id', existing.id);
+        if (error) throw error;
+        setItems((prev) => prev.map((i) => i.id === existing.id ? {...i, quantity:newQty} : i));
+      } else {
+        const { data, error } = await supabase.from('order_items').insert({ order_id:viewOrder.id, product_id:product.id, product_name:product.name, price:Number(product.sale_price ?? product.price ?? 0), quantity, image_url:product.image_url || null }).select().single();
+        if (error) throw error;
+        setItems((prev) => [...prev, data]);
+      }
+      setEditAddingProduct('');
+      setEditAddingQty('1');
+    } catch (err:any) { setError(err.message || 'Product add failed.'); }
+    finally { setSavingOrderEdit(false); }
+  };
+
+  const createManualOrder = async () => {
+    const product = products.find((p) => p.id === manualForm.productId);
+    const quantity = Math.max(1, Number(manualForm.quantity || 1));
+    if (!manualForm.name.trim() || !manualForm.phone.trim() || !product) {
+      setError('Customer name, phone and product are required.');
+      return;
+    }
+    setManualSaving(true);
+    try {
+      const price = Number(product.sale_price ?? product.price ?? 0);
+      const subtotal = price * quantity;
+      const discount = Math.max(0, Number(manualForm.discount || 0));
+      const { data: order, error: orderError } = await supabase.from('orders').insert({
+        customer_name:manualForm.name.trim(), customer_phone:manualForm.phone.trim(), mobile:manualForm.phone.trim(),
+        district:manualForm.district.trim() || null, area:manualForm.area.trim() || null, address:manualForm.address.trim() || null,
+        order_note:manualForm.note.trim() || null, payment_method:'COD', payment_status:'Unpaid', status:'Pending',
+        subtotal, discount, delivery_charge:0, grand_total:Math.max(0, subtotal-discount), total:Math.max(0, subtotal-discount)
+      }).select().single();
+      if (orderError) throw orderError;
+      const { data:item, error:itemError } = await supabase.from('order_items').insert({ order_id:order.id, product_id:product.id, product_name:product.name, price, quantity, image_url:product.image_url || null }).select().single();
+      if (itemError) throw itemError;
+      setOrders((prev) => [order, ...prev]);
+      setItems((prev) => [item, ...prev]);
+      setShowManualOrder(false);
+      setManualForm({name:'',phone:'',district:'',area:'',address:'',note:'',productId:'',quantity:'1',discount:'0',freeDelivery:false});
+    } catch (err:any) { setError(err.message || 'Manual order create failed.'); }
+    finally { setManualSaving(false); }
   };
 
   const cancelOrder = async (order: Order) => {
@@ -3133,7 +3220,7 @@ function OrdersView() {
 
                   <div className="flex flex-wrap gap-1.5 xl:ml-auto xl:w-auto">
                     <button
-                      onClick={() => setViewOrder(order)}
+                      onClick={() => openOrderEditor(order)}
                       className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                     >
                       <Eye className="h-3.5 w-3.5" />
@@ -3169,6 +3256,27 @@ function OrdersView() {
         <EmptyState text="No orders found. Try changing your search or filters." />
       )}
 
+      {showManualOrder && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={() => setShowManualOrder(false)}>
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-5 flex items-center justify-between"><h3 className="text-lg font-bold">Create Manual Order</h3><button onClick={() => setShowManualOrder(false)}><X className="h-5 w-5" /></button></div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input label="Customer Name" value={manualForm.name} onChange={(v) => setManualForm((f) => ({...f,name:v}))} required />
+              <Input label="Phone" value={manualForm.phone} onChange={(v) => setManualForm((f) => ({...f,phone:v}))} required />
+              <Input label="District" value={manualForm.district} onChange={(v) => setManualForm((f) => ({...f,district:v}))} />
+              <Input label="Area" value={manualForm.area} onChange={(v) => setManualForm((f) => ({...f,area:v}))} />
+              <div className="sm:col-span-2"><Input label="Address" value={manualForm.address} onChange={(v) => setManualForm((f) => ({...f,address:v}))} /></div>
+              <div className="sm:col-span-2"><Input label="Order Note" value={manualForm.note} onChange={(v) => setManualForm((f) => ({...f,note:v}))} /></div>
+              <div><label className="block text-sm font-medium mb-1.5">Product</label><select value={manualForm.productId} onChange={(e) => setManualForm((f) => ({...f,productId:e.target.value}))} className="w-full rounded-lg border px-3 py-2.5 text-sm"><option value="">Select product</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+              <Input label="Quantity" type="number" value={manualForm.quantity} onChange={(v) => setManualForm((f) => ({...f,quantity:v}))} />
+              <Input label="Discount" type="number" value={manualForm.discount} onChange={(v) => setManualForm((f) => ({...f,discount:v}))} />
+              <label className="flex items-center gap-2 text-sm pt-8"><input type="checkbox" checked={manualForm.freeDelivery} onChange={(e) => setManualForm((f) => ({...f,freeDelivery:e.target.checked}))} /> Free delivery</label>
+            </div>
+            <div className="mt-5 flex justify-end gap-2"><button onClick={() => setShowManualOrder(false)} className="rounded-lg border px-4 py-2 text-sm">Cancel</button><button onClick={createManualOrder} disabled={manualSaving} className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50">{manualSaving ? 'Creating...' : 'Create Order'}</button></div>
+          </div>
+        </div>
+      )}
+
       {viewOrder && (
         <div
           className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4"
@@ -3199,7 +3307,7 @@ function OrdersView() {
                 <p className="text-xs text-gray-400">Customer</p>
                 <p className="font-semibold">{viewOrder.customer_name || '—'}</p>
                 <p className="text-sm">{viewOrder.mobile || viewOrder.customer_phone || '—'}</p>
-                {viewOrder.email && <p className="break-all text-xs text-gray-500">{viewOrder.email}</p>}
+
               </div>
 
               <div className="rounded-xl bg-gray-50 p-4">
@@ -3220,10 +3328,27 @@ function OrdersView() {
                 )}
               </div>
 
+              <div className="sm:col-span-2 rounded-xl border bg-gray-50 p-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div><label className="text-xs text-gray-500">Discount</label><input type="number" min="0" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></div>
+                  <div><label className="text-xs text-gray-500">Delivery</label><label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => setEditFreeDelivery(e.target.checked)} /> Free delivery</label></div>
+                  <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
+                </div>
+                <div className="mt-3 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Save Order Changes'}</button></div>
+              </div>
+
               <div className="sm:col-span-2">
-                <h4 className="mb-2 font-semibold">
-                  Order Items ({itemsForOrder(viewOrder.id).length})
-                </h4>
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <h4 className="font-semibold">Order Items ({itemsForOrder(viewOrder.id).length})</h4>
+                  <div className="flex gap-2">
+                    <select value={editAddingProduct} onChange={(e) => setEditAddingProduct(e.target.value)} className="rounded-lg border px-2 py-1.5 text-xs">
+                      <option value="">Add product...</option>
+                      {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                    <input value={editAddingQty} onChange={(e) => setEditAddingQty(e.target.value)} type="number" min="1" className="w-16 rounded-lg border px-2 py-1.5 text-xs" />
+                    <button onClick={addProductToOrder} disabled={!editAddingProduct || savingOrderEdit} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Add</button>
+                  </div>
+                </div>
 
                 <div className="space-y-2">
                   {itemsForOrder(viewOrder.id).length === 0 ? (

@@ -107,7 +107,29 @@ export default function LiveChat() {
     }
   };
 
-  const toggleRecording = () => setRecording((v) => !v);
+  const toggleRecording = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('এই ব্রাউজারে voice typing support নেই। Chrome ব্যবহার করুন।');
+      return;
+    }
+    if (recording) {
+      setRecording(false);
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'bn-BD';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.onresult = (event: any) => {
+      const text = Array.from(event.results).slice(event.resultIndex).map((r: any) => r[0].transcript).join(' ');
+      setMessage((prev) => (prev ? prev + ' ' : '') + text);
+    };
+    recognition.onend = () => setRecording(false);
+    recognition.onerror = () => setRecording(false);
+    recognition.start();
+    setRecording(true);
+  };
 
   const saveReply = () => {
     const text = message.trim();
@@ -249,7 +271,23 @@ export function ChatAdminView() {
     if (selected) loadMessages(selected.id);
   }, [selected?.id]);
 
-  const toggleRecording = () => setRecording((v) => !v);
+  const toggleRecording = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert('এই ব্রাউজারে voice typing support নেই। Chrome ব্যবহার করুন।'); return; }
+    if (recording) { setRecording(false); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'bn-BD';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.onresult = (event: any) => {
+      const text = Array.from(event.results).slice(event.resultIndex).map((r: any) => r[0].transcript).join(' ');
+      setMessage((prev) => (prev ? prev + ' ' : '') + text);
+    };
+    recognition.onend = () => setRecording(false);
+    recognition.onerror = () => setRecording(false);
+    recognition.start();
+    setRecording(true);
+  };
   const saveCurrentReply = () => { const text = message.trim(); if (!text) return; const next=[text,...savedReplies.filter(x=>x!==text)].slice(0,30); setSavedReplies(next); localStorage.setItem('hbc-saved-replies', JSON.stringify(next)); };
 
   const send = async (e: FormEvent) => {

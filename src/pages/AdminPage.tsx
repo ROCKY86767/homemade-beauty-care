@@ -44,7 +44,8 @@ import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import AdminSettingsCenter from '../components/AdminSettingsCenter';
 import OrderManagementIntegrationCenter from '../components/OrderManagementIntegrationCenter';
 import { formatPrice } from '../lib/format';
-import { getSettings, updateSettings } from '../lib/settings';
+import { getSettings, updateSettings, getDeliveryCharge } from '../lib/settings';
+import { getDistricts, getThanas, DHAKA_CITY_THANAS } from '../lib/bangladeshLocations';
 
 /* =========================================================
    TYPES
@@ -695,7 +696,38 @@ function DashboardView() {
 
   useEffect(() => {
     load();
+    getSettings().then(setSettings);
+    getDistricts().then((data) => {
+      setDistricts(data || []);
+      setLocationLoading(false);
+    });
   }, []);
+
+  useEffect(() => {
+    if (!manualForm.district || districts.length === 0) return;
+    const selected = districts.find((item) => item.bn_name === manualForm.district);
+    if (!selected) return;
+
+    getThanas(selected.id).then((data) => {
+      const locationList =
+        manualForm.district === 'ঢাকা'
+          ? [
+              ...DHAKA_CITY_THANAS.map((name: string, index: number) => ({
+                id: `dhaka-city-${index}`,
+                name,
+                bn_name: name,
+              })),
+              ...(data || []),
+            ]
+          : (data || []);
+
+      setThanas(locationList);
+
+      if (!locationList.some((item) => item.bn_name === manualForm.area)) {
+        setManualForm((prev) => ({ ...prev, area: '' }));
+      }
+    });
+  }, [manualForm.district, districts]);
 
   const delivered = useMemo(
     () =>
@@ -2556,6 +2588,10 @@ function OrdersView() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [settings, setSettings] = useState<any>(null);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [thanas, setThanas] = useState<any[]>([]);
+  const [locationLoading, setLocationLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -2729,7 +2765,14 @@ function OrdersView() {
       const orderItems = itemsForOrder(viewOrder.id);
       const subtotal = orderItems.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
       const discount = Math.max(0, Number(editDiscount || 0));
-      const delivery = editFreeDelivery ? 0 : Number(viewOrder.delivery_charge || 0);
+      const delivery = editFreeDelivery
+        ? 0
+        : getDeliveryCharge(
+            settings,
+            String(viewOrder.district || ''),
+            subtotal,
+            String(viewOrder.area || '')
+          );
       const grandTotal = Math.max(0, subtotal - discount + delivery);
       const { error } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
       if (error) throw error;
@@ -2793,7 +2836,14 @@ function OrdersView() {
         0
       );
       const discount = Math.max(0, Number(editDiscount || 0));
-      const delivery = editFreeDelivery ? 0 : Number(viewOrder.delivery_charge || 0);
+      const delivery = editFreeDelivery
+        ? 0
+        : getDeliveryCharge(
+            settings,
+            String(viewOrder.district || ''),
+            subtotal,
+            String(viewOrder.area || '')
+          );
       const grandTotal = Math.max(0, subtotal - discount + delivery);
 
       const { error: totalError } = await supabase
@@ -2841,11 +2891,19 @@ function OrdersView() {
       const price = Number(product.sale_price ?? product.price ?? 0);
       const subtotal = price * quantity;
       const discount = Math.max(0, Number(manualForm.discount || 0));
+      const delivery = manualForm.freeDelivery
+        ? 0
+        : getDeliveryCharge(
+            settings,
+            manualForm.district,
+            subtotal,
+            manualForm.area
+          );
       const { data: order, error: orderError } = await supabase.from('orders').insert({
         customer_name:manualForm.name.trim(), customer_phone:manualForm.phone.trim(), mobile:manualForm.phone.trim(),
         district:manualForm.district.trim() || null, area:manualForm.area.trim() || null, address:manualForm.address.trim() || null,
         order_note:manualForm.note.trim() || null, payment_method:'COD', payment_status:'Unpaid', status:'Pending',
-        subtotal, discount, delivery_charge:0, grand_total:Math.max(0, subtotal-discount), total:Math.max(0, subtotal-discount)
+        subtotal, discount, delivery_charge:delivery, grand_total:Math.max(0, subtotal-discount+delivery), total:Math.max(0, subtotal-discount+delivery)
       }).select().single();
       if (orderError) throw orderError;
       const { data:item, error:itemError } = await supabase.from('order_items').insert({ order_id:order.id, product_id:product.id, product_name:(product.name_en || product.name_bn || product.name || 'Product'), price, quantity, image_url:product.image_url || null }).select().single();
@@ -3344,14 +3402,44 @@ function OrdersView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Input label="Customer Name" value={manualForm.name} onChange={(v) => setManualForm((f) => ({...f,name:v}))} required />
               <Input label="Phone" value={manualForm.phone} onChange={(v) => setManualForm((f) => ({...f,phone:v}))} required />
-              <Input label="District" value={manualForm.district} onChange={(v) => setManualForm((f) => ({...f,district:v}))} />
-              <Input label="Area" value={manualForm.area} onChange={(v) => setManualForm((f) => ({...f,area:v}))} />
+              <div>
+                <label className="block text-sm font-medium mb-1.5">District</label>
+                <select
+                  value={manualForm.district}
+                  disabled={locationLoading}
+                  onChange={(e) => setManualForm((f) => ({...f, district:e.target.value, area:''}))}
+                  className="w-full rounded-lg border px-3 py-2.5 text-sm"
+                >
+                  <option value="">Select District</option>
+                  {districts.map((d) => <option key={d.id} value={d.bn_name}>{d.bn_name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Thana / Upazila</label>
+                <select
+                  value={manualForm.area}
+                  disabled={locationLoading || !manualForm.district || thanas.length === 0}
+                  onChange={(e) => setManualForm((f) => ({...f, area:e.target.value}))}
+                  className="w-full rounded-lg border px-3 py-2.5 text-sm"
+                >
+                  <option value="">{locationLoading ? 'Loading locations...' : 'Select Thana / Upazila'}</option>
+                  {thanas.map((t) => <option key={t.id} value={t.bn_name}>{t.bn_name}</option>)}
+                </select>
+              </div>
               <div className="sm:col-span-2"><Input label="Address" value={manualForm.address} onChange={(v) => setManualForm((f) => ({...f,address:v}))} /></div>
               <div className="sm:col-span-2"><Input label="Order Note" value={manualForm.note} onChange={(v) => setManualForm((f) => ({...f,note:v}))} /></div>
               <div><label className="block text-sm font-medium mb-1.5">Product</label><select value={manualForm.productId} onChange={(e) => setManualForm((f) => ({...f,productId:e.target.value}))} className="w-full rounded-lg border px-3 py-2.5 text-sm"><option value="">Select product</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name_en || p.name_bn || p.name}</option>)}</select></div>
               <Input label="Quantity" type="number" value={manualForm.quantity} onChange={(v) => setManualForm((f) => ({...f,quantity:v}))} />
               <Input label="Discount" type="number" value={manualForm.discount} onChange={(v) => setManualForm((f) => ({...f,discount:v}))} />
-              <label className="flex items-center gap-2 text-sm pt-8"><input type="checkbox" checked={manualForm.freeDelivery} onChange={(e) => setManualForm((f) => ({...f,freeDelivery:e.target.checked}))} /> Free delivery</label>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 text-sm pb-2">
+                  <input type="checkbox" checked={manualForm.freeDelivery} onChange={(e) => setManualForm((f) => ({...f,freeDelivery:e.target.checked}))} />
+                  Free delivery
+                </label>
+              </div>
+              <div className="sm:col-span-2 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2 text-sm">
+                Delivery Charge: <strong>{money(manualForm.freeDelivery ? 0 : getDeliveryCharge(settings, manualForm.district, Number((() => { const p=products.find((x:any)=>x.id===manualForm.productId); return Number(p?.sale_price ?? p?.price ?? 0) * Math.max(1, Number(manualForm.quantity || 1)); })()), manualForm.area))}</strong>
+              </div>
             </div>
             <div className="mt-5 flex justify-end gap-2"><button onClick={() => setShowManualOrder(false)} className="rounded-lg border px-4 py-2 text-sm">Cancel</button><button onClick={createManualOrder} disabled={manualSaving} className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50">{manualSaving ? 'Creating...' : 'Create Order'}</button></div>
           </div>
@@ -3412,7 +3500,11 @@ function OrdersView() {
               <div className="sm:col-span-2 rounded-xl border bg-gray-50 p-4">
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div><label className="text-xs text-gray-500">Discount</label><input type="number" min="0" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></div>
-                  <div><label className="text-xs text-gray-500">Delivery</label><label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => setEditFreeDelivery(e.target.checked)} /> Free delivery</label></div>
+                  <div>
+                     <label className="text-xs text-gray-500">Delivery Charge</label>
+                     <p className="mt-1 text-lg font-semibold">{money(editFreeDelivery ? 0 : getDeliveryCharge(settings, String(viewOrder.district || ''), Number(viewOrder.subtotal || 0), String(viewOrder.area || '')))}</p>
+                   </div>
+                   <div><label className="text-xs text-gray-500">Delivery</label><label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => setEditFreeDelivery(e.target.checked)} /> Free delivery</label></div>
                   <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
                 </div>
                 <div className="mt-3 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Save Order Changes'}</button></div>

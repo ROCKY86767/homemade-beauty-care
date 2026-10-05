@@ -2976,9 +2976,7 @@ function OrdersView() {
   };
 
   const addManualProduct = () => {
-    const firstAvailable = products[0];
-    if (!firstAvailable) return;
-    setManualItems((current) => [...current, { productId: firstAvailable.id, quantity: '1' }]);
+    setManualItems((current) => [...current, { productId: '', quantity: '1' }]);
   };
 
   const removeManualProduct = (index: number) => {
@@ -3517,6 +3515,7 @@ function OrdersView() {
                       const lineTotal=Number(product?.sale_price ?? product?.price ?? 0)*Math.max(1,Number(item.quantity||1));
                       return <div key={index} className="grid gap-2 rounded-lg border bg-white p-2 sm:grid-cols-[1fr_90px_auto] sm:items-center">
                         <select value={item.productId} onChange={(e)=>updateManualProduct(index,'productId',e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
+                          <option value="">Select Product</option>
                           {products.map((p)=><option key={p.id} value={p.id}>{p.name_en||p.name_bn||p.name}</option>)}
                         </select>
                         <input type="number" min="1" value={item.quantity} onChange={(e)=>updateManualProduct(index,'quantity',e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" aria-label="Quantity" />

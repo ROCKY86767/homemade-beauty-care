@@ -497,7 +497,8 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'reviews' && (
-              <ReviewsView />            )}
+              <ReviewsView />
+            )}
 
             {activeTab === 'coupons' && (
   <CouponsView />
@@ -996,6 +997,7 @@ function DashboardView() {
     </div>
   );
 }
+
 /* =========================================================
    STATUS BADGE
 ========================================================= */
@@ -1495,7 +1497,8 @@ function ProductsView() {
                   setForm((p: any) => ({
                     ...p,
                     price: value,
-                  }))                }
+                  }))
+                }
               />
 
               <Input
@@ -1994,7 +1997,8 @@ function CategoriesView() {
     description_bn: '',
     image_url: '',
     sort_order: '0',
-    is_active: true,  };
+    is_active: true,
+  };
 
   const [categories, setCategories] =
     useState<Category[]>([]);
@@ -2493,7 +2497,8 @@ function CategoriesView() {
                         '',
                       name_en:
                         category.name_en ||
-                        '',                      slug:
+                        '',
+                      slug:
                         category.slug || '',
                       description_bn:
                         category.description_bn ||
@@ -2899,12 +2904,10 @@ function OrdersView() {
   };
 
   const createManualOrder = async () => {
-    const validItems = manualItems
-      .map((item) => ({
-        productId: item.productId,
-        quantity: Math.max(1, Number(item.quantity || 1)),
-      }))
-      .filter((item) => item.productId);
+    const validItems = manualItems.map((item) => ({
+      productId: item.productId,
+      quantity: Math.max(1, Number(item.quantity || 1)),
+    })).filter((item) => item.productId);
 
     if (!manualForm.name.trim() || !manualForm.phone.trim() || validItems.length === 0) {
       setError('Customer name, phone and at least one product are required.');
@@ -2918,89 +2921,54 @@ function OrdersView() {
       const orderLines = validItems.map((item) => {
         const product = products.find((p) => p.id === item.productId);
         if (!product) throw new Error('One of the selected products could not be found.');
-
         const price = Number(product.sale_price ?? product.price ?? 0);
-        return {
-          product,
-          productId: item.productId,
-          quantity: item.quantity,
-          price,
-          lineTotal: price * item.quantity,
-        };
+        return { product, productId: item.productId, quantity: item.quantity, price, lineTotal: price * item.quantity };
       });
 
       const subtotal = orderLines.reduce((sum, item) => sum + item.lineTotal, 0);
       const discount = Math.max(0, Number(manualForm.discount || 0));
-      const delivery =
-        manualForm.freeDelivery || !settings
-          ? 0
-          : getDeliveryCharge(
-              settings,
-              manualForm.district,
-              subtotal,
-              manualForm.area
-            );
+      const delivery = manualForm.freeDelivery || !settings ? 0 : getDeliveryCharge(settings, manualForm.district, subtotal, manualForm.area);
       const grandTotal = Math.max(0, subtotal - discount + delivery);
 
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          customer_name: manualForm.name.trim(),
-          customer_phone: manualForm.phone.trim(),
-          mobile: manualForm.phone.trim(),
-          district: manualForm.district.trim() || null,
-          area: manualForm.area.trim() || null,
-          address: manualForm.address.trim() || null,
-          order_note: manualForm.note.trim() || null,
-          payment_method: 'COD',
-          payment_status: 'Unpaid',
-          status: 'Pending',
-          subtotal,
-          discount,
-          delivery_charge: delivery,
-          grand_total: grandTotal,
-          total: grandTotal,
-        })
-        .select()
-        .single();
+      const { data: order, error: orderError } = await supabase.from('orders').insert({
+        customer_name: manualForm.name.trim(),
+        customer_phone: manualForm.phone.trim(),
+        mobile: manualForm.phone.trim(),
+        district: manualForm.district.trim() || null,
+        area: manualForm.area.trim() || null,
+        address: manualForm.address.trim() || null,
+        order_note: manualForm.note.trim() || null,
+        payment_method: 'COD',
+        payment_status: 'Unpaid',
+        status: 'Pending',
+        subtotal,
+        discount,
+        delivery_charge: delivery,
+        grand_total: grandTotal,
+        total: grandTotal,
+      }).select().single();
 
       if (orderError) throw orderError;
 
-      const { data: insertedItems, error: itemError } = await supabase
-        .from('order_items')
-        .insert(
-          orderLines.map((item) => ({
-            order_id: order.id,
-            product_id: item.productId,
-            product_name:
-              item.product.name_en ||
-              item.product.name_bn ||
-              item.product.name ||
-              'Product',
-            price: item.price,
-            quantity: item.quantity,
-            image_url: item.product.image_url || null,
-          }))
-        )
-        .select();
+      const { data: insertedItems, error: itemError } = await supabase.from('order_items').insert(
+        orderLines.map((item) => ({
+          order_id: order.id,
+          product_id: item.productId,
+          product_name: item.product.name_en || item.product.name_bn || item.product.name || 'Product',
+          price: item.price,
+          quantity: item.quantity,
+          image_url: item.product.image_url || null,
+        }))
+      ).select();
 
       if (itemError) throw itemError;
 
       setOrders((prev) => [order, ...prev]);
       setItems((prev) => [...(insertedItems || []), ...prev]);
       setShowManualOrder(false);
-      setManualForm({
-        name: '',
-        phone: '',
-        district: '',
-        area: '',
-        address: '',
-        note: '',
-        discount: '0',
-        freeDelivery: false,
-      });
+      setManualForm({ name:'', phone:'', district:'', area:'', address:'', note:'', discount:'0', freeDelivery:false });
       setManualItems([]);
-    } catch (err: any) {
+    } catch (err:any) {
       setError(err.message || 'Manual order create failed.');
     } finally {
       setManualSaving(false);
@@ -3010,28 +2978,17 @@ function OrdersView() {
   const addManualProduct = () => {
     const firstAvailable = products[0];
     if (!firstAvailable) return;
-
-    setManualItems((current) => [
-      ...current,
-      { productId: firstAvailable.id, quantity: '1' },
-    ]);
+    setManualItems((current) => [...current, { productId: firstAvailable.id, quantity: '1' }]);
   };
 
   const removeManualProduct = (index: number) => {
     setManualItems((current) => current.filter((_, i) => i !== index));
   };
 
-  const updateManualProduct = (
-    index: number,
-    field: 'productId' | 'quantity',
-    value: string
-  ) => {
-    setManualItems((current) =>
-      current.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
-    );
+  const updateManualProduct = (index: number, field: 'productId' | 'quantity', value: string) => {
+    setManualItems((current) => current.map((item, i) => i === index ? { ...item, [field]: value } : item));
   };
+
   const cancelOrder = async (order: Order) => {
     if (order.status === 'Delivered') {
       setError('Delivered order cancel করা যাবে না।');
@@ -3089,6 +3046,7 @@ function OrdersView() {
       const orderNumber = String(
         order.order_number || ''
       ).toLowerCase();
+
       const customerName = String(
         order.customer_name || ''
       ).toLowerCase();
@@ -3511,257 +3469,87 @@ function OrdersView() {
       )}
 
       {showManualOrder && (
-        <div
-          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setShowManualOrder(false)}
-        >
-          <div
-            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-lg font-bold">Create Manual Order</h3>
-              <button onClick={() => setShowManualOrder(false)}>
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={() => setShowManualOrder(false)}>
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-5 flex items-center justify-between"><h3 className="text-lg font-bold">Create Manual Order</h3><button onClick={() => setShowManualOrder(false)}><X className="h-5 w-5" /></button></div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                label="Customer Name"
-                value={manualForm.name}
-                onChange={(v) => setManualForm((f) => ({ ...f, name: v }))}
-                required
-              />
-              <Input
-                label="Phone"
-                value={manualForm.phone}
-                onChange={(v) => setManualForm((f) => ({ ...f, phone: v }))}
-                required
-              />
-
+              <Input label="Customer Name" value={manualForm.name} onChange={(v) => setManualForm((f) => ({...f,name:v}))} required />
+              <Input label="Phone" value={manualForm.phone} onChange={(v) => setManualForm((f) => ({...f,phone:v}))} required />
               <div>
                 <label className="block text-sm font-medium mb-1.5">District</label>
                 <select
                   required
                   value={manualForm.district}
                   disabled={locationLoading}
-                  onChange={(e) => setManualForm((f) => ({ ...f, district: e.target.value, area: '' }))}
+                  onChange={(e) => setManualForm((f) => ({...f, district:e.target.value, area:''}))}
                   className="w-full rounded-lg border px-3 py-2.5 text-sm"
                 >
                   <option value="">Select District</option>
-                  {districts.map((d) => (
-                    <option key={d.id} value={d.bn_name}>{d.bn_name}</option>
-                  ))}
+                  {districts.map((d) => <option key={d.id} value={d.bn_name}>{d.bn_name}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1.5">Thana / Upazila</label>
                 <select
                   required
                   value={manualForm.area}
                   disabled={locationLoading || !manualForm.district || thanas.length === 0}
-                  onChange={(e) => setManualForm((f) => ({ ...f, area: e.target.value }))}
+                  onChange={(e) => setManualForm((f) => ({...f, area:e.target.value}))}
                   className="w-full rounded-lg border px-3 py-2.5 text-sm"
                 >
-                  <option value="">
-                    {locationLoading ? 'Loading locations...' : 'Select Thana / Upazila'}
-                  </option>
-                  {thanas.map((t) => (
-                    <option key={t.id} value={t.bn_name}>{t.bn_name}</option>
-                  ))}
+                  <option value="">{locationLoading ? 'Loading locations...' : 'Select Thana / Upazila'}</option>
+                  {thanas.map((t) => <option key={t.id} value={t.bn_name}>{t.bn_name}</option>)}
                 </select>
               </div>
-
-              <div className="sm:col-span-2">
-                <Input
-                  label="Address"
-                  value={manualForm.address}
-                  onChange={(v) => setManualForm((f) => ({ ...f, address: v }))}
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <Input
-                  label="Order Note"
-                  value={manualForm.note}
-                  onChange={(v) => setManualForm((f) => ({ ...f, note: v }))}
-                />
-              </div>
-
+              <div className="sm:col-span-2"><Input label="Address" value={manualForm.address} onChange={(v) => setManualForm((f) => ({...f,address:v}))} /></div>
+              <div className="sm:col-span-2"><Input label="Order Note" value={manualForm.note} onChange={(v) => setManualForm((f) => ({...f,note:v}))} /></div>
               <div className="sm:col-span-2 rounded-xl border bg-gray-50 p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Products</h4>
-                    <p className="text-xs text-gray-500">
-                      একাধিক product একসাথে যোগ করতে পারবে।
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addManualProduct}
-                    disabled={products.length === 0}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-dark disabled:opacity-50"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Add Product
-                  </button>
+                  <div><h4 className="font-semibold text-gray-900">Products</h4><p className="text-xs text-gray-500">একাধিক product একসাথে যোগ করতে পারবে।</p></div>
+                  <button type="button" onClick={addManualProduct} disabled={products.length === 0} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-dark disabled:opacity-50"><Plus className="h-3.5 w-3.5" />Add Product</button>
                 </div>
-
                 {manualItems.length === 0 ? (
-                  <div className="rounded-lg border border-dashed bg-white px-4 py-6 text-center text-sm text-gray-500">
-                    No product added yet. Click “Add Product”.
-                  </div>
+                  <div className="rounded-lg border border-dashed bg-white px-4 py-6 text-center text-sm text-gray-500">No product added yet. Click “Add Product”.</div>
                 ) : (
                   <div className="space-y-2">
-                    {manualItems.map((item, index) => {
-                      const product = products.find((p) => p.id === item.productId);
-                      const lineTotal =
-                        Number(product?.sale_price ?? product?.price ?? 0) *
-                        Math.max(1, Number(item.quantity || 1));
-
-                      return (
-                        <div
-                          key={index}
-                          className="grid gap-2 rounded-lg border bg-white p-2 sm:grid-cols-[1fr_90px_auto] sm:items-center"
-                        >
-                          <select
-                            value={item.productId}
-                            onChange={(e) => updateManualProduct(index, 'productId', e.target.value)}
-                            className="w-full rounded-lg border px-3 py-2 text-sm"
-                          >
-                            {products.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.name_en || p.name_bn || p.name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) => updateManualProduct(index, 'quantity', e.target.value)}
-                            className="w-full rounded-lg border px-3 py-2 text-sm"
-                            aria-label="Quantity"
-                          />
-
-                          <div className="flex items-center justify-between gap-2 sm:justify-end">
-                            <span className="text-sm font-semibold">{money(lineTotal)}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeManualProduct(index)}
-                              className="rounded-lg p-2 text-red-600 hover:bg-red-50"
-                              title="Remove product"
-                              aria-label="Remove product"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      );
+                    {manualItems.map((item,index) => {
+                      const product=products.find((p)=>p.id===item.productId);
+                      const lineTotal=Number(product?.sale_price ?? product?.price ?? 0)*Math.max(1,Number(item.quantity||1));
+                      return <div key={index} className="grid gap-2 rounded-lg border bg-white p-2 sm:grid-cols-[1fr_90px_auto] sm:items-center">
+                        <select value={item.productId} onChange={(e)=>updateManualProduct(index,'productId',e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
+                          {products.map((p)=><option key={p.id} value={p.id}>{p.name_en||p.name_bn||p.name}</option>)}
+                        </select>
+                        <input type="number" min="1" value={item.quantity} onChange={(e)=>updateManualProduct(index,'quantity',e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" aria-label="Quantity" />
+                        <div className="flex items-center justify-between gap-2 sm:justify-end"><span className="text-sm font-semibold">{money(lineTotal)}</span><button type="button" onClick={()=>removeManualProduct(index)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Remove product" aria-label="Remove product"><Trash2 className="h-4 w-4" /></button></div>
+                      </div>;
                     })}
                   </div>
                 )}
               </div>
-
-              <Input
-                label="Discount"
-                type="number"
-                value={manualForm.discount}
-                onChange={(v) => setManualForm((f) => ({ ...f, discount: v }))}
-              />
-
+              <Input label="Discount" type="number" value={manualForm.discount} onChange={(v) => setManualForm((f) => ({...f,discount:v}))} />
               <div className="flex items-end">
-                <label className="flex items-center gap-2 pb-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={manualForm.freeDelivery}
-                    onChange={(e) => setManualForm((f) => ({ ...f, freeDelivery: e.target.checked }))}
-                  />
+                <label className="flex items-center gap-2 text-sm pb-2">
+                  <input type="checkbox" checked={manualForm.freeDelivery} onChange={(e) => setManualForm((f) => ({...f,freeDelivery:e.target.checked}))} />
                   Free delivery
                 </label>
               </div>
-
-              <div className="sm:col-span-2 rounded-lg border border-primary/10 bg-primary/5 px-3 py-2 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span>Subtotal</span>
-                  <strong>
-                    {money(
-                      manualItems.reduce((sum, item) => {
-                        const product = products.find((p) => p.id === item.productId);
-                        return sum + Number(product?.sale_price ?? product?.price ?? 0) * Math.max(1, Number(item.quantity || 1));
-                      }, 0)
-                    )}
-                  </strong>
-                </div>
-                <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-                  <span>Delivery Charge</span>
-                  <strong>
-                    {money(
-                      manualForm.freeDelivery || !settings
-                        ? 0
-                        : getDeliveryCharge(
-                            settings,
-                            manualForm.district,
-                            manualItems.reduce((sum, item) => {
-                              const product = products.find((p) => p.id === item.productId);
-                              return sum + Number(product?.sale_price ?? product?.price ?? 0) * Math.max(1, Number(item.quantity || 1));
-                            }, 0),
-                            manualForm.area
-                          )
-                    )}
-                  </strong>
-                </div>
-                <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-                  <span>Discount</span>
-                  <strong>- {money(Number(manualForm.discount || 0))}</strong>
-                </div>
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t pt-2 text-base">
-                  <span className="font-semibold">Grand Total</span>
-                  <strong>
-                    {money(
-                      Math.max(
-                        0,
-                        manualItems.reduce((sum, item) => {
-                          const product = products.find((p) => p.id === item.productId);
-                          return sum + Number(product?.sale_price ?? product?.price ?? 0) * Math.max(1, Number(item.quantity || 1));
-                        }, 0) -
-                        Number(manualForm.discount || 0) +
-                        (manualForm.freeDelivery || !settings
-                          ? 0
-                          : getDeliveryCharge(
-                              settings,
-                              manualForm.district,
-                              manualItems.reduce((sum, item) => {
-                                const product = products.find((p) => p.id === item.productId);
-                                return sum + Number(product?.sale_price ?? product?.price ?? 0) * Math.max(1, Number(item.quantity || 1));
-                              }, 0),
-                              manualForm.area
-                            ))
-                      )
-                    )}
-                  </strong>
-                </div>
+              <div className="sm:col-span-2 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2 text-sm">
+                Delivery Charge: <strong>{money(
+  manualForm.freeDelivery || !settings
+    ? 0
+    : getDeliveryCharge(
+        settings,
+        manualForm.district,
+        Number((() => {
+          const p = products.find((x: any) => x.id === manualForm.productId);
+          return Number(p?.sale_price ?? p?.price ?? 0) * Math.max(1, Number(manualForm.quantity || 1));
+        })()),
+        manualForm.area
+      )
+)}</strong>
               </div>
             </div>
-
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setShowManualOrder(false)}
-                className="rounded-lg border px-4 py-2 text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={createManualOrder}
-                disabled={manualSaving || manualItems.length === 0}
-                className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
-              >
-                {manualSaving ? 'Creating...' : 'Create Order'}
-              </button>
-            </div>
+            <div className="mt-5 flex justify-end gap-2"><button onClick={() => setShowManualOrder(false)} className="rounded-lg border px-4 py-2 text-sm">Cancel</button><button onClick={createManualOrder} disabled={manualSaving} className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50">{manualSaving ? 'Creating...' : 'Create Order'}</button></div>
           </div>
         </div>
       )}
@@ -3779,7 +3567,8 @@ function OrdersView() {
               <div>
                 <h3 className="text-lg font-bold">
                   Order #{displayOrderNumber(viewOrder)}
-                </h3>                <p className="text-xs text-gray-500">{dateTime(viewOrder.created_at)}</p>
+                </h3>
+                <p className="text-xs text-gray-500">{dateTime(viewOrder.created_at)}</p>
               </div>
               <button
                 onClick={() => setViewOrder(null)}
@@ -4278,6 +4067,7 @@ function CustomersView() {
     </div>
   );
 }
+
 /* =========================================================
    REVIEWS
 ========================================================= */
@@ -4778,3 +4568,1854 @@ function CouponsView() {
       if (editingId === coupon.id) {
         resetForm();
       }
+
+      await loadCoupons();
+    } catch (err: any) {
+      setError(
+        err.message || 'Coupon delete failed.'
+      );
+    }
+  };
+
+  const formatDiscount = (coupon: any) => {
+    if (coupon.discount_type === 'fixed') {
+      return formatPrice(
+        Number(coupon.discount_value || 0)
+      );
+    }
+
+    return `${Number(
+      coupon.discount_value || 0
+    )}%`;
+  };
+
+  if (loading) {
+    return <LoadingBox />;
+  }
+
+  return (
+    <div>
+      <PageHeader
+        title="Coupons"
+        description={`${coupons.length} total coupons`}
+        action={
+          <button
+            type="button"
+            onClick={loadCoupons}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
+        }
+      />
+
+      <ErrorBox
+        error={error}
+        retry={loadCoupons}
+      />
+
+      {/* CREATE / EDIT COUPON */}
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {editingId
+                ? 'Edit Coupon'
+                : 'Create Coupon'}
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Create discount codes for your customers.
+            </p>
+          </div>
+
+          {editingId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel Edit
+            </button>
+          )}
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
+          {/* CODE + DESCRIPTION */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Coupon Code *
+              </label>
+
+              <input
+                type="text"
+                value={code}
+                onChange={(e) =>
+                  setCode(
+                    e.target.value.toUpperCase()
+                  )
+                }
+                placeholder="WELCOME10"
+                required
+                autoComplete="off"
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Description
+              </label>
+
+              <input
+                type="text"
+                value={description}
+                onChange={(e) =>
+                  setDescription(e.target.value)
+                }
+                placeholder="10% welcome discount"
+                autoComplete="off"
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+          </div>
+
+          {/* DISCOUNT TYPE + VALUE + MINIMUM */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Discount Type
+              </label>
+
+              <select
+                value={discountType}
+                onChange={(e) =>
+                  setDiscountType(
+                    e.target.value as
+                      | 'percentage'
+                      | 'fixed'
+                  )
+                }
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              >
+                <option value="percentage">
+                  Percentage (%)
+                </option>
+
+                <option value="fixed">
+                  Fixed Amount (৳)
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {discountType === 'percentage'
+                  ? 'Discount Percentage *'
+                  : 'Discount Amount *'}
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={discountValue}
+                onChange={(e) =>
+                  setDiscountValue(e.target.value)
+                }
+                placeholder={
+                  discountType === 'percentage'
+                    ? '10'
+                    : '100'
+                }
+                required
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Minimum Order
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={minimumOrder}
+                onChange={(e) =>
+                  setMinimumOrder(e.target.value)
+                }
+                placeholder="500"
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+          </div>
+
+          {/* MAX DISCOUNT + USAGE + ACTIVE */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {discountType === 'percentage' && (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Maximum Discount
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={maximumDiscount}
+                  onChange={(e) =>
+                    setMaximumDiscount(
+                      e.target.value
+                    )
+                  }
+                  placeholder="200"
+                  className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Usage Limit
+              </label>
+
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={usageLimit}
+                onChange={(e) =>
+                  setUsageLimit(e.target.value)
+                }
+                placeholder="100"
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+
+            <div className="flex items-center pt-6">
+              <label className="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) =>
+                    setIsActive(e.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+
+                <span>Coupon Active</span>
+              </label>
+            </div>
+          </div>
+
+          {/* DATES */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Start Date
+              </label>
+
+              <input
+                type="datetime-local"
+                value={startsAt}
+                onChange={(e) =>
+                  setStartsAt(e.target.value)
+                }
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Expiry Date
+              </label>
+
+              <input
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) =>
+                  setExpiresAt(e.target.value)
+                }
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+          </div>
+
+          {/* BUTTONS */}
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+
+              {editingId
+                ? 'Update Coupon'
+                : 'Create Coupon'}
+            </button>
+
+            <button
+              type="button"
+              onClick={resetForm}
+              className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Clear
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* COUPON LIST */}
+      <div className="space-y-4">
+        {coupons.map((coupon) => {
+          const usageLimitValue =
+            coupon.usage_limit;
+
+          const usedCount = Number(
+            coupon.used_count || 0
+          );
+
+          const usageText =
+            usageLimitValue != null
+              ? `${usedCount} / ${usageLimitValue}`
+              : `${usedCount} used`;
+
+          const expired =
+            coupon.expires_at &&
+            new Date(coupon.expires_at) <
+              new Date();
+
+          return (
+            <div
+              key={coupon.id}
+              className="rounded-xl border border-gray-200 bg-white p-5"
+            >
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-lg bg-gray-100 px-3 py-1.5 font-mono text-sm font-bold text-gray-900">
+                      {coupon.code}
+                    </span>
+
+                    {coupon.is_active ? (
+                      <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                        Inactive
+                      </span>
+                    )}
+
+                    {expired && (
+                      <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700">
+                        Expired
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-2 text-sm text-gray-600">
+                    {coupon.description ||
+                      'No description'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
+                  <div>
+                    <p className="text-xs text-gray-400">
+                      Discount
+                    </p>
+
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {formatDiscount(coupon)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-400">
+                      Min Order
+                    </p>
+
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {formatPrice(
+                        Number(
+                          coupon.minimum_order || 0
+                        )
+                      )}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-400">
+                      Usage
+                    </p>
+
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {usageText}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-400">
+                      Expires
+                    </p>
+
+                    <p className="mt-1 text-sm font-medium text-gray-900">
+                      {coupon.expires_at
+                        ? dateTime(
+                            coupon.expires_at
+                          )
+                        : 'No expiry'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      toggleActive(coupon)
+                    }
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    {coupon.is_active
+                      ? 'Deactivate'
+                      : 'Activate'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editCoupon(coupon)
+                    }
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      deleteCoupon(coupon)
+                    }
+                    className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {coupons.length === 0 && (
+        <EmptyState
+          title="No coupons found"
+          description="Create your first coupon using the form above."
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   BANNERS
+========================================================= */
+
+function BannersView() {
+  const emptyForm = {
+    small_text_bn: '',
+    title_bn: '',
+    description_bn: '',
+    button_text_bn: '',
+    button_link: '/shop',
+    desktop_image_url: '',
+    mobile_image_url: '',
+    start_at: '',
+    end_at: '',
+    sort_order: '0',
+    is_active: true,
+  };
+
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [form, setForm] = useState<any>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<'desktop' | 'mobile' | null>(null);
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error } = await supabase.from('banners').select('*').order('sort_order', { ascending: true });
+      if (error) throw error;
+      setBanners(data || []);
+    } catch (err: any) {
+      setError(err.message || 'Banners load failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const saveBanner = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    try {
+      if (!form.desktop_image_url.trim() && !form.mobile_image_url.trim()) {
+        throw new Error('কমপক্ষে একটি Desktop বা Mobile banner image দিন।');
+      }
+      if (form.start_at && form.end_at && new Date(form.end_at) <= new Date(form.start_at)) {
+        throw new Error('End date/time অবশ্যই Start date/time-এর পরে হতে হবে।');
+      }
+
+      const payload = {
+        small_text_bn: form.small_text_bn.trim(),
+        title_bn: form.title_bn.trim(),
+        description_bn: form.description_bn.trim(),
+        button_text_bn: form.button_text_bn.trim(),
+        button_link: form.button_link.trim(),
+        image_url: form.desktop_image_url.trim() || form.mobile_image_url.trim(),
+        desktop_image_url: form.desktop_image_url.trim() || null,
+        mobile_image_url: form.mobile_image_url.trim() || null,
+        start_at: form.start_at ? new Date(form.start_at).toISOString() : null,
+        end_at: form.end_at ? new Date(form.end_at).toISOString() : null,
+        sort_order: Number(form.sort_order || 0),
+        is_active: Boolean(form.is_active),
+      };
+
+      const query = editingId
+        ? supabase.from('banners').update(payload).eq('id', editingId)
+        : supabase.from('banners').insert(payload);
+
+      const { error } = await query;
+      if (error) throw error;
+
+      setForm(emptyForm);
+      setEditingId(null);
+      setShowForm(false);
+      await load();
+    } catch (err: any) {
+      setError(err.message || 'Banner save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteBanner = async (id: string) => {
+    if (!window.confirm('Banner delete করতে চান?')) return;
+    try {
+      const { error } = await supabase.from('banners').delete().eq('id', id);
+      if (error) throw error;
+      await load();
+    } catch (err: any) {
+      setError(err.message || 'Banner delete failed.');
+    }
+  };
+
+  const uploadBannerImage = async (e: React.ChangeEvent<HTMLInputElement>, type: 'desktop' | 'mobile') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(type);
+    setError('');
+    try {
+      const url = await uploadImage(file, 'banners');
+      setForm((p: any) => ({
+        ...p,
+        [type === 'desktop' ? 'desktop_image_url' : 'mobile_image_url']: url,
+      }));
+    } catch (err: any) {
+      setError(err.message || 'Image upload failed.');
+    } finally {
+      setUploading(null);
+      e.target.value = '';
+    }
+  };
+
+  const openEdit = (banner: Banner) => {
+    const toLocal = (value: string | null) => value ? new Date(value).toISOString().slice(0, 16) : '';
+    setEditingId(banner.id);
+    setForm({
+      small_text_bn: banner.small_text_bn || '',
+      title_bn: banner.title_bn || '',
+      description_bn: banner.description_bn || '',
+      button_text_bn: banner.button_text_bn || '',
+      button_link: banner.button_link || '/shop',
+      desktop_image_url: banner.desktop_image_url || banner.image_url || '',
+      mobile_image_url: banner.mobile_image_url || '',
+      start_at: toLocal(banner.start_at),
+      end_at: toLocal(banner.end_at),
+      sort_order: String(banner.sort_order ?? 0),
+      is_active: banner.is_active ?? true,
+    });
+    setShowForm(true);
+    setError('');
+  };
+
+  if (loading) return <LoadingBox />;
+
+  return (
+    <div>
+      <PageHeader
+        title="Homepage Banners"
+        description="Add, schedule, reorder and manage responsive banners"
+        action={
+          <button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); setError(''); }}
+            className="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Banner
+          </button>
+        }
+      />
+
+      <ErrorBox error={error} retry={load} />
+
+      {showForm && (
+        <div className="bg-white rounded-xl border p-5 mb-6">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="font-bold text-lg">{editingId ? 'Edit Banner' : 'Add Banner'}</h3>
+            <button onClick={() => setShowForm(false)}><X /></button>
+          </div>
+
+          <form onSubmit={saveBanner} className="space-y-5">
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input label="Small Text" value={form.small_text_bn} onChange={(value) => setForm((p: any) => ({ ...p, small_text_bn: value }))} />
+              <Input label="Title" value={form.title_bn} onChange={(value) => setForm((p: any) => ({ ...p, title_bn: value }))} />
+              <Input label="Button Text" value={form.button_text_bn} onChange={(value) => setForm((p: any) => ({ ...p, button_text_bn: value }))} />
+              <Input label="Button Link" value={form.button_link} onChange={(value) => setForm((p: any) => ({ ...p, button_link: value }))} />
+              <Input label="Sort Order" type="number" value={form.sort_order} onChange={(value) => setForm((p: any) => ({ ...p, sort_order: value }))} />
+              <TextArea label="Description" value={form.description_bn} onChange={(value) => setForm((p: any) => ({ ...p, description_bn: value }))} />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {(['desktop', 'mobile'] as const).map((type) => {
+                const key = type === 'desktop' ? 'desktop_image_url' : 'mobile_image_url';
+                return (
+                  <div key={type}>
+                    <label className="block text-sm font-medium mb-2">{type === 'desktop' ? 'Desktop Banner Image' : 'Mobile Banner Image'}</label>
+                    <div className="flex flex-col gap-2">
+                      <label className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border cursor-pointer">
+                        {uploading === type ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                        {uploading === type ? 'Uploading...' : 'Upload Image'}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadBannerImage(e, type)} disabled={uploading !== null} />
+                      </label>
+                      <input value={form[key]} onChange={(e) => setForm((p: any) => ({ ...p, [key]: e.target.value }))} placeholder="Or paste image URL"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                      {form[key] && <img src={form[key]} alt="" className="w-full h-36 object-cover rounded-lg border" />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input label="Start Date & Time" type="datetime-local" value={form.start_at} onChange={(value) => setForm((p: any) => ({ ...p, start_at: value }))} />
+              <Input label="End Date & Time" type="datetime-local" value={form.end_at} onChange={(value) => setForm((p: any) => ({ ...p, end_at: value }))} />
+            </div>
+
+            <Checkbox label="Show Banner (ON/OFF)" checked={form.is_active} onChange={(checked) => setForm((p: any) => ({ ...p, is_active: checked }))} />
+
+            <div className="flex gap-3">
+              <button type="submit" disabled={saving} className="btn-primary px-5 py-2.5 rounded-lg flex items-center gap-2">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {editingId ? 'Update Banner' : 'Add Banner'}
+              </button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-lg border">Cancel</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-5">
+        {banners.map((banner) => (
+          <div key={banner.id} className="bg-white rounded-xl border overflow-hidden">
+            {(banner.desktop_image_url || banner.image_url) && (
+              <img src={banner.desktop_image_url || banner.image_url || ''} alt="" className="w-full h-48 object-cover" />
+            )}
+            <div className="p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs text-gray-500">#{banner.sort_order} · {banner.button_text_bn || 'No button'}</div>
+                <span className={banner.is_active ? 'text-green-600 text-xs font-medium' : 'text-red-600 text-xs font-medium'}>
+                  {banner.is_active ? 'ON' : 'OFF'}
+                </span>
+              </div>
+              <h3 className="font-bold text-xl mt-2">{banner.title_bn}</h3>
+              <p className="text-sm text-gray-600 mt-2">{banner.description_bn}</p>
+              <div className="text-xs text-gray-500 mt-3">
+                {banner.start_at ? dateTime(banner.start_at) : 'No start'} → {banner.end_at ? dateTime(banner.end_at) : 'No end'}
+              </div>
+              <div className="flex items-center justify-end mt-4">
+                <div className="flex gap-2">
+                  <button onClick={() => openEdit(banner)} className="p-2 hover:bg-gray-100 rounded-lg"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteBanner(banner.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {banners.length === 0 && <div className="bg-white rounded-xl border"><EmptyState text="No banners found." /></div>}
+    </div>
+  );
+}
+
+/* =========================================================
+   INVENTORY
+========================================================= */
+
+function InventoryView() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [items, setItems] = useState<OrderItem[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const [
+        { data: productsData, error: productsError },
+        { data: ordersData, error: ordersError },
+        { data: itemsData, error: itemsError },
+      ] = await Promise.all([
+        supabase
+          .from('products')
+          .select(
+            'id,name_en,name_bn,sku,stock,image_url,updated_at'
+          )
+          .order('stock', { ascending: true }),
+
+        supabase
+          .from('orders')
+          .select('id,status'),
+
+        supabase
+          .from('order_items')
+          .select(
+            'id,order_id,product_id,product_name,price,quantity,image_url'
+          ),
+      ]);
+
+      if (productsError) throw productsError;
+      if (ordersError) throw ordersError;
+      if (itemsError) throw itemsError;
+
+      setProducts(productsData || []);
+      setOrders(ordersData || []);
+      setItems(itemsData || []);
+    } catch (err: any) {
+      setError(err?.message || 'Inventory load failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  /*
+   * Only Delivered orders count as sold.
+   */
+  const deliveredOrderIds = useMemo(() => {
+    return new Set(
+      orders
+        .filter(
+          (order) =>
+            String(order.status || '').trim().toLowerCase() ===
+            'delivered'
+        )
+        .map((order) => order.id)
+    );
+  }, [orders]);
+
+  /*
+   * Calculate sold quantity for each product.
+   */
+  const soldByProduct = useMemo(() => {
+    const result: Record<string, number> = {};
+
+    for (const item of items) {
+      if (!item.product_id) continue;
+
+      if (!deliveredOrderIds.has(item.order_id)) {
+        continue;
+      }
+
+      const quantity = Math.max(
+        0,
+        Number(item.quantity) || 0
+      );
+
+      result[item.product_id] =
+        (result[item.product_id] || 0) + quantity;
+    }
+
+    return result;
+  }, [items, deliveredOrderIds]);
+
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    if (!query) {
+      return products;
+    }
+
+    return products.filter((product) => {
+      const nameEn = String(product.name_en || '').toLowerCase();
+      const nameBn = String(product.name_bn || '').toLowerCase();
+      const sku = String(product.sku || '').toLowerCase();
+
+      return (
+        nameEn.includes(query) ||
+        nameBn.includes(query) ||
+        sku.includes(query)
+      );
+    });
+  }, [products, search]);
+
+  const updateStock = async (
+    productId: string,
+    value: string
+  ) => {
+    const parsed = Number(value);
+
+    if (!Number.isFinite(parsed)) {
+      return;
+    }
+
+    const stock = Math.max(
+      0,
+      Math.floor(parsed)
+    );
+
+    setSavingId(productId);
+    setError('');
+
+    try {
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({
+          stock,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', productId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setProducts((current) =>
+        current.map((product) =>
+          product.id === productId
+            ? {
+                ...product,
+                stock,
+              }
+            : product
+        )
+      );
+    } catch (err: any) {
+      setError(
+        err?.message || 'Stock update failed.'
+      );
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const getStockStatus = (stock: number) => {
+    if (stock <= 0) {
+      return {
+        label: 'Out of Stock',
+        className:
+          'bg-red-100 text-red-700 border-red-200',
+      };
+    }
+
+    if (stock <= 5) {
+      return {
+        label: 'Low Stock',
+        className:
+          'bg-amber-100 text-amber-700 border-amber-200',
+      };
+    }
+
+    return {
+      label: 'In Stock',
+      className:
+        'bg-green-100 text-green-700 border-green-200',
+    };
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Inventory
+          </h1>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Manage product stock and delivered sales.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={load}
+          disabled={loading}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${
+              loading ? 'animate-spin' : ''
+            }`}
+          />
+
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+
+          <input
+            type="text"
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            placeholder="Search product name or SKU..."
+            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+          />
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading ? (
+        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center text-sm text-gray-500">
+          Loading inventory...
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
+          <Boxes className="mx-auto h-10 w-10 text-gray-300" />
+
+          <p className="mt-3 text-sm font-medium text-gray-700">
+            No products found.
+          </p>
+
+          {search && (
+            <p className="mt-1 text-xs text-gray-500">
+              Try another product name or SKU.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredProducts.map((product) => {
+            const stock = Math.max(
+              0,
+              Math.floor(Number(product.stock) || 0)
+            );
+
+            const sold = Math.max(
+              0,
+              Math.floor(
+                Number(
+                  soldByProduct[product.id] || 0
+                )
+              )
+            );
+
+            const status = getStockStatus(stock);
+
+            return (
+              <div
+                key={product.id}
+                className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              >
+                {/* Product information */}
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex min-w-0 items-center gap-4">
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={
+                          product.name_en ||
+                          product.name_bn ||
+                          'Product'
+                        }
+                        className="h-16 w-16 flex-shrink-0 rounded-xl border border-gray-200 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100 text-xs text-gray-400">
+                        No Image
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <h3 className="truncate text-base font-semibold text-gray-900">
+                        {product.name_en ||
+                          product.name_bn ||
+                          'Unnamed Product'}
+                      </h3>
+
+                      {product.name_bn &&
+                        product.name_en && (
+                          <p className="mt-1 text-sm text-gray-500">
+                            {product.name_bn}
+                          </p>
+                        )}
+
+                      <p className="mt-1 text-xs text-gray-400">
+                        SKU:{' '}
+                        <span className="font-medium text-gray-600">
+                          {product.sku || 'Not set'}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Inventory information */}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[620px]">
+                    {/* Current Stock */}
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                      <p className="text-xs font-medium text-gray-500">
+                        Current Stock
+                      </p>
+
+                      <div className="mt-2 flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={stock}
+                          onChange={(e) => {
+                            const value =
+                              Math.max(
+                                0,
+                                Math.floor(
+                                  Number(
+                                    e.target.value
+                                  ) || 0
+                                )
+                              );
+
+                            setProducts((current) =>
+                              current.map(
+                                (item) =>
+                                  item.id ===
+                                  product.id
+                                    ? {
+                                        ...item,
+                                        stock:
+                                          value,
+                                      }
+                                    : item
+                              )
+                            );
+                          }}
+                          onBlur={(e) =>
+                            updateStock(
+                              product.id,
+                              e.target.value
+                            )
+                          }
+                          className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm font-semibold text-gray-900 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-200"
+                        />
+                      </div>
+
+                      {savingId === product.id && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          Saving...
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Sold */}
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                      <p className="text-xs font-medium text-gray-500">
+                        Sold
+                      </p>
+
+                      <p className="mt-2 text-xl font-bold text-gray-900">
+                        {sold}
+                      </p>
+
+                      <p className="mt-0.5 text-[11px] text-gray-400">
+                        Delivered orders
+                      </p>
+                    </div>
+
+                    {/* Status */}
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                      <p className="text-xs font-medium text-gray-500">
+                        Status
+                      </p>
+
+                      <span
+                        className={`mt-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}
+                      >
+                        {status.label}
+                      </span>
+                    </div>
+
+                    {/* Product ID / count */}
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                      <p className="text-xs font-medium text-gray-500">
+                        Product
+                      </p>
+
+                      <p className="mt-2 text-sm font-semibold text-gray-900">
+                        Active
+                      </p>
+
+                      <p className="mt-0.5 text-[11px] text-gray-400">
+                        Inventory item
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Information */}
+      <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        <strong>Sold quantity:</strong> Only quantities from
+        Delivered orders are counted.
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   REPORTS
+========================================================= */
+
+function ReportsView() {
+  const [orders, setOrders] =
+    useState<Order[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const { data, error } =
+        await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', {
+            ascending: false,
+          });
+
+      if (error) throw error;
+
+      setOrders(data || []);
+    } catch (err: any) {
+      setError(
+        err.message ||
+          'Reports load failed.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const delivered =
+    orders.filter(
+      (order) =>
+        order.status ===
+        'Delivered'
+    );
+
+  const nonCancelled =
+    orders.filter(
+      (order) =>
+        order.status !==
+        'Cancelled'
+    );
+
+  const realizedRevenue =
+    delivered.reduce(
+      (sum, order) =>
+        sum +
+        Number(
+          order.grand_total ??
+            order.total ??
+            0
+        ),
+      0
+    );
+
+  const nonCancelledValue =
+    nonCancelled.reduce(
+      (sum, order) =>
+        sum +
+        Number(
+          order.grand_total ??
+            order.total ??
+            0
+        ),
+      0
+    );
+
+  const averageDeliveredOrder =
+    delivered.length > 0
+      ? realizedRevenue /
+        delivered.length
+      : 0;
+
+  const deliveryRate =
+    nonCancelled.length > 0
+      ? (delivered.length /
+          nonCancelled.length) *
+        100
+      : 0;
+
+  const statusCounts =
+    ORDER_STATUSES.map(
+      (status) => ({
+        status,
+        count: orders.filter(
+          (order) =>
+            order.status ===
+            status
+        ).length,
+      })
+    );
+
+  const monthly = useMemo(() => {
+    const result: {
+      label: string;
+      value: number;
+    }[] = [];
+
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(
+        now.getFullYear(),
+        now.getMonth() - i,
+        1
+      );
+
+      const value = delivered
+        .filter((order) => {
+          const date = new Date(
+            order.created_at
+          );
+
+          return (
+            date.getFullYear() ===
+              d.getFullYear() &&
+            date.getMonth() ===
+              d.getMonth()
+          );
+        })
+        .reduce(
+          (sum, order) =>
+            sum +
+            Number(
+              order.grand_total ??
+                order.total ??
+                0
+            ),
+          0
+        );
+
+      result.push({
+        label:
+          d.toLocaleDateString(
+            'en-US',
+            {
+              month: 'short',
+            }
+          ),
+        value,
+      });
+    }
+
+    return result;
+  }, [orders]);
+
+  if (loading) return <LoadingBox />;
+
+  return (
+    <div>
+      <PageHeader
+        title="Reports"
+        description="Sales, orders and delivery performance"
+        action={
+          <button
+            onClick={load}
+            className="px-4 py-2 rounded-lg border bg-white flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+        }
+      />
+
+      <ErrorBox error={error} retry={load} />
+
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard
+          title="Realized Revenue"
+          value={money(
+            realizedRevenue
+          )}
+          icon={BarChart3}
+        />
+
+        <StatCard
+          title="Delivered AOV"
+          value={money(
+            averageDeliveredOrder
+          )}
+          icon={ShoppingBag}
+        />
+
+        <StatCard
+          title="Delivery Rate"
+          value={`${deliveryRate.toFixed(
+            1
+          )}%`}
+          icon={CheckCircle2}
+        />
+
+        <StatCard
+          title="Non-cancelled Order Value"
+          value={money(
+            nonCancelledValue
+          )}
+          icon={Package}
+        />
+      </div>
+
+      <div className="grid xl:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-xl border p-5">
+          <h3 className="font-bold text-lg mb-5">
+            Sales — Last 6 Months
+          </h3>
+
+          <div className="h-64 flex items-end gap-3">
+            {monthly.map((item) => {
+              const max = Math.max(
+                ...monthly.map(
+                  (x) => x.value
+                ),
+                1
+              );
+
+              const height =
+                item.value > 0
+                  ? Math.max(
+                      (item.value /
+                        max) *
+                        100,
+                      5
+                    )
+                  : 4;
+
+              return (
+                <div
+                  key={item.label}
+                  className="flex-1 h-full flex flex-col justify-end items-center gap-2"
+                >
+                  <div className="text-[10px] text-gray-500">
+                    {item.value
+                      ? money(
+                          item.value
+                        )
+                      : ''}
+                  </div>
+
+                  <div
+                    className="w-full max-w-12 bg-primary rounded-t"
+                    style={{
+                      height: `${height}%`,
+                    }}
+                  />
+
+                  <div className="text-xs text-gray-500">
+                    {item.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-5">
+          <h3 className="font-bold text-lg mb-5">
+            Order Status
+          </h3>
+
+          <div className="space-y-4">
+            {statusCounts.map(
+              (item) => {
+                const percentage =
+                  orders.length > 0
+                    ? (item.count /
+                        orders.length) *
+                      100
+                    : 0;
+
+                return (
+                  <div
+                    key={item.status}
+                  >
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>
+                        {item.status}
+                      </span>
+
+                      <span className="font-medium">
+                        {item.count}
+                      </span>
+                    </div>
+
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full"
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border p-5 mt-6">
+        <h3 className="font-bold text-lg mb-2">
+          Revenue Calculation
+        </h3>
+
+        <p className="text-sm text-gray-600">
+          Realized Revenue শুধু{' '}
+          <strong>
+            Delivered
+          </strong>{' '}
+          orders থেকে হিসাব করা হচ্ছে। Cancelled,
+          Pending বা Processing orders-কে
+          completed revenue হিসেবে ধরা হচ্ছে না।
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   INTEGRATION SETUP
+========================================================= */
+
+function IntegrationSettingsView() {
+  return (
+    <div className="space-y-6">
+      <AdminSettingsCenter />
+      <AdminIntegrationCenter />
+      <OrderManagementIntegrationCenter />
+    </div>
+  );
+}
+
+/* =========================================================
+   HOMEPAGE COMBO OFFER SETTINGS
+========================================================= */
+
+function HomepageComboSettingsView() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({
+    combo_offer_enabled: true,
+    combo_offer_badge: 'Combo Offer',
+    combo_offer_title: 'একসাথে যত্ন, একসাথে সাশ্রয়',
+    combo_offer_description: 'চুল ও ত্বকের যত্নের জন্য বেছে নিন আমাদের বিশেষ Combo Collection।',
+    combo_offer_original_price: '1600',
+    combo_offer_price: '1200',
+    combo_offer_image_url: '',
+    combo_offer_button_text: 'Combo Collection দেখুন',
+    combo_offer_button_link: '/shop',
+  });
+
+  useEffect(() => {
+    getSettings()
+      .then((settings) => {
+        setForm({
+          combo_offer_enabled: settings.combo_offer_enabled !== false,
+          combo_offer_badge: settings.combo_offer_badge || 'Combo Offer',
+          combo_offer_title: settings.combo_offer_title || 'একসাথে যত্ন, একসাথে সাশ্রয়',
+          combo_offer_description: settings.combo_offer_description || 'চুল ও ত্বকের যত্নের জন্য বেছে নিন আমাদের বিশেষ Combo Collection।',
+          combo_offer_original_price: String(settings.combo_offer_original_price ?? 1600),
+          combo_offer_price: String(settings.combo_offer_price ?? 1200),
+          combo_offer_image_url: settings.combo_offer_image_url || '',
+          combo_offer_button_text: settings.combo_offer_button_text || 'Combo Collection দেখুন',
+          combo_offer_button_link: settings.combo_offer_button_link || '/shop',
+        });
+      })
+      .catch((err: any) => setError(err.message || 'Settings load failed.'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const setField = (key: keyof typeof form, value: string | boolean) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setMessage('');
+    setError('');
+    try {
+      const original = Number(form.combo_offer_original_price) || 0;
+      const price = Number(form.combo_offer_price) || 0;
+      if (original < 0 || price < 0) throw new Error('Price cannot be negative.');
+      await updateSettings({
+        combo_offer_enabled: form.combo_offer_enabled,
+        combo_offer_badge: form.combo_offer_badge.trim(),
+        combo_offer_title: form.combo_offer_title.trim(),
+        combo_offer_description: form.combo_offer_description.trim(),
+        combo_offer_original_price: original,
+        combo_offer_price: price,
+        combo_offer_image_url: form.combo_offer_image_url.trim() || null,
+        combo_offer_button_text: form.combo_offer_button_text.trim(),
+        combo_offer_button_link: form.combo_offer_button_link.trim() || '/shop',
+      });
+      setMessage('Homepage Combo Offer settings saved successfully.');
+    } catch (err: any) {
+      setError(err.message || 'Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const uploadComboImage = async (file: File) => {
+    setUploading(true);
+    setMessage('');
+    setError('');
+    try {
+      const url = await uploadImage(file, 'banners');
+      setField('combo_offer_image_url', url);
+      setMessage('Image uploaded. Click Save Changes to apply it.');
+    } catch (err: any) {
+      setError(err.message || 'Image upload failed.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) return <LoadingBox />;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Homepage Combo Offer"
+        description="Control the Combo Offer section shown on the homepage."
+      />
+
+      {message && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{message}</div>}
+      {error && <ErrorBox error={error} />}
+
+      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 space-y-6">
+        <div className="flex items-center justify-between gap-4 rounded-lg bg-gray-50 p-4">
+          <div>
+            <h3 className="font-semibold text-gray-900">Show Combo Offer</h3>
+            <p className="text-xs text-gray-500 mt-1">Turn the homepage Combo Offer section on or off.</p>
+          </div>
+          <label className="relative inline-flex cursor-pointer items-center">
+            <input type="checkbox" className="sr-only peer" checked={form.combo_offer_enabled} onChange={(e) => setField('combo_offer_enabled', e.target.checked)} />
+            <div className="h-6 w-11 rounded-full bg-gray-300 peer-checked:bg-primary after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-full" />
+          </label>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <Input label="Badge / Label" value={form.combo_offer_badge} onChange={(v) => setField('combo_offer_badge', v)} />
+          <Input label="Button Text" value={form.combo_offer_button_text} onChange={(v) => setField('combo_offer_button_text', v)} />
+        </div>
+
+        <Input label="Title" value={form.combo_offer_title} onChange={(v) => setField('combo_offer_title', v)} />
+        <TextArea label="Description" value={form.combo_offer_description} onChange={(v) => setField('combo_offer_description', v)} />
+
+        <div className="grid sm:grid-cols-2 gap-5">
+          <Input label="Original Price" type="number" value={form.combo_offer_original_price} onChange={(v) => setField('combo_offer_original_price', v)} />
+          <Input label="Combo Price" type="number" value={form.combo_offer_price} onChange={(v) => setField('combo_offer_price', v)} />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Button Link</label>
+          <input value={form.combo_offer_button_link} onChange={(e) => setField('combo_offer_button_link', e.target.value)} placeholder="/shop or /category/slug" className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Combo Image</label>
+          <div className="grid lg:grid-cols-[220px_1fr] gap-4 items-start">
+            <div className="aspect-[4/3] overflow-hidden rounded-xl border bg-gray-50">
+              {form.combo_offer_image_url ? <img src={form.combo_offer_image_url} alt="Combo offer preview" className="h-full w-full object-cover" /> : <div className="h-full flex items-center justify-center text-sm text-gray-400">No custom image</div>}
+            </div>
+            <div className="space-y-3">
+              <input type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadComboImage(file); }} className="block w-full text-sm" disabled={uploading} />
+              {uploading && <p className="text-xs text-gray-500">Uploading image...</p>}
+              <Input label="Or Image URL" value={form.combo_offer_image_url} onChange={(v) => setField('combo_offer_image_url', v)} />
+              <p className="text-xs text-gray-500">Maximum upload size: 5MB.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button onClick={save} disabled={saving || uploading} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   PLACEHOLDER
+========================================================= */
+
+function PlaceholderView({
+  title,
+  description,
+  icon: Icon,
+}: {
+  title: string;
+  description: string;
+  icon: any;
+}) {
+  return (
+    <div>
+      <PageHeader title={title} />
+
+      <div className="bg-white rounded-xl border p-10 text-center">
+        <div className="w-14 h-14 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center">
+          <Icon className="w-7 h-7" />
+        </div>
+
+        <h3 className="font-bold text-xl mt-4">
+          {title}
+        </h3>
+
+        <p className="text-gray-500 max-w-xl mx-auto mt-2 text-sm">
+          {description}
+        </p>
+
+        <div className="mt-5 inline-flex items-center gap-2 text-xs text-gray-400">
+          <Settings className="w-4 h-4" />
+          Database configuration required
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   FORM COMPONENTS
+========================================================= */
+
+function Input({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+  type?: string;
+  required?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5">
+        {label}
+
+        {required && (
+          <span className="text-red-500 ml-1">
+            *
+          </span>
+        )}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        required={required}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+      />
+    </div>
+  );
+}
+
+function TextArea({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5">
+        {label}
+      </label>
+
+      <textarea
+        value={value}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        rows={4}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+      />
+    </div>
+  );
+}
+
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+  options: {
+    value: string;
+    label: string;
+  }[];
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5">
+        {label}
+      </label>
+
+      <select
+        value={value}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+      >
+        {options.map(
+          (option) => (
+            <option
+              key={option.value}
+              value={option.value}
+            >
+              {option.label}
+            </option>
+          )
+        )}
+      </select>
+    </div>
+  );
+}
+
+function Checkbox({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (
+    checked: boolean
+  ) => void;
+}) {
+  return (
+    <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) =>
+          onChange(
+            e.target.checked
+          )
+        }
+        className="w-4 h-4 accent-primary"
+      />
+
+      <span>{label}</span>
+    </label>
+  );
+}

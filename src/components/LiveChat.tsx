@@ -295,7 +295,7 @@ export default function LiveChat() {
               {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
               <form onSubmit={sendMessage} className="flex items-end gap-2 border-t bg-white p-3">
                 <button type="button" onClick={toggleRecording} title={recording ? "Stop & send voice message" : "Record voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || voiceUploading || (!message.trim() && !chatImage)} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
+                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || voiceUploading || (!message.trim() && !chatImage && !chatImageUrl)} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
                   <Send className="h-4 w-4" />
                 </button>
               </form>
@@ -334,6 +334,7 @@ export function ChatAdminView() {
   const [quickReplyMessage, setQuickReplyMessage] = useState('');
   const [quickReplyImage, setQuickReplyImage] = useState<File | null>(null);
   const [chatImage, setChatImage] = useState<File | null>(null);
+  const [chatImageUrl, setChatImageUrl] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const selectedIdRef = useRef<string | null>(null);
   const messageRequestRef = useRef(0);
@@ -486,7 +487,7 @@ export function ChatAdminView() {
   const send = async (e: FormEvent) => {
     e.preventDefault();
     setChatError('');
-    if (!selected || (!message.trim() && !chatImage)) return;
+    if (!selected || (!message.trim() && !chatImage && !chatImageUrl)) return;
 
     try {
       // Refresh the conversation first so a stale closed/open state cannot block sending.
@@ -514,6 +515,7 @@ export function ChatAdminView() {
 
       let media_url = null;
       if (chatImage) media_url = await uploadImage(chatImage, 'chat/' + selected.id);
+      else media_url = chatImageUrl;
       const { error } = await supabase.from('chat_messages').insert({
         conversation_id: selected.id,
         sender_type: 'admin',
@@ -535,6 +537,7 @@ export function ChatAdminView() {
       setSelected(nextSelected);
       setMessage('');
       setChatImage(null);
+      setChatImageUrl(null);
       await Promise.all([loadMessages(selected.id), loadConversations()]);
     } catch (err: any) {
       console.error(err);
@@ -635,7 +638,7 @@ export function ChatAdminView() {
                     <div className="max-h-48 overflow-y-auto border-b bg-gray-50 p-2">
                       <div className="mb-1 flex items-center justify-between"><span className="text-[11px] font-semibold text-gray-500">Quick Responses</span><button type="button" onClick={()=>setQuickReplyOpen(true)} className="rounded border px-2 py-0.5 text-[10px]">+ Add</button></div>
                       {quickReplies.length ? quickReplies.map((item) => (
-                        <button key={item.id} type="button" onClick={() => { setMessage(item.message || ''); setShowSavedReplies(false); }} className="mb-1 block w-full rounded-lg border bg-white px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100">
+                        <button key={item.id} type="button" onClick={() => { setMessage(item.message || ''); setChatImageUrl(item.media_url || null); setChatImage(null); setShowSavedReplies(false); }} className="mb-1 block w-full rounded-lg border bg-white px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100">
                           <span className="font-medium">{item.title || 'Quick response'}</span>{item.message && <span className="ml-1 text-gray-500">— {item.message}</span>}{item.media_url && <span className="ml-1">🖼️</span>}
                         </button>
                       )) : <div className="px-2 py-3 text-center text-xs text-gray-400">কোনো quick response নেই। + Add দিয়ে save করুন।</div>}
@@ -654,7 +657,7 @@ export function ChatAdminView() {
                       className="min-w-0 flex-1 resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary"
                     />
                     <div className="flex shrink-0 items-center gap-2">
-                      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e)=>setChatImage(e.target.files?.[0] || null)} />
+                      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e)=>{setChatImage(e.target.files?.[0] || null);setChatImageUrl(null)}} />
                       <button type="button" onClick={()=>imageInputRef.current?.click()} title="Picture" className="flex h-10 w-10 items-center justify-center rounded-lg border"><ImagePlus className="h-4 w-4"/></button>
                       <button type="button" onClick={() => setShowSavedReplies((value) => !value)} title="Quick responses" className={`flex h-10 w-10 items-center justify-center rounded-lg border ${showSavedReplies ? "bg-primary/10 text-primary" : "text-gray-600"}`}>
                         <Bookmark className="h-4 w-4" />

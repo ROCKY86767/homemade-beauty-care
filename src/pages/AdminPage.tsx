@@ -3211,14 +3211,14 @@ function OrdersView() {
 
     orders.forEach((order) => {
       const mobile = String(order.mobile || order.customer_phone || '')
-        .replace(/\\s/g, '')
+        .replace(/\s/g, '')
         .trim();
 
       if (!mobile || order.status === 'Delivered' || order.status === 'Cancelled') return;
 
       const hasOlderActiveOrder = orders.some((older) => {
         const olderMobile = String(older.mobile || older.customer_phone || '')
-          .replace(/\\s/g, '')
+          .replace(/\s/g, '')
           .trim();
 
         return (
@@ -3549,10 +3549,12 @@ function OrdersView() {
     : getDeliveryCharge(
         settings,
         manualForm.district,
-        Number((() => {
-          const p = products.find((x: any) => x.id === manualForm.productId);
-          return Number(p?.sale_price ?? p?.price ?? 0) * Math.max(1, Number(manualForm.quantity || 1));
-        })()),
+        manualItems.reduce((sum, item) => {
+          const product = products.find((p: any) => p.id === item.productId);
+          const price = Number(product?.sale_price ?? product?.price ?? 0);
+          const quantity = Math.max(1, Number(item.quantity || 1));
+          return sum + price * quantity;
+        }, 0),
         manualForm.area
       )
 )}</strong>

@@ -73,13 +73,13 @@ export default function LiveChat() {
 
   const enableBrowserNotifications = async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
-    if (Notification.permission === 'default') {
-      try { await Notification.requestPermission(); } catch {}
+    if (window.Notification.permission === 'default') {
+      try { await window.Notification.requestPermission(); } catch {}
     }
   };
 
   const notifyNewAdminMessages = (nextMessages: ChatMessage[]) => {
-    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
+    if (typeof window === 'undefined' || !('Notification' in window) || window.Notification.permission !== 'granted') return;
     const newAdminMessages = nextMessages.filter(
       (item) => item.sender_type === 'admin' && !notifiedMessageIdsRef.current.has(item.id)
     );
@@ -92,7 +92,7 @@ export default function LiveChat() {
       notifiedMessageIdsRef.current.add(item.id);
       if (document.visibilityState !== 'visible' || !open) {
         const body = item.message_type === 'audio' ? '🎤 নতুন voice message' : item.message_type === 'image' ? '🖼️ নতুন picture message' : item.message;
-        const notification = new Notification('Homemade Beauty Care — Live Chat', {
+        const notification = new window.Notification('Homemade Beauty Care — Live Chat', {
           body: body || 'আপনার জন্য নতুন message এসেছে।',
           icon: '/homemade-logo.png',
           tag: 'hbc-live-chat',

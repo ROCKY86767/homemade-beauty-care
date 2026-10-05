@@ -113,7 +113,7 @@ export default function HomePage() { // centralized storefront settings
           // Best Seller / New Arrival / Sale section এখান থেকেই তৈরি হবে।
           supabase
             .from('products')
-            .select('*, category:categories(*)')
+            .select('id,name_en,name_bn,slug,short_description_bn,category_id,price,old_price,stock,rating,review_count,is_best_seller,is_new,is_on_sale,is_featured,image_url,gallery,size_bn,created_at,updated_at,is_active')
             .eq('is_active', true)
             .order('created_at', { ascending: false }),
 

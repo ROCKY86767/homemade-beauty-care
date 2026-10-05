@@ -87,8 +87,9 @@ export default function InvoicePage() {
   };
 
   return (
-    <div className="min-h-screen bg-cream py-10 px-4">
+    <div className="invoice-print-root min-h-screen bg-cream py-10 px-4">
       <SEO title="Invoice - Homemade Beauty Care" />
+      <style>{`@media print { body > * { visibility: hidden !important; } .invoice-print-root, .invoice-print-root * { visibility: visible !important; } .invoice-print-root { position: absolute !important; inset: 0 !important; width: 100% !important; background: white !important; padding: 0 !important; } @page { margin: 10mm; } }`}</style>
 
       <div className="max-w-3xl mx-auto">
         {!result ? (

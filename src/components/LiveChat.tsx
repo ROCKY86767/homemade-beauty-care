@@ -107,8 +107,38 @@ export default function LiveChat() {
 
   useEffect(() => {
     if (!open || !conversation?.id) return;
-    const timer = window.setInterval(() => loadMessages(conversation.id), 2000);
-    return () => window.clearInterval(timer);
+    let active = true;
+
+    const syncChat = async () => {
+      const id = localStorage.getItem(CONVERSATION_KEY);
+      if (!id || id !== conversation.id) return;
+
+      const { data, error } = await supabase.rpc('get_guest_chat_conversation', {
+        p_visitor_token: token(),
+        p_conversation_id: id,
+      });
+
+      if (!active || error || !data) return;
+
+      const nextConversation = data as Conversation;
+      setConversation(nextConversation);
+
+      if (nextConversation.status === 'open') {
+        setStarted(true);
+        await loadMessages(id);
+      } else {
+        setStarted(false);
+        setMessages([]);
+        setMessage('');
+      }
+    };
+
+    syncChat();
+    const timer = window.setInterval(syncChat, 1500);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
   }, [open, conversation?.id]);
 
   const startChat = async (e: FormEvent) => {
@@ -437,20 +467,55 @@ export function ChatAdminView() {
     e.preventDefault();
     setChatError('');
     if (!selected || !message.trim()) return;
-    const { error } = await supabase.from('chat_messages').insert({
-      conversation_id: selected.id,
-      sender_type: 'admin',
-      sender_name: 'Admin',
-      message: message.trim(),
-      is_read: true,
-    });
-    if (!error) {
-      await supabase.from('chat_conversations').update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', selected.id);
+
+    try {
+      // Refresh the conversation first so a stale closed/open state cannot block sending.
+      const { data: fresh, error: freshError } = await supabase
+        .from('chat_conversations')
+        .select('*')
+        .eq('id', selected.id)
+        .maybeSingle();
+
+      if (freshError) throw freshError;
+      if (!fresh) throw new Error('Chat conversation পাওয়া যায়নি।');
+
+      if (fresh.status === 'closed') {
+        const { error: reopenError } = await supabase
+          .from('chat_conversations')
+          .update({
+            status: 'open',
+            updated_at: new Date().toISOString(),
+            last_message_at: new Date().toISOString(),
+          })
+          .eq('id', selected.id);
+        if (reopenError) throw reopenError;
+        fresh.status = 'open';
+      }
+
+      const { error } = await supabase.from('chat_messages').insert({
+        conversation_id: selected.id,
+        sender_type: 'admin',
+        sender_name: 'Admin',
+        message: message.trim(),
+        is_read: true,
+        message_type: 'text',
+        media_url: null,
+      });
+      if (error) throw error;
+
+      await supabase.from('chat_conversations').update({
+        last_message_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'open',
+      }).eq('id', selected.id);
+
+      const nextSelected = { ...selected, status: 'open' as const, last_message_at: new Date().toISOString() };
+      setSelected(nextSelected);
       setMessage('');
-      await loadMessages(selected.id);
-    } else {
-      console.error(error);
-      setChatError(error.message || 'মেসেজ পাঠানো যায়নি।');
+      await Promise.all([loadMessages(selected.id), loadConversations()]);
+    } catch (err: any) {
+      console.error(err);
+      setChatError(err?.message || 'মেসেজ পাঠানো যায়নি।');
     }
   };
 

@@ -60,11 +60,10 @@ export default function LiveChat() {
   const loadConversation = async () => {
     const id = localStorage.getItem(CONVERSATION_KEY);
     if (!id) return;
-    const { data } = await supabase
-      .from('chat_conversations')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+    const { data } = await supabase.rpc('get_guest_chat_conversation', {
+      p_visitor_token: token(),
+      p_conversation_id: id,
+    });
     if (data) {
       setConversation(data as Conversation);
       setStarted(true);

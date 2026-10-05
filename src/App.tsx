@@ -8,6 +8,7 @@ import { CartProvider } from '@/lib/cart-context';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import Analytics from '@/components/Analytics';
 import { getSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
@@ -41,6 +42,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <main className="w-full min-w-0 flex-1 pb-16 lg:pb-0">{children}</main>
       <Footer />
       <MobileNav />
+      <WhatsAppButton />
     </div>
   );
 }

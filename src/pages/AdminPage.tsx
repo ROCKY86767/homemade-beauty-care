@@ -2864,6 +2864,38 @@ function OrdersView() {
   const itemsForOrder = (orderId: string) =>
     items.filter((item) => item.order_id === orderId);
 
+  // Only the newer order is marked as duplicate when an older order
+  // with the same mobile number is still active (not Delivered/Cancelled).
+  const duplicateOrderIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    orders.forEach((order) => {
+      const mobile = String(order.mobile || order.customer_phone || '')
+        .replace(/\\s/g, '')
+        .trim();
+
+      if (!mobile || order.status === 'Delivered' || order.status === 'Cancelled') return;
+
+      const hasOlderActiveOrder = orders.some((older) => {
+        const olderMobile = String(older.mobile || older.customer_phone || '')
+          .replace(/\\s/g, '')
+          .trim();
+
+        return (
+          older.id !== order.id &&
+          olderMobile === mobile &&
+          older.status !== 'Delivered' &&
+          older.status !== 'Cancelled' &&
+          new Date(older.created_at).getTime() < new Date(order.created_at).getTime()
+        );
+      });
+
+      if (hasOlderActiveOrder) ids.add(order.id);
+    });
+
+    return ids;
+  }, [orders]);
+
   if (loading) {
     return <LoadingBox />;
   }

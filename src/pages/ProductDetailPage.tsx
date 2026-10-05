@@ -182,7 +182,7 @@ export default function ProductDetailPage() {
           },
           offers: {
             '@type': 'Offer',
-            priceCurrency: settings?.currency || 'BDT',
+            priceCurrency: 'BDT',
             price: Number(product.price),
             availability:
               product.stock > 0

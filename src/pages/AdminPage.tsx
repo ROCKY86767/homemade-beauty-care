@@ -647,7 +647,6 @@ function DashboardView() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<OrderItem[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -681,12 +680,10 @@ function DashboardView() {
       if (ordersError) throw ordersError;
       if (productsError) throw productsError;
       if (itemsError) throw itemsError;
-      if (productsError) throw productsError;
 
       setOrders(ordersData || []);
       setProducts(productsData || []);
       setItems(itemsData || []);
-      setProducts(productsData || []);
     } catch (err: any) {
       setError(
         err.message || 'Dashboard load failed.'

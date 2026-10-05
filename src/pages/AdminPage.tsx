@@ -153,8 +153,9 @@ function buildOrderCopyText(order: Order, orderItems: OrderItem[]) {
     '',
     '💳 PAYMENT',
     'Method: ' + (order.payment_method || 'COD'),
-    'Payment Status: ' + (order.payment_status || 'Unpaid'),
-    'Order Status: ' + (order.status || 'Pending'),
+    'Delivery: ' + (Number(order.delivery_charge || 0) === 0 ? 'FREE' : money(order.delivery_charge)),
+    'Advance Paid: ' + money(order.advance_payment),
+    'Due: ' + money(Math.max(0, Number(order.grand_total ?? order.total ?? 0) - Number(order.advance_payment || 0))),
     'Total: ' + money(order.grand_total ?? order.total),
     '━━━━━━━━━━━━━━━━━━━━',
     'Homemade Beauty Care',
@@ -2578,6 +2579,7 @@ function OrdersView() {
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [editDiscount, setEditDiscount] = useState('');
   const [editFreeDelivery, setEditFreeDelivery] = useState(false);
+  const [editAdvancePayment, setEditAdvancePayment] = useState('0');
   const [editAddingProduct, setEditAddingProduct] = useState('');
   const [editAddingQty, setEditAddingQty] = useState('1');
   const [savingOrderEdit, setSavingOrderEdit] = useState(false);
@@ -2782,6 +2784,7 @@ function OrdersView() {
     setViewOrder(order);
     setEditDiscount(String(Number(order.discount || 0)));
     setEditFreeDelivery(Number(order.delivery_charge || 0) === 0);
+    setEditAdvancePayment(String(Number(order.advance_payment || 0)));
   };
 
   const saveOrderEdits = async () => {
@@ -2801,9 +2804,10 @@ function OrdersView() {
               String(viewOrder.area || '')
             );
       const grandTotal = Math.max(0, subtotal - discount + delivery);
-      const { error } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
+      const { error } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
       if (error) throw error;
-      const updated = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal };
+      const updated = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
       setViewOrder(updated);
       setOrders((prev) => prev.map((o) => o.id === updated.id ? updated : o));
     } catch (err:any) { setError(err.message || 'Order save failed.'); }
@@ -3615,6 +3619,8 @@ function OrdersView() {
                      <p className="mt-1 text-lg font-semibold">{money(editFreeDelivery ? 0 : getDeliveryCharge(settings, String(viewOrder.district || ''), Number(viewOrder.subtotal || 0), String(viewOrder.area || '')))}</p>
                    </div>
                    <div><label className="text-xs text-gray-500">Delivery</label><label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => setEditFreeDelivery(e.target.checked)} /> Free delivery</label></div>
+                  <div><label className="text-xs text-gray-500">Advance Payment</label><input type="number" min="0" value={editAdvancePayment} onChange={(e) => setEditAdvancePayment(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="0" /></div>
+                  <div><label className="text-xs text-gray-500">Due</label><p className="mt-1 text-lg font-bold">{money(Math.max(0, Number(viewOrder.grand_total ?? viewOrder.total ?? 0) - Number(editAdvancePayment || 0)))}</p></div>
                   <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
                 </div>
                 <div className="mt-3 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Save Order Changes'}</button></div>

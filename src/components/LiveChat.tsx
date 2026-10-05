@@ -68,7 +68,8 @@ export default function LiveChat() {
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState('');
 
-  const savedConversationId = useMemo(() => localStorage.getItem(CONVERSATION_KEY), []);\n  const notifiedMessageIdsRef = useRef<Set<string>>(new Set());
+  const savedConversationId = useMemo(() => localStorage.getItem(CONVERSATION_KEY), []);
+  const notifiedMessageIdsRef = useRef<Set<string>>(new Set());
   const chatLoadedRef = useRef(false);
 
   const enableBrowserNotifications = async () => {

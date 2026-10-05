@@ -297,6 +297,9 @@ export function ChatAdminView() {
   const [search, setSearch] = useState('');
   const [recording, setRecording] = useState(false);
   const [chatError, setChatError] = useState('');
+  const [showSavedReplies, setShowSavedReplies] = useState(false);
+  const selectedIdRef = useRef<string | null>(null);
+  const messageRequestRef = useRef(0);
 
   const loadConversations = async () => {
     const { data } = await supabase

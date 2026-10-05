@@ -141,20 +141,24 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={sendLoginLink}
-                disabled={loading}
-                className="btn-primary w-full disabled:opacity-50"
-              >
-                {loading
-                  ? 'Login Link পাঠানো হচ্ছে...'
-                  : 'ইমেইলে নিরাপদ Login Link পাঠান'}
-              </button>
+              {settings?.customer_email_login_enabled === true && (
+                <>
+                  <button
+                    type="button"
+                    onClick={sendLoginLink}
+                    disabled={loading}
+                    className="btn-primary w-full disabled:opacity-50"
+                  >
+                    {loading
+                      ? 'Login Link পাঠানো হচ্ছে...'
+                      : 'ইমেইলে নিরাপদ Login Link পাঠান'}
+                  </button>
 
-              <p className="text-xs text-gray-400 text-center leading-5">
-                আপনার email-এ পাঠানো Link-এ ক্লিক করলেই Login সম্পন্ন হবে।
-              </p>
+                  <p className="text-xs text-gray-400 text-center leading-5">
+                    আপনার email-এ পাঠানো Link-এ ক্লিক করলেই Login সম্পন্ন হবে।
+                  </p>
+                </>
+              )}
             </div>
           </div>
 

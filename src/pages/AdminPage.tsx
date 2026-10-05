@@ -3029,16 +3029,21 @@ function OrdersView() {
           return (
             <div
               key={order.id}
-              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+              className={`overflow-hidden rounded-lg border shadow-sm ${duplicateOrderIds.has(order.id) ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-white'}`}
             >
               <div className="px-3 py-2.5">
                 <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
                   <div className="min-w-0 xl:w-[20%]">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <h3 className="text-sm font-semibold text-gray-900">
+                      <h3 className={`text-sm font-semibold ${duplicateOrderIds.has(order.id) ? 'text-red-700' : 'text-gray-900'}`}>
                         #{order.order_number || order.id?.slice(0, 8)}
                       </h3>
                       <StatusBadge status={order.status} />
+                      {duplicateOrderIds.has(order.id) && (
+                        <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                          DUPLICATE
+                        </span>
+                      )}
                     </div>
                     <p className="text-[11px] text-gray-500">{dateTime(order.created_at)}</p>
                   </div>

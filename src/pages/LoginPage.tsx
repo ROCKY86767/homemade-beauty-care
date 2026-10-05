@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Chrome, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { getSettings } from '@/lib/settings';
+import type { SiteSettings } from '@/lib/types';
 import SEO from '@/components/SEO';
 
 export default function LoginPage() {
@@ -10,9 +12,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    getSettings().then(setSettings);
+  }, []);
   const [error, setError] = useState('');
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   async function signInWithGoogle() {
+    if (settings?.customer_google_login_enabled !== true) return;
     setLoading(true);
     setError('');
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -33,6 +41,7 @@ export default function LoginPage() {
       return;
     }
 
+    if (settings?.customer_email_login_enabled === false) return;
     setLoading(true);
     setError('');
     setMessage('');
@@ -79,15 +88,17 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-5">
-              <button
-                type="button"
-                onClick={signInWithGoogle}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white py-3 font-medium text-ink hover:bg-gray-50 disabled:opacity-50"
-              >
-                <Chrome size={18} />
-                Continue with Google
-              </button>
+              {settings?.customer_google_login_enabled !== false && (
+                <button
+                  type="button"
+                  onClick={signInWithGoogle}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white py-3 font-medium text-ink hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <Chrome size={18} />
+                  Continue with Google
+                </button>
+              )}
 
               <div className="flex items-center gap-3 text-xs text-gray-400">
                 <div className="h-px flex-1 bg-gray-200" />

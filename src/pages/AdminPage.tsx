@@ -3046,7 +3046,7 @@ function OrdersView() {
                     </button>
 
                     <Link
-                      to={`/invoice?id=${encodeURIComponent(order.order_number || '')}`}
+                      to={`/invoice?order_id=${encodeURIComponent(order.id)}`}
                       target="_blank"
                       className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
                     >

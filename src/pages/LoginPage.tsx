@@ -12,12 +12,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
     getSettings().then(setSettings);
   }, []);
-  const [error, setError] = useState('');
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   async function signInWithGoogle() {
     if (settings?.customer_google_login_enabled !== true) return;
@@ -88,7 +88,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-5">
-              {settings?.customer_google_login_enabled !== false && (
+              {settings?.customer_google_login_enabled === true && (
                 <button
                   type="button"
                   onClick={signInWithGoogle}
@@ -100,12 +100,15 @@ export default function LoginPage() {
                 </button>
               )}
 
-              <div className="flex items-center gap-3 text-xs text-gray-400">
+              {settings?.customer_google_login_enabled === true && settings?.customer_email_login_enabled === true && (
+                <div className="flex items-center gap-3 text-xs text-gray-400">
                 <div className="h-px flex-1 bg-gray-200" />
                 <span>অথবা Email দিয়ে</span>
                 <div className="h-px flex-1 bg-gray-200" />
               </div>
+              )}
 
+              {settings?.customer_email_login_enabled === true && (
               <div>
                 <label className="block text-sm font-medium text-ink mb-2">
                   Email Address
@@ -123,6 +126,7 @@ export default function LoginPage() {
                   autoComplete="email"
                 />
               </div>
+              )}
 
               {error && (
                 <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">

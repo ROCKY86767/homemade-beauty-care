@@ -37,6 +37,7 @@ import {
   RefreshCw,
   AlertCircle,
   Copy,
+  Bookmark,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
@@ -60,6 +61,7 @@ type Tab =
   | 'orders'
   | 'customers'
   | 'chat'
+  | 'quick-responses'
   | 'reviews'
   | 'coupons'
   | 'banners'
@@ -249,6 +251,7 @@ export default function AdminPage() {
       'orders',
       'customers',
       'chat',
+      'quick-responses',
       'reviews',
       'coupons',
       'banners',
@@ -357,6 +360,11 @@ export default function AdminPage() {
       id: 'chat' as Tab,
       label: 'Live Chat',
       icon: MessageCircle,
+    },
+    {
+      id: 'quick-responses' as Tab,
+      label: 'Quick Response',
+      icon: Bookmark,
     },
     {
       id: 'reviews' as Tab,
@@ -508,6 +516,10 @@ export default function AdminPage() {
 
             {activeTab === 'chat' && (
               <ChatAdminView />
+            )}
+
+            {activeTab === 'quick-responses' && (
+              <QuickResponsesView />
             )}
 
             {activeTab === 'reviews' && (
@@ -6268,6 +6280,153 @@ function HomepageComboSettingsView() {
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save Changes
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   QUICK RESPONSES
+========================================================= */
+
+function QuickResponsesView() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [image, setImage] = useState<File | null>(null);
+  const [error, setError] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    const { data, error } = await supabase
+      .from('chat_quick_replies')
+      .select('id,title,message,media_url,created_at,updated_at')
+      .order('created_at', { ascending: false });
+    if (error) setError(error.message);
+    setItems(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const reset = () => {
+    setTitle('');
+    setMessage('');
+    setImage(null);
+    setEditingId(null);
+  };
+
+  const save = async () => {
+    if (!title.trim() && !message.trim()) {
+      setError('Title অথবা message দিতে হবে।');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      let mediaUrl: string | null = null;
+      if (image) {
+        if (image.size > 5 * 1024 * 1024) throw new Error('Image size must be 5MB or less.');
+        const safeName = image.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+        const path = 'saved/' + crypto.randomUUID() + '-' + safeName;
+        const upload = await supabase.storage.from('chat-quick-replies').upload(path, image, { contentType: image.type, upsert: false });
+        if (upload.error) throw upload.error;
+        mediaUrl = supabase.storage.from('chat-quick-replies').getPublicUrl(path).data.publicUrl;
+      }
+
+      const payload: any = {
+        title: title.trim() || message.trim().slice(0, 40) || 'Quick response',
+        message: message.trim() || null,
+      };
+      if (mediaUrl) payload.media_url = mediaUrl;
+
+      const result = editingId
+        ? await supabase.from('chat_quick_replies').update(payload).eq('id', editingId)
+        : await supabase.from('chat_quick_replies').insert(payload);
+      if (result.error) throw result.error;
+      reset();
+      await load();
+    } catch (err: any) {
+      setError(err.message || 'Quick response save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const edit = (item: any) => {
+    setEditingId(item.id);
+    setTitle(item.title || '');
+    setMessage(item.message || '');
+    setImage(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const remove = async (item: any) => {
+    if (!window.confirm('এই Quick Response টি delete করতে চান?')) return;
+    const { error } = await supabase.from('chat_quick_replies').delete().eq('id', item.id);
+    if (error) { setError(error.message); return; }
+    await load();
+  };
+
+  if (loading) return <LoadingBox />;
+
+  return (
+    <div>
+      <PageHeader
+        title="Quick Response"
+        description="Live Chat-এর জন্য বারবার ব্যবহার করা message ও picture এখানে save করে রাখুন।"
+        action={<button onClick={reset} className="rounded-lg border bg-white px-4 py-2 text-sm">+ New</button>}
+      />
+
+      <ErrorBox error={error} retry={load} />
+
+      <div className="grid xl:grid-cols-[380px_minmax(0,1fr)] gap-6 items-start">
+        <div className="rounded-xl border bg-white p-5 space-y-4 xl:sticky xl:top-24">
+          <div>
+            <h3 className="font-semibold text-gray-900">{editingId ? 'Edit Quick Response' : 'Add Quick Response'}</h3>
+            <p className="mt-1 text-xs text-gray-500">Live Chat dropdown থেকে পরে এক ক্লিকে ব্যবহার করা যাবে।</p>
+          </div>
+          <Input label="Title" value={title} onChange={setTitle} />
+          <TextArea label="Message" value={message} onChange={setMessage} />
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">Picture (optional)</label>
+            <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} className="block w-full text-sm" />
+            {image && <p className="mt-1 text-xs text-gray-500 truncate">{image.name}</p>}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={save} disabled={saving} className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50">
+              {saving ? 'Saving...' : editingId ? 'Update' : 'Save Quick Response'}
+            </button>
+            {editingId && <button onClick={reset} className="rounded-lg border px-4 py-2.5 text-sm">Cancel</button>}
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-white overflow-hidden">
+          <div className="border-b px-5 py-4">
+            <h3 className="font-semibold">Saved Quick Responses</h3>
+            <p className="mt-1 text-xs text-gray-500">{items.length} saved response{items.length === 1 ? '' : 's'}</p>
+          </div>
+          <div className="divide-y">
+            {items.map((item) => (
+              <div key={item.id} className="flex gap-4 p-4 hover:bg-gray-50">
+                {item.media_url ? <img src={item.media_url} alt="" className="h-16 w-16 shrink-0 rounded-lg border object-cover" /> : <div className="h-16 w-16 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-400">No image</div>}
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-gray-900">{item.title || 'Quick response'}</div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-600">{item.message || 'Picture response'}</p>
+                </div>
+                <div className="flex shrink-0 items-start gap-1">
+                  <button onClick={() => edit(item)} title="Edit" className="rounded-lg border p-2 text-gray-600 hover:bg-white"><Edit className="h-4 w-4" /></button>
+                  <button onClick={() => remove(item)} title="Delete" className="rounded-lg border p-2 text-red-600 hover:bg-white"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              </div>
+            ))}
+            {!items.length && <EmptyState text="এখনো কোনো Quick Response save করা হয়নি।" />}
+          </div>
         </div>
       </div>
     </div>

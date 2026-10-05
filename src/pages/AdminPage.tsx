@@ -143,9 +143,7 @@ function buildOrderCopyText(order: Order, orderItems: OrderItem[]) {
     '👤 CUSTOMER',
     'Name: ' + (order.customer_name || '—'),
     'Phone: ' + (order.mobile || order.customer_phone || '—'),
-    order.email ? 'Email: ' + order.email : '',
     '',
-    '📍 DELIVERY',
     'Address: ' + (address || '—'),
     order.order_note || order.note ? 'Note: ' + (order.order_note || order.note) : '',
     '',
@@ -3035,13 +3033,22 @@ function OrdersView() {
         title="Orders"
         description={`${orders.length} total orders`}
         action={
-          <button
-            onClick={load}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowManualOrder(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
+            >
+              <Plus className="h-4 w-4" />
+              Manual Order
+            </button>
+            <button
+              onClick={load}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
+          </div>
         }
       />
 

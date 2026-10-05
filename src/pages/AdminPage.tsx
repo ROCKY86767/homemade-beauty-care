@@ -1190,16 +1190,16 @@ function ProductsView() {
         );
       }
 
+      const productName = form.name_en.trim() || form.name_bn.trim();
+      const generatedSlug = slugify(productName);
+      const generatedSku = form.sku.trim() || 
+        `HBC-${(generatedSlug || 'PRODUCT').replace(/-/g, '').slice(0, 10).toUpperCase()}-${Date.now().toString().slice(-5)}`;
+
       const payload = {
         name_en: form.name_en.trim(),
         name_bn: form.name_bn.trim(),
-        slug:
-          form.slug.trim() ||
-          slugify(
-            form.name_en ||
-              form.name_bn
-          ),
-        sku: form.sku.trim(),
+        slug: form.slug.trim() || generatedSlug,
+        sku: generatedSku,
         price: Number(form.price || 0),
         old_price:
           form.old_price === ''
@@ -1481,10 +1481,12 @@ function ProductsView() {
                   }))
                 }
               />
+              <p className="-mt-3 text-xs text-gray-500 md:col-start-1">Product name থেকে Slug automatic তৈরি হবে। চাইলে পরে পরিবর্তন করতে পারবে।</p>
 
               <Input
                 label="SKU"
                 value={form.sku}
+                placeholder="খালি রাখলে automatic হবে"
                 onChange={(value) =>
                   setForm((p: any) => ({
                     ...p,
@@ -1492,6 +1494,7 @@ function ProductsView() {
                   }))
                 }
               />
+              <p className="-mt-3 text-xs text-gray-500 md:col-start-2">SKU খালি রাখলে system automatic unique-style code তৈরি করবে।</p>
 
               <Input
                 label="Price"

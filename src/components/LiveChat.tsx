@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { MessageCircle, X, Send, Loader2, User } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type ChatMessage = {
@@ -41,6 +41,8 @@ export default function LiveChat() {
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [message, setMessage] = useState('');
+  const [recording, setRecording] = useState(false);
+  const [savedReplies, setSavedReplies] = useState<string[]>(() => JSON.parse(localStorage.getItem('hbc-saved-replies') || '[]'));
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -105,6 +107,16 @@ export default function LiveChat() {
     }
   };
 
+  const toggleRecording = () => setRecording((v) => !v);
+
+  const saveReply = () => {
+    const text = message.trim();
+    if (!text || savedReplies.includes(text)) return;
+    const next = [text, ...savedReplies].slice(0, 30);
+    setSavedReplies(next);
+    localStorage.setItem('hbc-saved-replies', JSON.stringify(next));
+  };
+
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!conversation?.id || !message.trim()) return;
@@ -143,7 +155,7 @@ export default function LiveChat() {
             <form onSubmit={startChat} className="p-4 space-y-3">
               <p className="text-sm text-gray-600">আপনার তথ্য দিন, আমরা এখানেই উত্তর দেব।</p>
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="আপনার নাম *" required className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
-              <input value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="মোবাইল নম্বর (ঐচ্ছিক)" className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
+              <input value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="মোবাইল নম্বর (ঐচ্ছিক — না দিলেও চলবে)" className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
               <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="আপনার মেসেজ লিখুন *" required rows={3} className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
               <button disabled={sending} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -162,9 +174,9 @@ export default function LiveChat() {
                 ))}
                 {!messages.length && <p className="text-center text-xs text-gray-400 pt-8">মেসেজ লোড হচ্ছে...</p>}
               </div>
-              <form onSubmit={sendMessage} className="flex gap-2 border-t bg-white p-3">
-                <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-                <button disabled={sending || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
+              <form onSubmit={sendMessage} className="flex items-center gap-2 border-t bg-white p-3">
+                <button type="button" onClick={toggleRecording} title={recording ? "Stop voice" : "Voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50">
                   <Send className="h-4 w-4" />
                 </button>
               </form>
@@ -192,6 +204,9 @@ export function ChatAdminView() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [unread, setUnread] = useState(0);
+  const [savedReplies, setSavedReplies] = useState<string[]>(() => JSON.parse(localStorage.getItem('hbc-saved-replies') || '[]'));
+  const [search, setSearch] = useState('');
+  const [recording, setRecording] = useState(false);
 
   const loadConversations = async () => {
     const { data } = await supabase
@@ -234,6 +249,9 @@ export function ChatAdminView() {
     if (selected) loadMessages(selected.id);
   }, [selected?.id]);
 
+  const toggleRecording = () => setRecording((v) => !v);
+  const saveCurrentReply = () => { const text = message.trim(); if (!text) return; const next=[text,...savedReplies.filter(x=>x!==text)].slice(0,30); setSavedReplies(next); localStorage.setItem('hbc-saved-replies', JSON.stringify(next)); };
+
   const send = async (e: FormEvent) => {
     e.preventDefault();
     if (!selected || !message.trim()) return;
@@ -272,9 +290,9 @@ export function ChatAdminView() {
 
       <div className="grid min-h-[600px] overflow-hidden rounded-xl border bg-white lg:grid-cols-[300px_1fr]">
         <div className="border-r bg-gray-50">
-          <div className="border-b p-3 text-sm font-semibold">Conversations</div>
+          <div className="border-b p-3"><div className="mb-2 text-sm font-semibold">Conversations</div><div className="flex items-center gap-2 rounded-lg border bg-white px-2"><Search className="h-4 w-4 text-gray-400" /><input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search customer..." className="w-full py-2 text-sm outline-none" /></div></div>
           <div className="max-h-[550px] overflow-y-auto">
-            {conversations.map((item) => (
+            {conversations.filter(item => `${item.customer_name} ${item.customer_mobile || ''}`.toLowerCase().includes(search.toLowerCase())).map((item) => (
               <button key={item.id} onClick={() => setSelected(item)} className={`w-full border-b p-4 text-left hover:bg-white ${selected?.id === item.id ? 'bg-white' : ''}`}>
                 <div className="flex items-center gap-2">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary"><User className="h-4 w-4" /></div>
@@ -311,8 +329,7 @@ export function ChatAdminView() {
                 ))}
               </div>
               {selected.status === 'open' && (
-                <form onSubmit={send} className="flex gap-2 border-t p-3">
-                  <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Reply to customer..." className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
+                <form onSubmit={send} className="flex items-center gap-2 border-t p-3"><button type="button" onClick={toggleRecording} title={recording ? "Stop voice" : "Voice message"} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? "bg-red-50 text-red-600" : "text-primary"}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Reply to customer..." className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" /><button type="button" onClick={saveCurrentReply} disabled={!message.trim()} title="Save reply" className="flex h-10 w-10 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
                   <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white"><Send className="h-4 w-4" />Send</button>
                 </form>
               )}

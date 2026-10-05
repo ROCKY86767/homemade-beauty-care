@@ -177,7 +177,7 @@ export default function LiveChat() {
         onClick={() => setOpen((value) => !value)}
         aria-label="Open live chat"
         title="Live Chat"
-        className="fixed right-4 bottom-20 sm:right-5 sm:bottom-5 z-[65] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary/25"
+        className="fixed right-4 bottom-36 sm:right-5 sm:bottom-24 z-[65] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary/25"
       >
         <MessageCircle className="h-7 w-7" />
       </button>

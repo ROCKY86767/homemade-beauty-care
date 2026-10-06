@@ -367,6 +367,8 @@ export function ChatAdminView() {
   const messageRequestRef = useRef(0);
   const conversationRequestRef = useRef(0);
   const mobileChatHistoryRef = useRef(false);
+  const conversationsRef = useRef<Conversation[]>([]);
+  const messagesRef = useRef<ChatMessage[]>([]);
 
   const loadQuickReplies = async () => {
     const { data } = await supabase.from('chat_quick_replies').select('id,title,message,media_url').order('created_at', { ascending: false });
@@ -382,66 +384,182 @@ export function ChatAdminView() {
 
   const loadConversations = async () => {
     const requestId = ++conversationRequestRef.current;
-    const { data, error } = await supabase.from('chat_conversations').select('*').order('last_message_at', { ascending: false });
+
+    const { data, error } = await supabase
+      .from('chat_conversations')
+      .select('*')
+      .order('last_message_at', { ascending: false });
+
     if (error) {
       console.error('Live chat conversation sync failed:', error);
       return;
     }
+
     if (requestId !== conversationRequestRef.current) return;
-    const rows = (data || []) as Conversation[];
+
+    let rows = (data || []) as Conversation[];
+
+    // Never wipe a healthy chat list because of a transient empty response.
+    if (!rows.length && conversationsRef.current.length) {
+      const retry = await supabase
+        .from('chat_conversations')
+        .select('*')
+        .order('last_message_at', { ascending: false });
+
+      if (requestId !== conversationRequestRef.current) return;
+
+      if (retry.error) {
+        console.error('Live chat conversation retry failed:', retry.error);
+        return;
+      }
+
+      rows = (retry.data || []) as Conversation[];
+
+      if (!rows.length) {
+        return;
+      }
+    }
+
+    conversationsRef.current = rows;
     setConversations(rows);
     setUnread(rows.filter((row) => row.status === 'open').length);
+
     if (selectedIdRef.current) {
-      const freshSelected = rows.find((row) => row.id === selectedIdRef.current);
-      if (freshSelected) setSelected(freshSelected);
+      const freshSelected = rows.find(
+        (row) => row.id === selectedIdRef.current
+      );
+
+      if (freshSelected) {
+        setSelected(freshSelected);
+      }
     }
   };
 
   const loadMessages = async (conversationId: string) => {
     const requestId = ++messageRequestRef.current;
-    const { data } = await supabase.from('chat_messages').select('*').eq('conversation_id', conversationId).order('created_at', { ascending: true });
-    if (requestId !== messageRequestRef.current || selectedIdRef.current !== conversationId) return;
-    setMessages((data || []) as ChatMessage[]);
-    await supabase.from('chat_messages').update({ is_read: true }).eq('conversation_id', conversationId).eq('sender_type', 'customer');
+
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Live chat message sync failed:', error);
+      return;
+    }
+
+    if (
+      requestId !== messageRequestRef.current ||
+      selectedIdRef.current !== conversationId
+    ) {
+      return;
+    }
+
+    const rows = (data || []) as ChatMessage[];
+
+    // Never wipe visible messages because of a transient empty response.
+    if (!rows.length && messagesRef.current.length) {
+      return;
+    }
+
+    messagesRef.current = rows;
+    setMessages(rows);
+
+    await supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .eq('conversation_id', conversationId)
+      .eq('sender_type', 'customer');
   };
 
   useEffect(() => {
+    let disposed = false;
+    let syncTimer: number | null = null;
+
     const refreshAdminChat = async () => {
+      if (disposed) return;
+
       await loadConversations();
+
+      if (disposed) return;
+
       const id = selectedIdRef.current;
-      if (id) await loadMessages(id);
+
+      if (id) {
+        await loadMessages(id);
+      }
     };
 
-    refreshAdminChat().finally(() => setLoading(false));
-    loadQuickReplies();
+    const scheduleRefresh = () => {
+      if (disposed || syncTimer !== null) return;
 
-    const channel = supabase.channel('admin-live-chat')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, () => {
-        refreshAdminChat();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_conversations' }, () => {
-        loadConversations();
-      })
-      .subscribe();
+      syncTimer = window.setTimeout(() => {
+        syncTimer = null;
+        void refreshAdminChat();
+      }, 250);
+    };
+
+    void refreshAdminChat().finally(() => {
+      if (!disposed) setLoading(false);
+    });
+
+    void loadQuickReplies();
+
+    const channel = supabase
+      .channel('admin-live-chat')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chat_messages' },
+        scheduleRefresh
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chat_conversations' },
+        scheduleRefresh
+      )
+      .subscribe((status) => {
+        // Re-sync after Realtime reconnects.
+        if (
+          status === 'SUBSCRIBED' ||
+          status === 'CHANNEL_ERROR' ||
+          status === 'TIMED_OUT'
+        ) {
+          scheduleRefresh();
+        }
+      });
 
     const handleAdminReturn = () => {
-      if (document.visibilityState === 'visible') refreshAdminChat();
+      if (document.visibilityState === 'visible') {
+        scheduleRefresh();
+      }
     };
-    const handlePageShow = () => refreshAdminChat();
+
+    const handlePageShow = () => {
+      scheduleRefresh();
+    };
 
     document.addEventListener('visibilitychange', handleAdminReturn);
     window.addEventListener('focus', handleAdminReturn);
     window.addEventListener('pageshow', handlePageShow);
 
     const timer = window.setInterval(() => {
-      refreshAdminChat();
-    }, 3000);
+      scheduleRefresh();
+    }, 5000);
 
     return () => {
+      disposed = true;
+
+      if (syncTimer !== null) {
+        window.clearTimeout(syncTimer);
+      }
+
       window.clearInterval(timer);
+
       document.removeEventListener('visibilitychange', handleAdminReturn);
       window.removeEventListener('focus', handleAdminReturn);
       window.removeEventListener('pageshow', handlePageShow);
+
       supabase.removeChannel(channel);
     };
   }, []);
@@ -586,6 +704,7 @@ export function ChatAdminView() {
   const selectConversation = (item: Conversation) => {
     selectedIdRef.current = item.id;
     messageRequestRef.current += 1;
+    messagesRef.current = [];
     setSelected(item);
     setMessages([]);
     setMessage('');
@@ -604,6 +723,7 @@ export function ChatAdminView() {
       selectedIdRef.current = null;
       messageRequestRef.current += 1;
       setSelected(null);
+      messagesRef.current = [];
       setMessages([]);
       setMessage('');
       setChatError('');
@@ -667,7 +787,7 @@ export function ChatAdminView() {
               <>
                 <div className="flex shrink-0 items-center justify-between border-b bg-white px-3 py-3.5 sm:px-5">
                   <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                    <button type="button" onClick={() => { selectedIdRef.current = null; setSelected(null); setMessages([]); setChatError(""); }} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-gray-600 hover:bg-gray-50 lg:hidden" aria-label="Back to customers"><ArrowLeft className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => { selectedIdRef.current = null; messageRequestRef.current += 1; messagesRef.current = []; setSelected(null); setMessages([]); setChatError(""); }} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-gray-600 hover:bg-gray-50 lg:hidden" aria-label="Back to customers"><ArrowLeft className="h-4 w-4" /></button>
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><User className="h-4 w-4" /></div>
                     <div className="min-w-0">
                       <div className="truncate font-bold text-gray-900">{selected.customer_name}</div>

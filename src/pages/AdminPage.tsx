@@ -42,6 +42,7 @@ import {
 
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
+import ModeratorView from './ModeratorView';
 import { ChatAdminView } from '../components/LiveChat';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import AdminSettingsCenter from '../components/AdminSettingsCenter';
@@ -68,7 +69,8 @@ type Tab =
   | 'inventory'
   | 'reports'
   | 'settings'
-  | 'combo';
+  | 'combo'
+  | 'moderators';
 
 type Product = any;
 type Category = any;
@@ -401,6 +403,11 @@ export default function AdminPage() {
       label: 'Settings',
       icon: Settings,
     },
+    {
+      id: 'moderators' as Tab,
+      label: 'Moderators',
+      icon: Users,
+    },
   ];
 
   return (
@@ -494,6 +501,10 @@ export default function AdminPage() {
           </header>
 
           <div className={activeTab === "chat" ? "flex-1 min-h-0 overflow-hidden p-0" : "p-4 lg:p-6"}>
+            {activeTab === 'moderators' && (
+              <ModeratorView />
+            )}
+
             {activeTab === 'dashboard' && (
               <DashboardView />
             )}

@@ -58,21 +58,17 @@ export default function AdminLogin() {
       return;
     }
 
-    const { data: adminUser, error: adminError } =
-      await supabase
-        .from('admin_users')
-        .select('user_id')
-        .eq('user_id', data.user.id)
-        .maybeSingle();
+    const { data: staffAccess, error: staffError } =
+      await supabase.rpc('get_staff_access');
 
     if (
-      adminError ||
-      !adminUser ||
-      adminUser.user_id !== data.user.id
+      staffError ||
+      !staffAccess ||
+      !staffAccess.is_active ||
+      staffAccess.role === 'none'
     ) {
       await supabase.auth.signOut();
-
-      setError('এই account-এর Admin access নেই.');
+      setError('এই account-এর Admin/Moderator access নেই.');
       setLoading(false);
       return;
     }

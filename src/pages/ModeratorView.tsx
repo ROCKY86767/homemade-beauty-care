@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ShieldCheck, UserPlus, Trash2, Save, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -44,10 +44,8 @@ export default function ModeratorView() {
 
   useEffect(() => { load(); }, []);
 
-  const permissionObject = useMemo(
-    () => Object.fromEntries(PERMISSIONS.map(([key]) => [key, selected.includes(key)])),
-    [selected]
-  );
+  const permissionObject: Record<string, boolean> = {};
+  PERMISSIONS.forEach(([key]) => { permissionObject[key] = selected.includes(key); });
 
   const toggle = (key: string) =>
     setSelected((current) =>

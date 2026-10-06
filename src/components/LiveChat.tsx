@@ -366,6 +366,7 @@ export function ChatAdminView() {
   const selectedIdRef = useRef<string | null>(null);
   const messageRequestRef = useRef(0);
   const conversationRequestRef = useRef(0);
+  const mobileChatHistoryRef = useRef(false);
 
   const loadQuickReplies = async () => {
     const { data } = await supabase.from('chat_quick_replies').select('id,title,message,media_url').order('created_at', { ascending: false });
@@ -568,7 +569,27 @@ export function ChatAdminView() {
     setMessage('');
     setChatError('');
     setShowSavedReplies(false);
+    if (window.innerWidth < 1024 && !mobileChatHistoryRef.current) {
+      window.history.pushState({ hbcLiveChat: true }, '', window.location.href);
+      mobileChatHistoryRef.current = true;
+    }
   };
+
+  useEffect(() => {
+    const handleMobileChatBack = () => {
+      if (!mobileChatHistoryRef.current) return;
+      mobileChatHistoryRef.current = false;
+      selectedIdRef.current = null;
+      messageRequestRef.current += 1;
+      setSelected(null);
+      setMessages([]);
+      setMessage('');
+      setChatError('');
+      setShowSavedReplies(false);
+    };
+    window.addEventListener('popstate', handleMobileChatBack);
+    return () => window.removeEventListener('popstate', handleMobileChatBack);
+  }, []);
 
   const filtered = conversations.filter(item => `${item.customer_name} ${item.customer_mobile || ''}`.toLowerCase().includes(search.toLowerCase()));
 

@@ -238,6 +238,7 @@ export default function AdminPage() {
   const location = useLocation();
 
   const [session, setSession] = useState<any>(null);
+  const [staffAccess, setStaffAccess] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [mobileMenu, setMobileMenu] = useState(false);
 
@@ -282,6 +283,10 @@ export default function AdminPage() {
       if (!mounted) return;
 
       setSession(data.session);
+      if (data.session) {
+        const { data: access } = await supabase.rpc('get_staff_access');
+        setStaffAccess(access);
+      }
       setCheckingAuth(false);
     });
 
@@ -292,6 +297,11 @@ export default function AdminPage() {
         if (!mounted) return;
 
         setSession(currentSession);
+        if (currentSession) {
+          supabase.rpc('get_staff_access').then(({ data: access }) => setStaffAccess(access));
+        } else {
+          setStaffAccess(null);
+        }
         setCheckingAuth(false);
       }
     );
@@ -410,6 +420,9 @@ export default function AdminPage() {
     },
   ];
 
+  const isAdmin = staffAccess?.role === 'admin';
+  const visibleNavItems = navItems.filter((item) => item.id === 'moderators' ? isAdmin : isAdmin || staffAccess?.permissions?.[item.id] === true);
+
   return (
     <div className={`bg-gray-50 ${activeTab === "chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>
       <div className={`${activeTab === "chat" ? "h-full" : "min-h-screen"} flex`} >
@@ -439,7 +452,7 @@ export default function AdminPage() {
             </div>
 
             <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 const active =
                   activeTab === item.id;

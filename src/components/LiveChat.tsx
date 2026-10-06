@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical, Trash2 } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical, Trash2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type ChatMessage = {
@@ -365,6 +365,7 @@ export function ChatAdminView() {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const selectedIdRef = useRef<string | null>(null);
   const messageRequestRef = useRef(0);
+  const conversationRequestRef = useRef(0);
 
   const loadQuickReplies = async () => {
     const { data } = await supabase.from('chat_quick_replies').select('id,title,message,media_url').order('created_at', { ascending: false });
@@ -379,10 +380,20 @@ export function ChatAdminView() {
   };
 
   const loadConversations = async () => {
-    const { data } = await supabase.from('chat_conversations').select('*').order('last_message_at', { ascending: false });
+    const requestId = ++conversationRequestRef.current;
+    const { data, error } = await supabase.from('chat_conversations').select('*').order('last_message_at', { ascending: false });
+    if (error) {
+      console.error('Live chat conversation sync failed:', error);
+      return;
+    }
+    if (requestId !== conversationRequestRef.current) return;
     const rows = (data || []) as Conversation[];
     setConversations(rows);
     setUnread(rows.filter((row) => row.status === 'open').length);
+    if (selectedIdRef.current) {
+      const freshSelected = rows.find((row) => row.id === selectedIdRef.current);
+      if (freshSelected) setSelected(freshSelected);
+    }
   };
 
   const loadMessages = async (conversationId: string) => {
@@ -579,8 +590,8 @@ export function ChatAdminView() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden p-4">
-        <div className="grid h-full min-h-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="flex min-h-0 flex-col border-r bg-white">
+        <div className="grid h-full min-h-0 overflow-hidden rounded-none border-y border-gray-200 bg-white shadow-sm sm:rounded-2xl sm:border lg:grid-cols-[300px_minmax(0,1fr)]">
+          <aside className={"min-h-0 flex-col border-r bg-white " + (selected ? "hidden lg:flex" : "flex")}>
             <div className="shrink-0 border-b bg-gray-50/80 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <div><h2 className="text-sm font-bold text-gray-900">Customers</h2><p className="mt-0.5 text-[11px] text-gray-500">{conversations.length} total conversations</p></div>
@@ -608,11 +619,12 @@ export function ChatAdminView() {
             </div>
           </aside>
 
-          <section className="flex min-h-0 flex-col overflow-hidden bg-[#fbfcfa]">
+          <section className={"min-h-0 flex-col overflow-hidden bg-[#fbfcfa] " + (selected ? "flex" : "hidden lg:flex")}>
             {selected ? (
               <>
-                <div className="flex shrink-0 items-center justify-between border-b bg-white px-5 py-3.5">
-                  <div className="flex min-w-0 items-center gap-3">
+                <div className="flex shrink-0 items-center justify-between border-b bg-white px-3 py-3.5 sm:px-5">
+                  <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <button type="button" onClick={() => { selectedIdRef.current = null; setSelected(null); setMessages([]); setChatError(""); }} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-gray-600 hover:bg-gray-50 lg:hidden" aria-label="Back to customers"><ArrowLeft className="h-4 w-4" /></button>
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><User className="h-4 w-4" /></div>
                     <div className="min-w-0">
                       <div className="truncate font-bold text-gray-900">{selected.customer_name}</div>
@@ -626,7 +638,7 @@ export function ChatAdminView() {
                   </div>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-5 sm:py-5">
                   <div className="mx-auto flex max-w-4xl flex-col gap-3">
                     {messages.map((item) => (
                       <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
@@ -662,13 +674,13 @@ export function ChatAdminView() {
                         <button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button>
                       </div>
                     )}
-                    <form onSubmit={send} className="flex items-end gap-2 p-4">
+                    <form onSubmit={send} className="flex items-end gap-1.5 p-2.5 sm:gap-2 sm:p-4">
                       <button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${recording ? 'bg-red-50 text-red-600' : 'text-primary hover:bg-primary/5'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
                       <textarea rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); } }} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Write a reply...  Enter to send" className="min-h-[44px] min-w-0 flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-primary focus:bg-white" />
                       <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setChatImage(e.target.files?.[0] || null); setChatImageUrl(null); }} />
-                      <button type="button" onClick={() => imageInputRef.current?.click()} title="Picture" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-gray-600 hover:bg-gray-50"><ImagePlus className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => imageInputRef.current?.click()} title="Picture" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-gray-600 hover:bg-gray-50 sm:h-11 sm:w-11"><ImagePlus className="h-4 w-4" /></button>
                       <button type="button" onClick={() => setShowSavedReplies((value) => !value)} title="Quick responses" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${showSavedReplies ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50'}`}><Bookmark className="h-4 w-4" /></button>
-                      <button disabled={voiceUploading || (!message.trim() && !chatImage && !chatImageUrl)} className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm disabled:opacity-50"><Send className="h-4 w-4" />Send</button>
+                      <button disabled={voiceUploading || (!message.trim() && !chatImage && !chatImageUrl)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm disabled:opacity-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-5"><Send className="h-4 w-4" /><span className="hidden sm:inline">Send</span></button>
                     </form>
                   </div>
                 ) : (

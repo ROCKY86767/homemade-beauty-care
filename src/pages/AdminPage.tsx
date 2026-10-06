@@ -42,6 +42,7 @@ import {
 
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
+import ModeratorView from './ModeratorView';
 import { ChatAdminView } from '../components/LiveChat';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import AdminSettingsCenter from '../components/AdminSettingsCenter';
@@ -68,7 +69,8 @@ type Tab =
   | 'inventory'
   | 'reports'
   | 'settings'
-  | 'combo';
+  | 'combo'
+  | 'moderators';
 
 type Product = any;
 type Category = any;
@@ -236,6 +238,7 @@ export default function AdminPage() {
   const location = useLocation();
 
   const [session, setSession] = useState<any>(null);
+  const [staffAccess, setStaffAccess] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [mobileMenu, setMobileMenu] = useState(false);
 
@@ -280,6 +283,10 @@ export default function AdminPage() {
       if (!mounted) return;
 
       setSession(data.session);
+      if (data.session) {
+        const { data: access } = await supabase.rpc('get_staff_access');
+        setStaffAccess(access);
+      }
       setCheckingAuth(false);
     });
 
@@ -290,6 +297,12 @@ export default function AdminPage() {
         if (!mounted) return;
 
         setSession(currentSession);
+        if (currentSession) {
+          const { data: access } = await supabase.rpc('get_staff_access');
+          setStaffAccess(access);
+        } else {
+          setStaffAccess(null);
+        }
         setCheckingAuth(false);
       }
     );
@@ -401,7 +414,16 @@ export default function AdminPage() {
       label: 'Settings',
       icon: Settings,
     },
+    {
+      id: 'moderators' as Tab,
+      label: 'Moderators',
+      icon: Users,
+    },
   ];
+
+  const isAdmin = staffAccess?.role === 'admin';
+  const canAccess = (tab: Tab) => isAdmin || Boolean(staffAccess?.permissions?.[tab]);
+  const visibleNavItems = navItems.filter(item => item.id !== 'moderators' ? canAccess(item.id) : isAdmin);
 
   return (
     <div className={`bg-gray-50 ${activeTab === "chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>
@@ -432,7 +454,7 @@ export default function AdminPage() {
             </div>
 
             <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 const active =
                   activeTab === item.id;
@@ -494,59 +516,70 @@ export default function AdminPage() {
           </header>
 
           <div className={activeTab === "chat" ? "flex-1 min-h-0 overflow-hidden p-0" : "p-4 lg:p-6"}>
-            {activeTab === 'dashboard' && (
+            {!canAccess(activeTab) && activeTab !== 'moderators' && (
+              <div className="min-h-[300px] flex items-center justify-center">
+                <div className="bg-white border rounded-2xl p-8 text-center max-w-md">
+                  <h2 className="text-xl font-bold text-gray-900">Access Restricted</h2>
+                  <p className="text-sm text-gray-500 mt-2">এই section ব্যবহার করার permission আপনার নেই।</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'moderators' && isAdmin && <ModeratorView />}
+
+            {activeTab === 'dashboard' && canAccess('dashboard') && (
               <DashboardView />
             )}
 
-            {activeTab === 'products' && (
+            {activeTab === 'products' && canAccess('products') && (
               <ProductsView />
             )}
 
-            {activeTab === 'categories' && (
+            {activeTab === 'categories' && canAccess('categories') && (
               <CategoriesView />
             )}
 
-            {activeTab === 'orders' && (
+            {activeTab === 'orders' && canAccess('orders') && (
               <OrdersView />
             )}
 
-            {activeTab === 'customers' && (
+            {activeTab === 'customers' && canAccess('customers') && (
               <CustomersView />
             )}
 
-            {activeTab === 'chat' && (
+            {activeTab === 'chat' && canAccess('chat') && (
               <ChatAdminView />
             )}
 
-            {activeTab === 'quick-responses' && (
+            {activeTab === 'quick-responses' && canAccess('quick-responses') && (
               <QuickResponsesView />
             )}
 
-            {activeTab === 'reviews' && (
+            {activeTab === 'reviews' && canAccess('reviews') && (
               <ReviewsView />
             )}
 
-            {activeTab === 'coupons' && (
+            {activeTab === 'coupons' && canAccess('coupons') && (
   <CouponsView />
 )}
 
-            {activeTab === 'banners' && (
+            {activeTab === 'banners' && canAccess('banners') && (
               <BannersView />
             )}
 
-            {activeTab === 'inventory' && (
+            {activeTab === 'inventory' && canAccess('inventory') && (
               <InventoryView />
             )}
 
-            {activeTab === 'reports' && (
+            {activeTab === 'reports' && canAccess('reports') && (
               <ReportsView />
             )}
 
-            {activeTab === 'combo' && (
+            {activeTab === 'combo' && canAccess('combo') && (
               <HomepageComboSettingsView />
             )}
 
-            {activeTab === 'settings' && (
+            {activeTab === 'settings' && canAccess('settings') && (
               <IntegrationSettingsView />
             )}
           </div>

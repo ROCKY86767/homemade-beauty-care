@@ -105,7 +105,7 @@ export default function ModeratorView() {
       });
       saveError = error;
     } else {
-      const { error } = await supabase.functions.invoke('create-moderator', {
+      const { data, error } = await supabase.functions.invoke('create-moderator', {
         body: {
           email: cleanEmail,
           password,
@@ -114,7 +114,7 @@ export default function ModeratorView() {
           is_active: active,
         },
       });
-      saveError = error;
+      saveError = error || (data?.error ? new Error(data.error) : null);
     }
 
     if (saveError) {

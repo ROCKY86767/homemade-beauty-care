@@ -350,6 +350,7 @@ export function ChatAdminView() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [unread, setUnread] = useState(0);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [savedReplies, setSavedReplies] = useState<string[]>(() => JSON.parse(localStorage.getItem('hbc-saved-replies') || '[]'));
   const [search, setSearch] = useState('');
   const [recording, setRecording] = useState(false);
@@ -422,7 +423,27 @@ export function ChatAdminView() {
 
     conversationsRef.current = rows;
     setConversations(rows);
-    setUnread(rows.filter((row) => row.status === 'open').length);
+
+    // Count unread customer messages per conversation.
+    if (rows.length) {
+      const { data: unreadRows, error: unreadError } = await supabase
+        .from('chat_messages')
+        .select('conversation_id')
+        .eq('sender_type', 'customer')
+        .eq('is_read', false);
+
+      if (!unreadError) {
+        const counts: Record<string, number> = {};
+        (unreadRows || []).forEach((row: { conversation_id: string }) => {
+          counts[row.conversation_id] = (counts[row.conversation_id] || 0) + 1;
+        });
+        setUnreadCounts(counts);
+        setUnread(Object.values(counts).reduce((total, count) => total + count, 0));
+      }
+    } else {
+      setUnreadCounts({});
+      setUnread(0);
+    }
 
     if (selectedIdRef.current) {
       const freshSelected = rows.find(
@@ -466,11 +487,20 @@ export function ChatAdminView() {
     messagesRef.current = rows;
     setMessages(rows);
 
+    const unreadCustomerMessages = rows.filter((row) => row.sender_type === 'customer' && !row.is_read).length;
     await supabase
       .from('chat_messages')
       .update({ is_read: true })
       .eq('conversation_id', conversationId)
       .eq('sender_type', 'customer');
+    if (unreadCustomerMessages) {
+      setUnreadCounts((current) => {
+        const next = { ...current };
+        delete next[conversationId];
+        return next;
+      });
+      setUnread((current) => Math.max(0, current - unreadCustomerMessages));
+    }
   };
 
   useEffect(() => {
@@ -745,7 +775,7 @@ export function ChatAdminView() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><MessageCircle className="h-5 w-5" /></div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Live Chat</h1>
-              <p className="text-xs text-gray-500">{unread} open conversation{unread === 1 ? '' : 's'} • Customer Support</p>
+              <p className="text-xs text-gray-500">{unread} unread message{unread === 1 ? '' : 's'} • Customer Support</p>
             </div>
           </div>
         </div>
@@ -758,7 +788,7 @@ export function ChatAdminView() {
             <div className="shrink-0 border-b bg-gray-50/80 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <div><h2 className="text-sm font-bold text-gray-900">Customers</h2><p className="mt-0.5 text-[11px] text-gray-500">{conversations.length} total conversations</p></div>
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold text-primary">{unread} Open</span>
+                <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${unread ? 'bg-red-50 text-red-600' : 'bg-primary/10 text-primary'}`}>{unread} Unread</span>
               </div>
               <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 shadow-sm">
                 <Search className="h-4 w-4 shrink-0 text-gray-400" />
@@ -767,11 +797,11 @@ export function ChatAdminView() {
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               {filtered.map((item) => (
-                <button key={item.id} onClick={() => selectConversation(item)} className={`w-full border-b border-gray-100 px-4 py-3.5 text-left transition-colors hover:bg-gray-50 ${selected?.id === item.id ? 'bg-primary/[0.07] border-l-4 border-l-primary' : 'border-l-4 border-l-transparent'}`}>
+                <button key={item.id} onClick={() => selectConversation(item)} className={`w-full border-b border-gray-100 px-4 py-3.5 text-left transition-colors hover:bg-gray-50 ${selected?.id === item.id ? 'bg-primary/[0.07] border-l-4 border-l-primary' : unreadCounts[item.id] ? 'bg-amber-50/70 border-l-4 border-l-amber-400' : 'border-l-4 border-l-transparent'}`}>
                   <div className="flex items-center gap-3">
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${selected?.id === item.id ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}><User className="h-4 w-4" /></div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2"><div className="truncate text-sm font-semibold text-gray-900">{item.customer_name}</div><span className={`h-2 w-2 shrink-0 rounded-full ${item.status === 'open' ? 'bg-green-500' : 'bg-gray-300'}`} /></div>
+                      <div className="flex items-center justify-between gap-2"><div className={`truncate text-sm ${unreadCounts[item.id] ? 'font-bold text-gray-950' : 'font-semibold text-gray-900'}`}>{item.customer_name}</div><div className="flex shrink-0 items-center gap-1.5"><span className={`h-2 w-2 rounded-full ${item.status === 'open' ? 'bg-green-500' : 'bg-gray-300'}`} />{unreadCounts[item.id] ? <span className="min-w-[20px] rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white">{unreadCounts[item.id]}</span> : null}</div></div>
                       <div className="mt-0.5 truncate text-xs text-gray-500">{item.customer_mobile || 'No phone number'}</div>
                       <div className="mt-1 text-[10px] text-gray-400">{new Date(item.last_message_at).toLocaleString()}</div>
                     </div>

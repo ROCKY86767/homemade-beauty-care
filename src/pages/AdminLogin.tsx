@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Lock, Mail, LogIn } from 'lucide-react';
+import { Lock, Mail, LogIn, ShieldCheck } from 'lucide-react';
 
 export default function AdminLogin() {
+  const [mode, setMode] = useState<'admin' | 'moderator'>('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,10 +66,16 @@ export default function AdminLogin() {
       staffError ||
       !staffAccess ||
       !staffAccess.is_active ||
-      staffAccess.role === 'none'
+      staffAccess.role === 'none' ||
+      (mode === 'admin' && staffAccess.role !== 'admin') ||
+      (mode === 'moderator' && staffAccess.role !== 'moderator')
     ) {
       await supabase.auth.signOut();
-      setError('এই account-এর Admin/Moderator access নেই.');
+      setError(
+        mode === 'admin'
+          ? 'এই account-এর Admin access নেই।'
+          : 'এই account-এর Moderator access নেই।'
+      );
       setLoading(false);
       return;
     }
@@ -76,8 +83,14 @@ export default function AdminLogin() {
     setLoading(false);
   };
 
+  const switchMode = (nextMode: 'admin' | 'moderator') => {
+    setMode(nextMode);
+    setError('');
+    setPassword('');
+  };
+
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4">
+    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
           <img
@@ -86,12 +99,19 @@ export default function AdminLogin() {
             className="h-20 w-20 object-contain mx-auto mb-4"
           />
 
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold mb-3">
+            {mode === 'admin' ? <ShieldCheck size={14} /> : <LogIn size={14} />}
+            {mode === 'admin' ? 'Admin Login' : 'Moderator Login'}
+          </div>
+
           <h1 className="font-display text-2xl font-bold text-dark">
-            Admin Login
+            {mode === 'admin' ? 'Admin Login' : 'Moderator Login'}
           </h1>
 
           <p className="text-gray-500 mt-2">
-            Sign in to manage your website
+            {mode === 'admin'
+              ? 'Sign in to manage your website'
+              : 'Moderator email এবং password দিয়ে login করুন'}
           </p>
         </div>
 
@@ -111,7 +131,7 @@ export default function AdminLogin() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@gmail.com"
+                placeholder={mode === 'admin' ? 'admin@gmail.com' : 'moderator@gmail.com'}
                 required
                 autoComplete="email"
                 className="w-full border border-gray-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-primary"
@@ -165,10 +185,35 @@ export default function AdminLogin() {
             className="w-full bg-primary text-white rounded-xl py-3 font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <LogIn size={18} />
-
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Logging in...' : mode === 'admin' ? 'Admin Login' : 'Moderator Login'}
           </button>
         </form>
+
+        <div className="mt-7 pt-5 border-t border-gray-100 text-center">
+          {mode === 'admin' ? (
+            <>
+              <p className="text-sm text-gray-500 mb-2">আপনি Moderator?</p>
+              <button
+                type="button"
+                onClick={() => switchMode('moderator')}
+                className="text-primary font-semibold hover:underline"
+              >
+                Moderator Login
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 mb-2">আপনি Admin?</p>
+              <button
+                type="button"
+                onClick={() => switchMode('admin')}
+                className="text-primary font-semibold hover:underline"
+              >
+                Admin Login
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

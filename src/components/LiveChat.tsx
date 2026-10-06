@@ -406,22 +406,44 @@ export function ChatAdminView() {
   };
 
   useEffect(() => {
-    loadConversations().finally(() => setLoading(false));
+    const refreshAdminChat = async () => {
+      await loadConversations();
+      const id = selectedIdRef.current;
+      if (id) await loadMessages(id);
+    };
+
+    refreshAdminChat().finally(() => setLoading(false));
     loadQuickReplies();
+
     const channel = supabase.channel('admin-live-chat')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, () => {
-        loadConversations();
-        const id = selectedIdRef.current;
-        if (id) loadMessages(id);
+        refreshAdminChat();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_conversations' }, () => loadConversations())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_conversations' }, () => {
+        loadConversations();
+      })
       .subscribe();
+
+    const handleAdminReturn = () => {
+      if (document.visibilityState === 'visible') refreshAdminChat();
+    };
+    const handlePageShow = () => refreshAdminChat();
+
+    document.addEventListener('visibilitychange', handleAdminReturn);
+    window.addEventListener('focus', handleAdminReturn);
+    window.addEventListener('pageshow', handlePageShow);
+
     const timer = window.setInterval(() => {
-      loadConversations();
-      const id = selectedIdRef.current;
-      if (id) loadMessages(id);
-    }, 5000);
-    return () => { window.clearInterval(timer); supabase.removeChannel(channel); };
+      refreshAdminChat();
+    }, 3000);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleAdminReturn);
+      window.removeEventListener('focus', handleAdminReturn);
+      window.removeEventListener('pageshow', handlePageShow);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {

@@ -284,8 +284,7 @@ export default function AdminPage() {
 
       setSession(data.session);
       if (data.session) {
-        const { data: access } = await supabase.rpc('get_staff_access');
-        setStaffAccess(access);
+        supabase.rpc('get_staff_access').then(({ data: access }) => setStaffAccess(access));
       }
       setCheckingAuth(false);
     });

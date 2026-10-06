@@ -513,7 +513,7 @@ export default function AdminPage() {
           </header>
 
           <div className={activeTab === "chat" ? "flex-1 min-h-0 overflow-hidden p-0" : "p-4 lg:p-6"}>
-            {activeTab === 'moderators' && (
+            {activeTab === 'moderators' && isAdmin && (
               <ModeratorView />
             )}
 

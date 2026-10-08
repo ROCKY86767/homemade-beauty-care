@@ -388,7 +388,7 @@ export function ChatAdminView() {
 
     const { data, error } = await supabase
       .from('chat_conversations')
-      .select('*')
+      .select('id,customer_name,customer_mobile,status,last_message_at,created_at')
       .order('last_message_at', { ascending: false });
 
     if (error) {
@@ -575,7 +575,7 @@ export function ChatAdminView() {
 
     const timer = window.setInterval(() => {
       scheduleRefresh();
-    }, 5000);
+    }, 10000);
 
     return () => {
       disposed = true;

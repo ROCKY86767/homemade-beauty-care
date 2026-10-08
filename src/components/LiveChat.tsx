@@ -404,7 +404,7 @@ export function ChatAdminView() {
     if (!rows.length && conversationsRef.current.length) {
       const retry = await supabase
         .from('chat_conversations')
-        .select('*')
+        .select('id,customer_name,customer_mobile,status,last_message_at,created_at')
         .order('last_message_at', { ascending: false });
 
       if (requestId !== conversationRequestRef.current) return;
@@ -461,7 +461,7 @@ export function ChatAdminView() {
 
     const { data, error } = await supabase
       .from('chat_messages')
-      .select('*')
+      .select('id,conversation_id,sender_type,sender_name,message,is_read,message_type,media_url,created_at')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
@@ -492,7 +492,8 @@ export function ChatAdminView() {
       .from('chat_messages')
       .update({ is_read: true })
       .eq('conversation_id', conversationId)
-      .eq('sender_type', 'customer');
+      .eq('sender_type', 'customer')
+      .eq('is_read', false);
     if (unreadCustomerMessages) {
       setUnreadCounts((current) => {
         const next = { ...current };

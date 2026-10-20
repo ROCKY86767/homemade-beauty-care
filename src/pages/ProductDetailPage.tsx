@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Heart, Minus, Plus, ShoppingCart, Zap, Truck, CreditCard, ShieldCheck, ChevronRight, MessageCircle } from 'lucide-react';
+import { Heart, Minus, Plus, ShoppingCart, Zap, Truck, CreditCard, ShieldCheck, ChevronRight, MessageCircle, ZoomIn, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product, Review, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
@@ -28,6 +28,7 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState('description');
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [imageZoomOpen, setImageZoomOpen] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [cartMessage, setCartMessage] = useState('');
   const [reviewForm, setReviewForm] = useState({ name: '', rating: 5, text: '' });
@@ -227,8 +228,12 @@ export default function ProductDetailPage() {
               <img
                 src={gallery[activeImage]}
                 alt={product.name_bn}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025]"
+                fetchPriority="high"
               />
+              <button type="button" onClick={() => setImageZoomOpen(true)} aria-label="পণ্যের ছবি বড় করে দেখুন" title="ছবি বড় করে দেখুন" className="absolute bottom-3 right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-ink shadow-md transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <ZoomIn size={20} />
+              </button>
               {discountPercent > 0 && (
                 <span className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1.5 text-sm font-semibold text-white shadow-sm">
                   Save {discountPercent}%
@@ -245,7 +250,7 @@ export default function ProductDetailPage() {
                       idx === activeImage ? 'border-primary' : 'border-transparent hover:border-gray-200'
                     }`}
                   >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
+                    <img src={img} alt={product.name_bn + " ছবি " + (idx + 1)} loading="lazy" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -560,6 +565,15 @@ export default function ProductDetailPage() {
           </div>
         )}
       </div>
+
+      {imageZoomOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3 sm:p-8" role="dialog" aria-modal="true" aria-label={product.name_bn + " — বড় ছবি"} onClick={() => setImageZoomOpen(false)}>
+          <button type="button" onClick={() => setImageZoomOpen(false)} aria-label="ছবি বন্ধ করুন" className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            <X size={24} />
+          </button>
+          <img src={gallery[activeImage]} alt={product.name_bn} onClick={event => event.stopPropagation()} className="max-h-[90vh] max-w-full rounded-xl object-contain" />
+        </div>
+      )}
 
       {/* Sticky Mobile Add to Cart */}
       <div className="fixed bottom-16 left-0 right-0 z-30 lg:hidden bg-white border-t border-gray-100 p-3 shadow-lg">

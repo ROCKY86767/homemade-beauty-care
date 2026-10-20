@@ -295,7 +295,7 @@ export default function HomePage() { // centralized storefront settings
     <div>
       <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
       {/* Hero Slider */}
-      {banners.length > 0 && (
+      {banners.length > 0 ? (
         <section className="relative hero-premium h-[500px] sm:h-[550px] lg:h-[600px] overflow-hidden">
           {banners.map((banner, idx) => (
             <div
@@ -312,6 +312,9 @@ export default function HomePage() { // centralized storefront settings
                   <img
                     src={banner.desktop_image_url || banner.image_url || banner.mobile_image_url || ''}
                     alt={banner.title_bn}
+                    fetchPriority={idx === currentBanner ? 'high' : 'auto'}
+                    loading={idx === currentBanner ? 'eager' : 'lazy'}
+                    decoding="async"
                     className={`h-full w-full object-cover ${idx === currentBanner ? 'animate-slow-zoom' : ''}`}
                   />
                 </picture>
@@ -396,6 +399,35 @@ export default function HomePage() { // centralized storefront settings
             </>
           )}
         </section>
+      ) : (
+        <section className="relative overflow-hidden brand-gradient text-white">
+          <div className="absolute inset-0 opacity-10" aria-hidden="true">
+            <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full border-[36px] border-white" />
+            <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full border-[42px] border-white" />
+          </div>
+          <div className="section-padding relative z-10 grid min-h-[390px] items-center gap-8 py-12 sm:min-h-[460px] sm:grid-cols-[1.2fr_.8fr] sm:py-16 lg:min-h-[520px]">
+            <div className="max-w-2xl">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-white/75">Homemade Beauty Care</p>
+              <h1 className="font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
+                প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া
+              </h1>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-white/80 sm:text-base">
+                আপনার চুল ও ত্বকের দৈনন্দিন যত্নে বেছে নিন যত্ন করে তৈরি পণ্য। সহজ অর্ডার, নির্ভরযোগ্য সহায়তা এবং ঘরে বসেই ডেলিভারি।
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/shop" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 font-semibold text-dark transition hover:bg-cream">
+                  সব পণ্য দেখুন <ArrowRight size={18} className="ml-2" />
+                </Link>
+                <Link to="/category/hair-care" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/60 px-7 py-3 font-semibold text-white transition hover:bg-white/10">
+                  Hair Care
+                </Link>
+              </div>
+            </div>
+            <div className="mx-auto flex w-full max-w-[260px] items-center justify-center rounded-[2rem] border border-white/20 bg-white/10 p-7 shadow-2xl backdrop-blur-sm sm:max-w-[300px]">
+              <img src="/new-homemade-logo.png" alt="Homemade Beauty Care logo" width="300" height="300" loading="eager" decoding="async" className="aspect-square w-full rounded-2xl object-contain" />
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Trust Strip */}
@@ -450,6 +482,9 @@ export default function HomePage() { // centralized storefront settings
                 <img
                   src={cat.image_url || ''}
                   alt={cat.name_bn}
+                  width="480"
+                  height="360"
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                 />

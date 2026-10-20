@@ -768,6 +768,34 @@ function DashboardView() {
     [delivered]
   );
 
+  const todayOrders = useMemo(() => {
+    const now = new Date();
+    return orders.filter((order) => {
+      const date = new Date(order.created_at);
+      return date.getFullYear() === now.getFullYear()
+        && date.getMonth() === now.getMonth()
+        && date.getDate() === now.getDate();
+    });
+  }, [orders]);
+
+  const pendingOrders = useMemo(
+    () => orders.filter((order) => ['Pending', 'Order Placed', 'Confirmed', 'Processing'].includes(String(order.status || ''))),
+    [orders]
+  );
+
+  const todayDeliveredRevenue = useMemo(
+    () => delivered
+      .filter((order) => {
+        const date = new Date(order.created_at);
+        const now = new Date();
+        return date.getFullYear() === now.getFullYear()
+          && date.getMonth() === now.getMonth()
+          && date.getDate() === now.getDate();
+      })
+      .reduce((sum, order) => sum + Number(order.grand_total ?? order.total ?? 0), 0),
+    [delivered]
+  );
+
   const customers = useMemo(() => {
     const set = new Set<string>();
 
@@ -884,30 +912,13 @@ function DashboardView() {
 
       <ErrorBox error={error} retry={load} />
 
-      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          title="Realized Revenue"
-          value={money(realizedRevenue)}
-          icon={BarChart3}
-        />
-
-        <StatCard
-          title="Total Orders"
-          value={orders.length}
-          icon={ShoppingBag}
-        />
-
-        <StatCard
-          title="Customers"
-          value={customers}
-          icon={Users}
-        />
-
-        <StatCard
-          title="Products"
-          value={products.length}
-          icon={Package}
-        />
+      <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+        <StatCard title="Realized Revenue" value={money(realizedRevenue)} icon={BarChart3} />
+        <StatCard title="Orders Today" value={todayOrders.length} icon={ShoppingBag} />
+        <StatCard title="Pending Orders" value={pendingOrders.length} icon={AlertCircle} />
+        <StatCard title="Delivered Revenue Today" value={money(todayDeliveredRevenue)} icon={BarChart3} />
+        <StatCard title="Customers" value={customers} icon={Users} />
+        <StatCard title="Products" value={products.length} icon={Package} />
       </div>
 
       <div className="grid xl:grid-cols-2 gap-6 mt-6">

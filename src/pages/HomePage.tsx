@@ -86,6 +86,31 @@ export default function HomePage() { // centralized storefront settings
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
+  // Scroll reveal: use IntersectionObserver so the animation works even
+  // in browsers that do not support CSS scroll-driven animation timelines.
+  useEffect(() => {
+    const targets = document.querySelectorAll(
+      'main section:not(.hero-premium) .section-padding > *, main section:not(.hero-premium) .grid > *'
+    );
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach((target) => target.classList.add('hbc-scroll-visible'));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('hbc-scroll-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    targets.forEach((target) => {
+      target.classList.add('hbc-scroll-reveal');
+      observer.observe(target);
+    });
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     getSettings().then(setSettings);
 

@@ -86,9 +86,10 @@ export default function HomePage() { // centralized storefront settings
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
-  // Scroll reveal: use IntersectionObserver so the animation works even
-  // in browsers that do not support CSS scroll-driven animation timelines.
+  // Scroll reveal: wait for homepage data so the target sections are mounted.
+  // IntersectionObserver works even without CSS scroll-driven animation support.
   useEffect(() => {
+    if (loading) return;
     const targets = document.querySelectorAll(
       'main section:not(.hero-premium) .section-padding > *, main section:not(.hero-premium) .grid > *'
     );
@@ -109,7 +110,7 @@ export default function HomePage() { // centralized storefront settings
       observer.observe(target);
     });
     return () => observer.disconnect();
-  }, []);
+  }, [loading]);
 
   useEffect(() => {
     getSettings().then(setSettings);

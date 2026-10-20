@@ -4166,6 +4166,8 @@ function CustomersView() {
 function ReviewsView() {
   const [reviews, setReviews] =
     useState<Review[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
 
   const [loading, setLoading] =
     useState(true);
@@ -4178,19 +4180,25 @@ function ReviewsView() {
     setError('');
 
     try {
-      const { data, error } =
-        await supabase
+      const [
+        { data, error },
+        { data: orderData, error: orderError },
+      ] = await Promise.all([
+        supabase
           .from('reviews')
-          .select(
-            '*, product:products(name_bn,name_en)'
-          )
-          .order('created_at', {
-            ascending: false,
-          });
+          .select('*, product:products(name_bn,name_en)')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('orders')
+          .select('id,order_number,customer_name,mobile,alt_phone,email,district,area,address,status,grand_total,total,created_at')
+          .order('created_at', { ascending: false }),
+      ]);
 
       if (error) throw error;
+      if (orderError) throw orderError;
 
       setReviews(data || []);
+      setOrders(orderData || []);
     } catch (err: any) {
       setError(
         err.message ||
@@ -4300,7 +4308,7 @@ function ReviewsView() {
             className="bg-white rounded-xl border p-5"
           >
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="font-bold">
                     {review.customer_name ||
@@ -4360,6 +4368,23 @@ function ReviewsView() {
                     review.review ||
                     '-'}
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReview(review)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10"
+                  >
+                    <Eye className="h-3.5 w-3.5" /> Customer Details
+                  </button>
+                  {review.customer_phone && (
+                    <a
+                      href={`tel:${review.customer_phone}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      Call: {review.customer_phone}
+                    </a>
+                  )}
+                </div>
               </div>
 
               <div className="flex md:flex-col gap-2 md:w-32">
@@ -4401,6 +4426,54 @@ function ReviewsView() {
           <EmptyState text="No reviews found." />
         </div>
       )}
+
+      {selectedReview && (() => {
+        const phone = normalizePhone(selectedReview.customer_phone);
+        const matchedOrders = phone
+          ? orders.filter((order) => normalizePhone(order.mobile || order.customer_phone) === phone)
+          : [];
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-3 sm:p-5" onClick={() => setSelectedReview(null)}>
+            <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+              <div className="sticky top-0 flex items-center justify-between border-b bg-white px-5 py-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Review Customer Details</h3>
+                  <p className="text-xs text-gray-500">Private admin-only information</p>
+                </div>
+                <button type="button" onClick={() => setSelectedReview(null)} className="rounded-lg p-2 hover:bg-gray-100" aria-label="Close customer details"><X className="h-5 w-5" /></button>
+              </div>
+              <div className="space-y-4 p-5">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Customer Name</p><p className="mt-1 font-semibold">{selectedReview.customer_name || '—'}</p></div>
+                  <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Order Phone Number</p>{selectedReview.customer_phone ? <a className="mt-1 inline-block font-semibold text-primary" href={`tel:${selectedReview.customer_phone}`}>{selectedReview.customer_phone}</a> : <p className="mt-1 text-sm text-gray-500">এই রিভিউয়ের সঙ্গে ফোন নম্বর সংরক্ষিত নেই।</p>}</div>
+                  <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Product</p><p className="mt-1 font-medium">{selectedReview.product?.name_bn || selectedReview.product?.name_en || 'Product'}</p></div>
+                  <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Review Date</p><p className="mt-1 font-medium">{dateTime(selectedReview.created_at)}</p></div>
+                </div>
+                <div className="rounded-xl border p-4">
+                  <h4 className="font-semibold">Matching Orders ({matchedOrders.length})</h4>
+                  {matchedOrders.length ? (
+                    <div className="mt-3 space-y-2">
+                      {matchedOrders.map((order) => (
+                        <div key={order.id} className="rounded-lg bg-gray-50 p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-semibold">#{displayOrderNumber(order)}</p>
+                            <StatusBadge status={order.status} />
+                          </div>
+                          <p className="mt-1 text-sm text-gray-600">{dateTime(order.created_at)} · {money(order.grand_total ?? order.total)}</p>
+                          <p className="mt-1 text-xs text-gray-500">{[order.district, order.area, order.address].filter(Boolean).join(', ') || 'ঠিকানা নেই'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-gray-500">{selectedReview.customer_phone ? 'এই নম্বরের সঙ্গে কোনো অর্ডার মেলেনি।' : 'ফোন নম্বর না থাকায় অর্ডার মেলানো যায়নি।'}</p>
+                  )}
+                </div>
+                <div className="flex justify-end"><button type="button" onClick={() => setSelectedReview(null)} className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50">Close</button></div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

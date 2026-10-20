@@ -73,12 +73,12 @@ export default function Header() {
 
       {/* Main Header */}
       <header
-        className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-300 ${
+        className={`sticky top-0 z-50 bg-[#FCFBF7]/95 backdrop-blur-xl transition-all duration-300 ${
           scrolled ? 'shadow-lg shadow-dark/5' : 'shadow-sm'
         }`}
       >
         <div className="section-padding">
-          <div className="flex items-center gap-2 sm:gap-4 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-4 py-2.5 sm:py-3.5">
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
@@ -89,11 +89,11 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <a href="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0 max-w-[145px] sm:max-w-none">
+            <a href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0 max-w-[155px] sm:max-w-none">
               <img
                 src={settings?.logo_url || '/new-homemade-logo.png'}
                 alt={settings?.brand_name || 'Homemade Beauty Care'}
-                className="h-10 w-10 sm:h-16 sm:w-16 object-contain"
+                className="h-10 w-10 sm:h-[60px] sm:w-[60px] object-contain drop-shadow-sm"
               />
 
               <div className="block sm:block min-w-0">
@@ -119,7 +119,7 @@ export default function Header() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 click-feedback-soft"
+                  className="w-full rounded-full border border-[#E1E5DB] bg-[#F5F4EC] py-3 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 click-feedback-soft"
                 />
 
                 <button
@@ -186,7 +186,7 @@ export default function Header() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products..."
-                className="w-full rounded-full border border-gray-200 bg-cream py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white click-feedback-soft"
+                className="w-full rounded-full border border-[#E1E5DB] bg-[#F5F4EC] py-2.5 pl-5 pr-12 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 click-feedback-soft"
               />
 
               <button
@@ -201,14 +201,14 @@ export default function Header() {
         </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:block border-t border-gray-100">
+        <nav className="hidden lg:block border-t border-[#E5E8DE] bg-white/70">
           <div className="section-padding">
-            <ul className="flex items-center gap-1 py-2">
+            <ul className="flex items-center justify-center gap-1.5 py-2">
               {NAV_LINKS.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="block px-3 py-2 text-sm font-medium text-ink rounded-lg transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
+                    className="block rounded-full px-4 py-2 text-sm font-medium text-ink transition-all duration-200 hover:bg-[#E8EEDF] hover:text-[#3F5732] click-feedback-soft"
                   >
                     {link.label}
                   </Link>

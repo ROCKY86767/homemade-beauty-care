@@ -848,27 +848,3 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .card, .card img, section .grid > a.group[class*="aspect-"] { transition: none !important; }
 }
 
-/* Language choice popup and hidden Google Translate mount */
-.hbc-google-translate { position: fixed; left: -10000px; top: 0; width: 1px; height: 1px; overflow: hidden; }
-.hbc-language-overlay { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(24,39,29,.68); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: hbcLanguageFade .22s ease-out; }
-.hbc-language-modal { position: relative; width: min(100%,430px); padding: 32px 28px 24px; overflow: hidden; text-align: center; border: 1px solid #e1e6d9; border-radius: 28px; background: #fcfbf7; box-shadow: 0 28px 90px rgba(12,30,18,.28); }
-.hbc-language-modal::before { content: ''; position: absolute; width: 150px; height: 150px; border-radius: 50%; right: -85px; top: -85px; background: #e8eedf; }
-.hbc-language-leaf { position: relative; display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto 13px; border-radius: 18px; background: #e8eedf; color: #36563c; font-size: 29px; }
-.hbc-language-eyebrow { margin: 0 0 10px; color: #6b7c56; font-size: 10px; font-weight: 800; letter-spacing: .19em; }
-.hbc-language-title { position: relative; margin: 0; color: #243c2c; font-family: 'Hind Siliguri', sans-serif; font-size: clamp(23px,5vw,29px); font-weight: 700; line-height: 1.3; }
-.hbc-language-description { margin: 12px 0 22px; color: #667064; font-size: 14px; line-height: 1.65; }
-.hbc-language-description span { display: block; margin-top: 2px; font-size: 12px; }
-.hbc-language-option { position: relative; display: flex; width: 100%; flex-direction: column; align-items: center; gap: 3px; padding: 15px 18px; border-radius: 16px; cursor: pointer; transition: transform .18s ease,box-shadow .18s ease,background .18s ease; }
-.hbc-language-option + .hbc-language-option { margin-top: 10px; }
-.hbc-language-option:hover { transform: translateY(-2px); box-shadow: 0 9px 24px rgba(36,60,44,.12); }
-.hbc-language-bn { border: 1px solid #294b34; background: #294b34; color: #fff; }
-.hbc-language-en { border: 1px solid #d5ddce; background: #fff; color: #294b34; }
-.hbc-language-option-title { font-size: 18px; font-weight: 700; }
-.hbc-language-option-subtitle { font-size: 12px; opacity: .88; }
-.hbc-language-note { margin: 17px 0 0; color: #858b80; font-size: 10px; line-height: 1.5; }
-@keyframes hbcLanguageFade { from { opacity: 0; } to { opacity: 1; } }
-@media (max-width: 480px) { .hbc-language-overlay { padding: 14px; } .hbc-language-modal { padding: 27px 19px 21px; border-radius: 24px; } }
-
-.hbc-language-switch { position: fixed; left: 14px; bottom: 18px; z-index: 9990; display: inline-flex; align-items: center; gap: 7px; padding: 10px 13px; border: 1px solid #d8dfd0; border-radius: 999px; background: #fcfbf7; color: #294b34; box-shadow: 0 5px 22px rgba(36,60,44,.15); font-size: 12px; font-weight: 700; cursor: pointer; }
-.hbc-language-switch:hover { background: #e8eedf; }
-@media (max-width: 639px) { .hbc-language-switch { left: 10px; bottom: calc(74px + env(safe-area-inset-bottom)); padding: 9px 11px; } }

@@ -432,13 +432,13 @@ export default function HomePage() { // centralized storefront settings
       )}
 
       {/* Trust Strip */}
-      <section className="bg-cream py-6">
+      <section className="relative z-10 -mt-1 border-y border-[#DDE3D7] bg-[#F7F4EA] py-5 sm:py-7">
         <div className="section-padding">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {TRUST_FEATURES.map((feature, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 rounded-2xl p-3 premium-hover animate-reveal-scale"
+                className="flex items-center gap-3 rounded-2xl border border-[#DDE3D7] bg-white/75 p-3 shadow-[0_4px_18px_rgba(38,58,45,.04)] transition-all duration-300 hover:-translate-y-1 hover:border-[#8FA36F] hover:bg-white hover:shadow-[0_12px_30px_rgba(38,58,45,.09)] animate-reveal-scale"
                 style={{ animationDelay: `${idx * 90}ms` }}
               >
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -461,24 +461,25 @@ export default function HomePage() { // centralized storefront settings
       </section>
 
       {/* Shop by Category */}
-      {settings?.homepage_show_categories !== false && <section className="py-10 sm:py-16">
+      {settings?.homepage_show_categories !== false && <section className="bg-white py-12 sm:py-20">
         <div className="section-padding">
-          <div className="text-center mb-10">
-            <h2 className="font-display section-heading-premium text-2xl sm:text-3xl font-bold text-dark">
+          <div className="mx-auto mb-9 max-w-2xl text-center sm:mb-12">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[.22em] text-[#8A9A70]">Discover your routine</p>
+            <h2 className="font-display section-heading-premium text-3xl font-bold tracking-tight text-dark sm:text-4xl lg:text-5xl">
               Shop by Category
             </h2>
 
-            <p className="mt-2 text-gray-500">
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-gray-500 sm:text-base">
               Choose the right category for your hair & skin care
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
             {categories.map(cat => (
               <Link
                 key={cat.id}
                 to={`/category/${cat.slug}`}
-                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-cream click-feedback-soft"
+                className="group relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#DDE3D7] bg-[#E8EEDF] shadow-[0_8px_28px_rgba(38,58,45,.07)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(38,58,45,.15)] click-feedback-soft"
               >
                 <img
                   src={cat.image_url || ''}
@@ -490,10 +491,10 @@ export default function HomePage() { // centralized storefront settings
                   loading="lazy"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-dark/10 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#17291f]/90 via-[#17291f]/12 to-transparent transition-opacity duration-300 group-hover:from-[#17291f]/95" />
 
-                <div className="absolute inset-x-0 bottom-0 p-4 text-center">
-                  <h3 className="font-display text-lg font-semibold text-white">
+                <div className="absolute inset-x-0 bottom-0 p-4 text-left sm:p-5">
+                  <h3 className="font-display text-base font-semibold leading-snug text-white drop-shadow-sm sm:text-xl">
                     {cat.name_bn}
                   </h3>
                 </div>

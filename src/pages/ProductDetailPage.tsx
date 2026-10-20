@@ -151,6 +151,7 @@ export default function ProductDetailPage() {
     const { error } = await supabase.from('reviews').insert({
       product_id: product.id,
       customer_name: reviewForm.name.trim(),
+      customer_phone: normalizedPhone.replace(/^88/, '').replace(/^/, ''),
       rating: reviewForm.rating,
       review_bn: reviewForm.text.trim(),
       is_approved: false,

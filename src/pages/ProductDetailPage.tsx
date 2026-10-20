@@ -31,7 +31,7 @@ export default function ProductDetailPage() {
   const [imageZoomOpen, setImageZoomOpen] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [cartMessage, setCartMessage] = useState('');
-  const [reviewForm, setReviewForm] = useState({ name: '', rating: 5, text: '' });
+  const [reviewForm, setReviewForm] = useState({ name: '', phone: '', rating: 5, text: '' });
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
@@ -140,7 +140,13 @@ export default function ProductDetailPage() {
     e.preventDefault();
     setReviewError('');
 
-    if (!reviewForm.name.trim() || !reviewForm.text.trim()) return;
+    if (!reviewForm.name.trim() || !reviewForm.phone.trim() || !reviewForm.text.trim()) return;
+
+    const normalizedPhone = reviewForm.phone.replace(/[\s()-]/g, '');
+    if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(normalizedPhone)) {
+      setReviewError('অর্ডারে ব্যবহৃত সঠিক বাংলাদেশি মোবাইল নম্বর দিন।');
+      return;
+    }
 
     const { error } = await supabase.from('reviews').insert({
       product_id: product.id,
@@ -158,7 +164,7 @@ export default function ProductDetailPage() {
     }
 
     setReviewSubmitted(true);
-    setReviewForm({ name: '', rating: 5, text: '' });
+    setReviewForm({ name: '', phone: '', rating: 5, text: '' });
     setTimeout(() => setReviewSubmitted(false), 5000);
   };
 
@@ -478,8 +484,8 @@ export default function ProductDetailPage() {
                     <p className="text-sm text-primary">ধন্যবাদ! আপনার Reviews অ্যাডমিন অনুমোদনের পর প্রকাশ করা হবে।</p>
                   ) : (
                     <form onSubmit={handleReviewSubmit} className="space-y-3">
-                      <div className="flex gap-4">
-                        <div className="flex-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3">
+                        <div>
                           <label className="text-sm font-medium text-ink mb-1 block">আপনার নাম</label>
                           <input
                             type="text"
@@ -489,6 +495,21 @@ export default function ProductDetailPage() {
                             className="input-field"
                             placeholder="নাম"
                           />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-ink mb-1 block">অর্ডারের মোবাইল নম্বর *</label>
+                          <input
+                            type="tel"
+                            inputMode="tel"
+                            autoComplete="tel"
+                            required
+                            value={reviewForm.phone}
+                            onChange={e => setReviewForm({ ...reviewForm, phone: e.target.value })}
+                            className="input-field"
+                            placeholder="01XXXXXXXXX"
+                            aria-describedby="review-phone-help"
+                          />
+                          <p id="review-phone-help" className="mt-1 text-xs text-gray-500">অর্ডার করার সময় যে নম্বর দিয়েছিলেন</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-ink mb-1 block">রেটিং</label>

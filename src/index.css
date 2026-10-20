@@ -868,3 +868,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .hbc-language-note { margin: 17px 0 0; color: #858b80; font-size: 10px; line-height: 1.5; }
 @keyframes hbcLanguageFade { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 480px) { .hbc-language-overlay { padding: 14px; } .hbc-language-modal { padding: 27px 19px 21px; border-radius: 24px; } }
+
+.hbc-language-switch { position: fixed; left: 14px; bottom: 18px; z-index: 9990; display: inline-flex; align-items: center; gap: 7px; padding: 10px 13px; border: 1px solid #d8dfd0; border-radius: 999px; background: #fcfbf7; color: #294b34; box-shadow: 0 5px 22px rgba(36,60,44,.15); font-size: 12px; font-weight: 700; cursor: pointer; }
+.hbc-language-switch:hover { background: #e8eedf; }
+@media (max-width: 639px) { .hbc-language-switch { left: 10px; bottom: calc(74px + env(safe-area-inset-bottom)); padding: 9px 11px; } }

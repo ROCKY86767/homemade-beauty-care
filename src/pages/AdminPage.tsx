@@ -38,6 +38,7 @@ import {
   AlertCircle,
   Copy,
   Bookmark,
+  ChevronDown,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
@@ -385,7 +386,7 @@ export default function AdminPage() {
     { id: 'inventory' as Tab, label: 'Inventory', icon: Package },
     { id: 'reports' as Tab, label: 'Reports', icon: BarChart3 },
     { id: 'settings' as Tab, label: 'Settings', icon: Settings },
-    { id: 'combo' as Tab, label: 'Homepage Combo Offer', icon: Sparkles },
+    { id: 'combo' as Tab, label: 'Homepage Combo Offer', icon: Bookmark },
     { id: 'moderators' as Tab, label: 'Moderators', icon: Users },
   ];
   const settingsNavItems = [

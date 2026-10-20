@@ -296,7 +296,7 @@ export default function HomePage() { // centralized storefront settings
       <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
       {/* Hero Slider */}
       {banners.length > 0 ? (
-        <section className="relative hero-premium h-[500px] sm:h-[550px] lg:h-[600px] overflow-hidden">
+        <section className="relative hero-premium mx-3 my-3 h-[520px] overflow-hidden rounded-[1.5rem] shadow-[0_24px_70px_rgba(38,58,45,.16)] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]">
           {banners.map((banner, idx) => (
             <div
               key={banner.id}
@@ -319,23 +319,24 @@ export default function HomePage() { // centralized storefront settings
                   />
                 </picture>
 
-                <div className="absolute inset-0 bg-gradient-to-r from-dark/70 via-dark/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#17291f]/35 via-transparent to-white/5" />
               </div>
 
-              <div className="relative z-10 h-full section-padding flex items-center">
+              <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 lg:px-16">
                 <div className="max-w-xl text-white">
                   {banner.small_text_bn && (
-                    <p className="text-sm font-medium text-primary-light mb-3 tracking-wider uppercase animate-fade-in-up">
+                    <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[.18em] text-white backdrop-blur-md animate-fade-in-up">
                       {banner.small_text_bn}
                     </p>
                   )}
 
-                  <h1 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 animate-fade-in-up">
+                  <h1 className="mb-5 max-w-[620px] font-display text-3xl font-bold leading-[1.15] tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl xl:text-7xl animate-fade-in-up">
                     {banner.title_bn}
                   </h1>
 
                   {banner.description_bn && (
-                    <p className="text-sm sm:text-base text-white/80 mb-5 sm:mb-6 max-w-md animate-fade-in-up">
+                    <p className="mb-7 max-w-lg text-sm leading-7 text-white/90 sm:text-lg sm:leading-8 animate-fade-in-up">
                       {banner.description_bn}
                     </p>
                   )}
@@ -344,7 +345,7 @@ export default function HomePage() { // centralized storefront settings
                     {banner.button_text_bn && (
                       <Link
                         to={banner.button_link || '/shop'}
-                        className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 font-medium text-white transition-all hover:bg-primary-light hover:shadow-lg active:scale-95 click-feedback-soft"
+                        className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#F7F4EA] px-7 py-3.5 font-semibold text-[#263A2D] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl active:scale-95 click-feedback-soft"
                       >
                         {banner.button_text_bn}
                       </Link>
@@ -353,7 +354,7 @@ export default function HomePage() { // centralized storefront settings
                     {idx === 0 && (
                       <Link
                         to="/shop"
-                        className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-8 py-3.5 font-medium text-white transition-all hover:bg-white hover:text-dark active:scale-95 click-feedback-soft"
+                        className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/60 bg-white/10 px-7 py-3.5 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 active:scale-95 click-feedback-soft"
                       >
                         View Collection
                       </Link>
@@ -368,7 +369,7 @@ export default function HomePage() { // centralized storefront settings
             <>
               <button
                 onClick={prevBanner}
-                className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40 click-feedback-soft"
+                className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-black/35 click-feedback-soft sm:left-5 sm:h-12 sm:w-12"
                 aria-label="Previous banner"
               >
                 <ChevronLeft size={24} />
@@ -376,13 +377,13 @@ export default function HomePage() { // centralized storefront settings
 
               <button
                 onClick={nextBanner}
-                className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40 click-feedback-soft"
+                className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-black/35 click-feedback-soft sm:right-5 sm:h-12 sm:w-12"
                 aria-label="Next banner"
               >
                 <ChevronRight size={24} />
               </button>
 
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+              <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-2 backdrop-blur-md sm:bottom-7">
                 {banners.map((_, idx) => (
                   <button
                     key={idx}
@@ -431,13 +432,13 @@ export default function HomePage() { // centralized storefront settings
       )}
 
       {/* Trust Strip */}
-      <section className="bg-cream py-6">
+      <section className="relative z-10 -mt-1 border-y border-[#DDE3D7] bg-[#F7F4EA] py-5 sm:py-7">
         <div className="section-padding">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {TRUST_FEATURES.map((feature, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 rounded-2xl p-3 premium-hover animate-reveal-scale"
+                className="flex items-center gap-3 rounded-2xl border border-[#DDE3D7] bg-white/75 p-3 shadow-[0_4px_18px_rgba(38,58,45,.04)] transition-all duration-300 hover:-translate-y-1 hover:border-[#8FA36F] hover:bg-white hover:shadow-[0_12px_30px_rgba(38,58,45,.09)] animate-reveal-scale"
                 style={{ animationDelay: `${idx * 90}ms` }}
               >
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -460,24 +461,25 @@ export default function HomePage() { // centralized storefront settings
       </section>
 
       {/* Shop by Category */}
-      {settings?.homepage_show_categories !== false && <section className="py-10 sm:py-16">
+      {settings?.homepage_show_categories !== false && <section className="bg-white py-12 sm:py-20">
         <div className="section-padding">
-          <div className="text-center mb-10">
-            <h2 className="font-display section-heading-premium text-2xl sm:text-3xl font-bold text-dark">
+          <div className="mx-auto mb-9 max-w-2xl text-center sm:mb-12">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[.22em] text-[#8A9A70]">Discover your routine</p>
+            <h2 className="font-display section-heading-premium text-3xl font-bold tracking-tight text-dark sm:text-4xl lg:text-5xl">
               Shop by Category
             </h2>
 
-            <p className="mt-2 text-gray-500">
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-gray-500 sm:text-base">
               Choose the right category for your hair & skin care
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
             {categories.map(cat => (
               <Link
                 key={cat.id}
                 to={`/category/${cat.slug}`}
-                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-cream click-feedback-soft"
+                className="group relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#DDE3D7] bg-[#E8EEDF] shadow-[0_8px_28px_rgba(38,58,45,.07)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(38,58,45,.15)] click-feedback-soft"
               >
                 <img
                   src={cat.image_url || ''}
@@ -489,10 +491,10 @@ export default function HomePage() { // centralized storefront settings
                   loading="lazy"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-dark/10 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#17291f]/90 via-[#17291f]/12 to-transparent transition-opacity duration-300 group-hover:from-[#17291f]/95" />
 
-                <div className="absolute inset-x-0 bottom-0 p-4 text-center">
-                  <h3 className="font-display text-lg font-semibold text-white">
+                <div className="absolute inset-x-0 bottom-0 p-4 text-left sm:p-5">
+                  <h3 className="font-display text-base font-semibold leading-snug text-white drop-shadow-sm sm:text-xl">
                     {cat.name_bn}
                   </h3>
                 </div>

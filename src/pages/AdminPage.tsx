@@ -372,106 +372,49 @@ export default function AdminPage() {
   }
 
   const navItems = [
-    {
-      id: 'dashboard' as Tab,
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-    },
-    {
-      id: 'products' as Tab,
-      label: 'Products',
-      icon: Package,
-    },
-    {
-      id: 'categories' as Tab,
-      label: 'Categories',
-      icon: FolderTree,
-    },
-    {
-      id: 'orders' as Tab,
-      label: 'Orders',
-      icon: ShoppingBag,
-    },
-    {
-      id: 'customers' as Tab,
-      label: 'Customers',
-      icon: Users,
-    },
-    {
-      id: 'chat' as Tab,
-      label: 'Live Chat',
-      icon: MessageCircle,
-    },
-    {
-      id: 'quick-responses' as Tab,
-      label: 'Quick Response',
-      icon: Bookmark,
-    },
-    {
-      id: 'reviews' as Tab,
-      label: 'Reviews',
-      icon: Star,
-    },
-    {
-      id: 'coupons' as Tab,
-      label: 'Coupons',
-      icon: Tag,
-    },
-    {
-      id: 'banners' as Tab,
-      label: 'Banners',
-      icon: ImageIcon,
-    },
-    {
-      id: 'inventory' as Tab,
-      label: 'Inventory',
-      icon: Boxes,
-    },
-    {
-      id: 'reports' as Tab,
-      label: 'Reports',
-      icon: BarChart3,
-    },
-    {
-      id: 'combo' as Tab,
-      label: 'Homepage Combo',
-      icon: Tag,
-    },
-    {
-      id: 'settings-general' as Tab,
-      label: 'General Settings',
-      icon: Settings,
-    },
-    { id: 'settings-store' as Tab, label: 'Store Settings', icon: Settings },
-    { id: 'settings-homepage' as Tab, label: 'Homepage Settings', icon: Settings },
-    { id: 'settings-products' as Tab, label: 'Product Settings', icon: Package },
-    { id: 'settings-checkout' as Tab, label: 'Checkout Settings', icon: ShoppingBag },
-    { id: 'settings-shipping' as Tab, label: 'Shipping Settings', icon: Tag },
-    { id: 'settings-payments' as Tab, label: 'Payment Settings', icon: Settings },
-    { id: 'settings-customers' as Tab, label: 'Customer Settings', icon: Users },
-    { id: 'settings-notifications' as Tab, label: 'Notifications', icon: MessageCircle },
-    { id: 'settings-social' as Tab, label: 'Social Media', icon: Bookmark },
-    { id: 'settings-marketing' as Tab, label: 'Marketing & Analytics', icon: BarChart3 },
-    { id: 'settings-seo' as Tab, label: 'SEO Settings', icon: Search },
-    { id: 'settings-security' as Tab, label: 'Security Settings', icon: Settings },
-    { id: 'settings-integrations' as Tab, label: 'Courier & Integrations', icon: Boxes },
-    { id: 'settings-order-management' as Tab, label: 'Order Management API', icon: RefreshCw },
-    {
-      id: 'moderators' as Tab,
-      label: 'Moderators',
-      icon: Users,
-    },
+    { id: 'dashboard' as Tab, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'products' as Tab, label: 'Products', icon: Package },
+    { id: 'categories' as Tab, label: 'Categories', icon: FolderTree },
+    { id: 'orders' as Tab, label: 'Orders', icon: ShoppingBag },
+    { id: 'customers' as Tab, label: 'Customers', icon: Users },
+    { id: 'chat' as Tab, label: 'Live Chat', icon: MessageCircle },
+    { id: 'quick-responses' as Tab, label: 'Quick Responses', icon: MessageCircle },
+    { id: 'reviews' as Tab, label: 'Reviews', icon: Star },
+    { id: 'coupons' as Tab, label: 'Coupons', icon: Tag },
+    { id: 'banners' as Tab, label: 'Banners', icon: Image },
+    { id: 'inventory' as Tab, label: 'Inventory', icon: Package },
+    { id: 'reports' as Tab, label: 'Reports', icon: BarChart3 },
+    { id: 'settings' as Tab, label: 'Settings', icon: Settings },
+    { id: 'combo' as Tab, label: 'Homepage Combo Offer', icon: Sparkles },
+    { id: 'moderators' as Tab, label: 'Moderators', icon: Users },
+  ];
+  const settingsNavItems = [
+    { id: 'settings-general' as Tab, label: 'General Settings' },
+    { id: 'settings-store' as Tab, label: 'Store Settings' },
+    { id: 'settings-homepage' as Tab, label: 'Homepage Settings' },
+    { id: 'settings-products' as Tab, label: 'Product Settings' },
+    { id: 'settings-checkout' as Tab, label: 'Checkout Settings' },
+    { id: 'settings-shipping' as Tab, label: 'Shipping Settings' },
+    { id: 'settings-payments' as Tab, label: 'Payment Settings' },
+    { id: 'settings-customers' as Tab, label: 'Customer Settings' },
+    { id: 'settings-notifications' as Tab, label: 'Notifications' },
+    { id: 'settings-social' as Tab, label: 'Social Media' },
+    { id: 'settings-marketing' as Tab, label: 'Marketing & Analytics' },
+    { id: 'settings-seo' as Tab, label: 'SEO Settings' },
+    { id: 'settings-security' as Tab, label: 'Security Settings' },
+    { id: 'settings-integrations' as Tab, label: 'Courier & Integrations' },
+    { id: 'settings-order-management' as Tab, label: 'Order Management API' },
   ];
 
   const isAdmin = staffAccess?.role === 'admin';
-  const visibleNavItems = navItems.filter((item) => item.id === 'moderators' ? isAdmin : isAdmin || staffAccess?.permissions?.[item.id] === true || (item.id.startsWith('settings-') && staffAccess?.permissions?.settings === true));
+  const visibleNavItems = navItems.filter((item) => item.id === 'moderators' ? isAdmin : isAdmin || staffAccess?.permissions?.[item.id] === true);
 
   return (
     <div className={`bg-gray-50 ${activeTab === "chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>
       <div className={`${activeTab === "chat" ? "h-full" : "min-h-screen"} flex`} >
         {/* SIDEBAR */}
         <aside
-          className={`fixed lg:static z-50 inset-y-0 left-0 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ${
+          className={`fixed z-50 inset-y-0 left-0 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ${
             mobileMenu
               ? 'translate-x-0'
               : '-translate-x-full lg:translate-x-0'
@@ -497,24 +440,49 @@ export default function AdminPage() {
             <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
               {visibleNavItems.map((item) => {
                 const Icon = item.icon;
-                const active =
-                  activeTab === item.id;
+                const isSettingsItem = item.id === 'settings';
+                const active = isSettingsItem
+                  ? activeTab === 'settings' || activeTab.startsWith('settings-')
+                  : activeTab === item.id;
 
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() =>
-                      navigateTab(item.id)
-                    }
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition ${
-                      active
-                        ? 'bg-primary text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {item.label}
-                  </button>
+                  <div key={item.id}>
+                    <button
+                      onClick={() => {
+                        if (isSettingsItem) {
+                          navigateTab(activeTab.startsWith('settings-') ? 'settings' : 'settings-general');
+                        } else {
+                          navigateTab(item.id);
+                        }
+                        setMobileMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition ${
+                        active ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="flex-1">{item.label}</span>
+                      {isSettingsItem && <ChevronDown className={`w-4 h-4 transition-transform ${active ? 'rotate-180' : ''}`} />}
+                    </button>
+                    {isSettingsItem && active && (
+                      <div className="mt-1 ml-4 pl-3 border-l border-gray-200 space-y-1">
+                        {settingsNavItems.filter((setting) => isAdmin || staffAccess?.permissions?.settings === true).map((setting) => (
+                          <button
+                            key={setting.id}
+                            onClick={() => {
+                              navigateTab(setting.id);
+                              setMobileMenu(false);
+                            }}
+                            className={`w-full rounded-lg px-3 py-2 text-left text-xs sm:text-sm transition ${
+                              activeTab === setting.id ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {setting.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </nav>
@@ -542,7 +510,7 @@ export default function AdminPage() {
         )}
 
         {/* MAIN */}
-        <main className={`flex-1 min-w-0 ${activeTab === "chat" ? "h-full overflow-hidden flex flex-col overscroll-none" : ""}`}>
+        <main className={`flex-1 min-w-0 lg:ml-64 ${activeTab === "chat" ? "h-full overflow-hidden flex flex-col overscroll-none" : ""}`}>
           <header className="h-16 shrink-0 bg-white border-b flex items-center px-4 lg:px-6 sticky top-0 z-30">
             <button
               onClick={() => setMobileMenu(true)}

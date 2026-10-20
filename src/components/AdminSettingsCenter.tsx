@@ -94,18 +94,18 @@ const inputClass = 'w-full rounded-xl border border-gray-200 bg-white px-3.5 py-
 const cardClass = 'rounded-2xl border border-gray-200 bg-white p-5 sm:p-6';
 
 function Field({ label, value, onChange, type = 'text', help }: { label: string; value: any; onChange: (v: any) => void; type?: string; help?: string }) {
-  return <div>
-    <label className="mb-1.5 block text-sm font-medium text-gray-800">{label}</label>
-    <input type={type} value={value ?? ''} onChange={e => onChange(type === 'number' ? Number(e.target.value) : e.target.value)} className={inputClass} />
-    {help && <p className="mt-1 text-xs text-gray-500">{help}</p>}
+  return <div className="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+    <label className="mb-2 block text-sm font-semibold text-gray-800">{label}</label>
+    <input aria-label={label} type={type} value={value ?? ''} onChange={e => onChange(type === 'number' ? Number(e.target.value) : e.target.value)} className={inputClass} />
+    {help && <p className="mt-2 text-xs leading-5 text-gray-500">{help}</p>}
   </div>;
 }
 
 function Area({ label, value, onChange, help }: { label: string; value: any; onChange: (v: string) => void; help?: string }) {
-  return <div>
-    <label className="mb-1.5 block text-sm font-medium text-gray-800">{label}</label>
-    <textarea rows={3} value={value ?? ''} onChange={e => onChange(e.target.value)} className={inputClass} />
-    {help && <p className="mt-1 text-xs text-gray-500">{help}</p>}
+  return <div className="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+    <label className="mb-2 block text-sm font-semibold text-gray-800">{label}</label>
+    <textarea aria-label={label} rows={3} value={value ?? ''} onChange={e => onChange(e.target.value)} className={inputClass} />
+    {help && <p className="mt-2 text-xs leading-5 text-gray-500">{help}</p>}
   </div>;
 }
 
@@ -157,13 +157,13 @@ export default function AdminSettingsCenter() {
   return <div>
     <div className="mb-6">
       <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-      <p className="mt-1 text-sm text-gray-500">WordPress/WooCommerce-style central settings. Existing admin sections stay intact.</p>
+      <p className="mt-1 text-sm text-gray-500">প্রতিটি setting আলাদা card-এ সাজানো—যে option দরকার সেটি সহজে খুঁজে পরিবর্তন করো। Save করলে এই category-র পরিবর্তনগুলো একসাথে সংরক্ষিত হবে।</p>
     </div>
 
     {message && <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" />{message}</div>}
     {error && <div className="mb-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
 
-    <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
+    <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
       <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-2 lg:sticky lg:top-24">
         {groups.map(item => {
           const Icon = item.icon;

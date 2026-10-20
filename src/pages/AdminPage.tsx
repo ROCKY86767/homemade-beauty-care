@@ -382,7 +382,7 @@ export default function AdminPage() {
     { id: 'quick-responses' as Tab, label: 'Quick Responses', icon: MessageCircle },
     { id: 'reviews' as Tab, label: 'Reviews', icon: Star },
     { id: 'coupons' as Tab, label: 'Coupons', icon: Tag },
-    { id: 'banners' as Tab, label: 'Banners', icon: Image },
+    { id: 'banners' as Tab, label: 'Banners', icon: ImageIcon },
     { id: 'inventory' as Tab, label: 'Inventory', icon: Package },
     { id: 'reports' as Tab, label: 'Reports', icon: BarChart3 },
     { id: 'settings' as Tab, label: 'Settings', icon: Settings },

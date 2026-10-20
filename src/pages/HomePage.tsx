@@ -296,7 +296,7 @@ export default function HomePage() { // centralized storefront settings
       <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
       {/* Hero Slider */}
       {banners.length > 0 ? (
-        <section className="relative hero-premium h-[500px] sm:h-[550px] lg:h-[600px] overflow-hidden">
+        <section className="relative hero-premium mx-3 my-3 h-[520px] overflow-hidden rounded-[1.5rem] shadow-[0_24px_70px_rgba(38,58,45,.16)] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]">
           {banners.map((banner, idx) => (
             <div
               key={banner.id}
@@ -319,23 +319,24 @@ export default function HomePage() { // centralized storefront settings
                   />
                 </picture>
 
-                <div className="absolute inset-0 bg-gradient-to-r from-dark/70 via-dark/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#17291f]/35 via-transparent to-white/5" />
               </div>
 
-              <div className="relative z-10 h-full section-padding flex items-center">
+              <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 lg:px-16">
                 <div className="max-w-xl text-white">
                   {banner.small_text_bn && (
-                    <p className="text-sm font-medium text-primary-light mb-3 tracking-wider uppercase animate-fade-in-up">
+                    <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[.18em] text-white backdrop-blur-md animate-fade-in-up">
                       {banner.small_text_bn}
                     </p>
                   )}
 
-                  <h1 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 animate-fade-in-up">
+                  <h1 className="mb-5 max-w-[620px] font-display text-3xl font-bold leading-[1.15] tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl xl:text-7xl animate-fade-in-up">
                     {banner.title_bn}
                   </h1>
 
                   {banner.description_bn && (
-                    <p className="text-sm sm:text-base text-white/80 mb-5 sm:mb-6 max-w-md animate-fade-in-up">
+                    <p className="mb-7 max-w-lg text-sm leading-7 text-white/90 sm:text-lg sm:leading-8 animate-fade-in-up">
                       {banner.description_bn}
                     </p>
                   )}
@@ -344,7 +345,7 @@ export default function HomePage() { // centralized storefront settings
                     {banner.button_text_bn && (
                       <Link
                         to={banner.button_link || '/shop'}
-                        className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 font-medium text-white transition-all hover:bg-primary-light hover:shadow-lg active:scale-95 click-feedback-soft"
+                        className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#F7F4EA] px-7 py-3.5 font-semibold text-[#263A2D] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl active:scale-95 click-feedback-soft"
                       >
                         {banner.button_text_bn}
                       </Link>
@@ -353,7 +354,7 @@ export default function HomePage() { // centralized storefront settings
                     {idx === 0 && (
                       <Link
                         to="/shop"
-                        className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-8 py-3.5 font-medium text-white transition-all hover:bg-white hover:text-dark active:scale-95 click-feedback-soft"
+                        className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/60 bg-white/10 px-7 py-3.5 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 active:scale-95 click-feedback-soft"
                       >
                         View Collection
                       </Link>
@@ -368,7 +369,7 @@ export default function HomePage() { // centralized storefront settings
             <>
               <button
                 onClick={prevBanner}
-                className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40 click-feedback-soft"
+                className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-black/35 click-feedback-soft sm:left-5 sm:h-12 sm:w-12"
                 aria-label="Previous banner"
               >
                 <ChevronLeft size={24} />
@@ -376,13 +377,13 @@ export default function HomePage() { // centralized storefront settings
 
               <button
                 onClick={nextBanner}
-                className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/40 click-feedback-soft"
+                className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-black/35 click-feedback-soft sm:right-5 sm:h-12 sm:w-12"
                 aria-label="Next banner"
               >
                 <ChevronRight size={24} />
               </button>
 
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+              <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-2 backdrop-blur-md sm:bottom-7">
                 {banners.map((_, idx) => (
                   <button
                     key={idx}

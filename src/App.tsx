@@ -11,7 +11,6 @@ import MobileNav from '@/components/MobileNav';
 import LiveChat from '@/components/LiveChat';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import Analytics from '@/components/Analytics';
-import LanguageSelector from '@/components/LanguageSelector';
 import { getSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
@@ -172,7 +171,6 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <LanguageSelector />
       <Analytics />
       <CartProvider>
         <AppContent />

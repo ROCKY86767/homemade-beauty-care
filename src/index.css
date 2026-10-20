@@ -110,41 +110,26 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 @keyframes hbcScrollRevealRight { from { opacity:0; transform:translate3d(55px,22px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
 @keyframes hbcScrollScale { from { opacity:0; transform:scale(.88) translateY(25px); } to { opacity:1; transform:scale(1) translateY(0); } }
 
-/* Chrome/Edge/Safari: scroll-driven animation. */
-@supports (animation-timeline: view()) {
-  main section:not(.hero-premium) .section-padding > * {
-    animation-name:hbcScrollRevealUp;
-    animation-duration:1ms;
-    animation-timing-function:cubic-bezier(.16,1,.3,1);
-    animation-fill-mode:both;
-    animation-timeline:view(block);
-    animation-range:entry 0% cover 28%;
-  }
-  main section:not(.hero-premium) .grid > * {
-    animation-name:hbcScrollScale;
-    animation-duration:1ms;
-    animation-timing-function:cubic-bezier(.16,1,.3,1);
-    animation-fill-mode:both;
-    animation-timeline:view(block);
-    animation-range:entry 0% cover 22%;
-  }
-  main section:not(.hero-premium) .section-heading-premium,
-  main section:not(.hero-premium) h2 {
-    animation-name:hbcScrollRevealUp;
-    animation-duration:1ms;
-    animation-fill-mode:both;
-    animation-timeline:view(block);
-    animation-range:entry 0% cover 30%;
-  }
-  main section:not(.hero-premium) .flex > a,
-  main section:not(.hero-premium) .section-padding > a {
-    animation-name:hbcScrollRevealRight;
-    animation-duration:1ms;
-    animation-fill-mode:both;
-    animation-timeline:view(block);
-    animation-range:entry 0% cover 25%;
-  }
+/* Scroll reveal is activated by IntersectionObserver in HomePage. */
+.hbc-scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 34px, 0) scale(.985);
+  filter: blur(2px);
+  transition: opacity 650ms cubic-bezier(.16,1,.3,1),
+              transform 650ms cubic-bezier(.16,1,.3,1),
+              filter 650ms ease;
+  will-change: opacity, transform, filter;
 }
+.hbc-scroll-reveal.hbc-scroll-visible {
+  opacity: 1;
+  transform: translate3d(0,0,0) scale(1);
+  filter: blur(0);
+}
+.hbc-scroll-reveal:nth-child(2) { transition-delay: 60ms; }
+.hbc-scroll-reveal:nth-child(3) { transition-delay: 120ms; }
+.hbc-scroll-reveal:nth-child(4) { transition-delay: 180ms; }
+.hbc-scroll-reveal:nth-child(5) { transition-delay: 240ms; }
+.hbc-scroll-reveal:nth-child(n+6) { transition-delay: 80ms; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior:auto; }

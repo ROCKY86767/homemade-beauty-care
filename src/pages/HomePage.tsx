@@ -419,7 +419,7 @@ export default function HomePage() { // centralized storefront settings
               <Link
                 key={cat.id}
                 to={`/category/${cat.slug}`}
-                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-cream click-feedback-soft"
+                className="group relative aspect-[4/5] sm:aspect-[4/3] overflow-hidden rounded-2xl bg-cream click-feedback-soft"
               >
                 <img
                   src={cat.image_url || ''}
@@ -465,7 +465,7 @@ export default function HomePage() { // centralized storefront settings
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
               {allProducts.slice(0, 8).map(product => (
                 <ProductCard
                   key={product.id}
@@ -492,7 +492,7 @@ export default function HomePage() { // centralized storefront settings
               </p>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
               {bestSellers.map(product => (
                 <ProductCard
                   key={product.id}

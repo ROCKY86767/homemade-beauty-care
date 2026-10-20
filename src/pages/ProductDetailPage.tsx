@@ -148,10 +148,11 @@ export default function ProductDetailPage() {
       return;
     }
 
+    const reviewId = crypto.randomUUID();
     const { error } = await supabase.from('reviews').insert({
+      id: reviewId,
       product_id: product.id,
       customer_name: reviewForm.name.trim(),
-      customer_phone: normalizedPhone.replace(/^88/, '').replace(/^/, ''),
       rating: reviewForm.rating,
       review_bn: reviewForm.text.trim(),
       is_approved: false,
@@ -161,6 +162,17 @@ export default function ProductDetailPage() {
     if (error) {
       console.error('Review submission error:', error);
       setReviewError('Reviews জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      return;
+    }
+
+    const privatePhone = normalizedPhone.replace(/\D/g, '').replace(/^88/, '');
+    const { error: detailsError } = await supabase.from('review_customer_details').insert({
+      review_id: reviewId,
+      customer_phone: privatePhone,
+    });
+    if (detailsError) {
+      console.error('Review customer details save error:', detailsError);
+      setReviewError('রিভিউ জমা হয়েছে, তবে ফোন নম্বর সংরক্ষণ হয়নি। অনুগ্রহ করে অ্যাডমিনকে জানান।');
       return;
     }
 

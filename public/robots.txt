@@ -8,4 +8,4 @@ Disallow: /my-orders
 Disallow: /checkout
 Disallow: /cart
 
-Sitemap: /sitemap.xml
+Sitemap: https://homemadebeautycare.com/sitemap.xml

@@ -143,3 +143,17 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 @media (max-width:639px) {
   .hbc-scroll-reveal-mobile-safe { transform:none; }
 }
+
+/* Quality pass: visible keyboard focus, reduced motion, and responsive media defaults. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
+button:disabled { cursor: not-allowed; }
+img { height: auto; }
+@media (hover: none) {
+  .card:hover, .premium-hover:hover { transform: none; box-shadow: inherit; }
+  .card:hover img { transform: none; }
+  .shimmer-on-hover:hover::after { background-position: -220% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hbc-scroll-reveal { opacity: 1; transform: none; filter: none; }
+  .animate-reveal-scale, .animate-fade-in, .animate-fade-in-up, .animate-soft-float { animation: none !important; }
+}

@@ -464,7 +464,7 @@ export default function AdminPage() {
   ];
 
   const isAdmin = staffAccess?.role === 'admin';
-  const visibleNavItems = navItems.filter((item) => item.id === 'moderators' ? isAdmin : isAdmin || staffAccess?.permissions?.[item.id] === true);
+  const visibleNavItems = navItems.filter((item) => item.id === 'moderators' ? isAdmin : isAdmin || staffAccess?.permissions?.[item.id] === true || (item.id.startsWith('settings-') && staffAccess?.permissions?.settings === true));
 
   return (
     <div className={`bg-gray-50 ${activeTab === "chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>

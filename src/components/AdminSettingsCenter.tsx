@@ -116,8 +116,8 @@ function Toggle({ label, checked, onChange, help }: { label: string; checked: bo
   </label>;
 }
 
-export default function AdminSettingsCenter() {
-  const [active, setActive] = useState('general');
+export default function AdminSettingsCenter({ initialSection = 'general', standalone = false }: { initialSection?: string; standalone?: boolean }) {
+  const [active, setActive] = useState(initialSection);
   const [form, setForm] = useState<SettingsForm>(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -135,6 +135,8 @@ export default function AdminSettingsCenter() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => { if (groups.some(group => group.id === initialSection)) setActive(initialSection); }, [initialSection]);
 
   const set = (key: string, value: any) => setForm(current => ({ ...current, [key]: value }));
 
@@ -163,15 +165,15 @@ export default function AdminSettingsCenter() {
     {message && <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" />{message}</div>}
     {error && <div className="mb-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
 
-    <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-2 lg:sticky lg:top-24">
+    <div className={standalone ? "grid gap-5" : "grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]"}>
+      {!standalone && <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-2 lg:sticky lg:top-24">
         {groups.map(item => {
           const Icon = item.icon;
           return <button key={item.id} onClick={() => { setActive(item.id); setMessage(''); }} className={`mb-1 w-full rounded-xl px-3 py-2.5 text-left transition ${active === item.id ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-50'}`}>
             <span className="flex items-center gap-3"><Icon className="h-4 w-4 shrink-0" /><span className="min-w-0"><span className="block text-sm font-medium">{item.label}</span><span className={`block truncate text-[11px] ${active === item.id ? 'text-white/70' : 'text-gray-400'}`}>{item.desc}</span></span></span>
           </button>;
         })}
-      </aside>
+      </aside>}
 
       <section>
         <div className={`${cardClass} mb-5`}>

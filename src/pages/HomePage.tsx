@@ -270,7 +270,7 @@ export default function HomePage() { // centralized storefront settings
       <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
       {/* Hero Slider */}
       {banners.length > 0 && (
-        <section className="relative hero-premium h-[500px] sm:h-[550px] lg:h-[600px] overflow-hidden">
+        <section className="relative hero-premium h-[430px] sm:h-[500px] lg:h-[580px] overflow-hidden rounded-b-[28px] sm:rounded-b-[36px]">
           {banners.map((banner, idx) => (
             <div
               key={banner.id}
@@ -375,7 +375,7 @@ export default function HomePage() { // centralized storefront settings
       {/* Trust Strip */}
       <section className="bg-cream py-6">
         <div className="section-padding">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {TRUST_FEATURES.map((feature, idx) => (
               <div
                 key={idx}
@@ -414,12 +414,12 @@ export default function HomePage() { // centralized storefront settings
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
             {categories.map(cat => (
               <Link
                 key={cat.id}
                 to={`/category/${cat.slug}`}
-                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-cream click-feedback-soft"
+                className="group relative aspect-[4/5] sm:aspect-[4/3] overflow-hidden rounded-2xl bg-cream click-feedback-soft"
               >
                 <img
                   src={cat.image_url || ''}
@@ -465,7 +465,7 @@ export default function HomePage() { // centralized storefront settings
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
               {allProducts.slice(0, 8).map(product => (
                 <ProductCard
                   key={product.id}
@@ -492,7 +492,7 @@ export default function HomePage() { // centralized storefront settings
               </p>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
               {bestSellers.map(product => (
                 <ProductCard
                   key={product.id}

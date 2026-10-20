@@ -16,7 +16,7 @@ export default function ProductCard({ product, compactActions = false }: Product
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <div className="group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
+    <div className="group card overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
       <div className="relative aspect-square overflow-hidden bg-cream">
         <Link to={`/product/${product.slug}`}>
           <img

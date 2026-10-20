@@ -596,9 +596,20 @@ export function ChatAdminView() {
   }, []);
 
   useEffect(() => {
-    if (!selected?.id) return;
-    selectedIdRef.current = selected.id;
-    loadMessages(selected.id);
+    const nextId = selected?.id ?? null;
+
+    if (selectedIdRef.current !== nextId) {
+      // Clear the previous conversation immediately so its messages cannot
+      // remain visible while the newly selected conversation is loading.
+      selectedIdRef.current = nextId;
+      messageRequestRef.current += 1;
+      messagesRef.current = [];
+      setMessages([]);
+    }
+
+    if (nextId) {
+      void loadMessages(nextId);
+    }
   }, [selected?.id]);
 
   const adminRecorderRef = useRef<MediaRecorder | null>(null);

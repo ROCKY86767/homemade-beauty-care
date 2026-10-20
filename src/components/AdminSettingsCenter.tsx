@@ -290,9 +290,9 @@ export default function AdminSettingsCenter() {
         {active === 'marketing' && <div className={`grid gap-5 ${cardClass}`}>
           <Toggle label="Meta Pixel" checked={!!form.meta_pixel_enabled} onChange={v => set('meta_pixel_enabled', v)} />
           <Toggle label="Google Analytics" checked={!!form.google_analytics_enabled} onChange={v => set('google_analytics_enabled', v)} />
-          <Field label="Google Analytics / Measurement ID" value={form.google_analytics_id} onChange={v => set('google_analytics_id', v)} />
+          <Field label="Google Analytics / Measurement ID" value={form.google_analytics_id} onChange={v => set('google_analytics_id', v.trim())} help="GA4 ID format: G-XXXXXXXXXX. Get it from Google Analytics → Admin → Data streams. Save the ID, then enable Google Analytics." />
           <Field label="Google Search Console verification code" value={form.google_search_console_code} onChange={v => set('google_search_console_code', v)} />
-          <p className="text-xs text-gray-500">Meta CAPI secret/token stays in the existing secure Integration Center.</p>
+          <p className="text-xs text-gray-500">Meta Pixel ID এবং Conversion API credentials existing Integration Center-এ configure করো। Secret token normal site settings table-এ রাখা হয় না। Google Analytics ও Meta Pixel চালু করার আগে তাদের dashboard থেকে আসল ID বসাও।</p>
         </div>}
 
         {active === 'seo' && <div className={`grid gap-5 ${cardClass}`}>

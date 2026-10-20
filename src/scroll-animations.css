@@ -1,149 +1,141 @@
-/* Homemade Beauty Care — premium scroll storytelling motion system */
+/* Homemade Beauty Care — real scroll storytelling motion */
 
 @keyframes hbc-section-reveal {
-  from { opacity: 0; transform: translate3d(0, 64px, 0) scale(.985); }
+  from { opacity: 0; transform: translate3d(0, 56px, 0) scale(.985); }
   to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 @keyframes hbc-card-reveal {
-  from { opacity: 0; transform: translate3d(0, 42px, 0) scale(.94); }
+  from { opacity: 0; transform: translate3d(0, 34px, 0) scale(.94); }
   to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 @keyframes hbc-heading-reveal {
-  from { opacity: 0; transform: translate3d(0, 30px, 0); clip-path: inset(100% 0 0 0); }
+  from { opacity: 0; transform: translate3d(0, 26px, 0); clip-path: inset(100% 0 0 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); clip-path: inset(0 0 0 0); }
 }
 
 @keyframes hbc-image-reveal {
-  from { opacity: .35; transform: scale(1.045) translate3d(0, 18px, 0); }
+  from { opacity: .45; transform: scale(1.035) translate3d(0, 14px, 0); }
   to { opacity: 1; transform: scale(1) translate3d(0, 0, 0); }
 }
 
-/* The banner must NOT zoom automatically when the website opens. */
+/* The hero banner stays completely still. */
 .animate-slow-zoom {
   animation: none !important;
   transform: none !important;
   scale: 1 !important;
 }
 
-/* Modern browsers: real scroll-driven animation tied to viewport visibility. */
+/* Important: use section directly, not main section. The storefront does not
+   require a <main> wrapper on every route, so this selector is intentionally broad. */
 @supports (animation-timeline: view()) {
-  main section:not(.hero-premium) {
+  section:not(.hero-premium) {
     animation-name: hbc-section-reveal;
     animation-duration: 1ms;
-    animation-timing-function: cubic-bezier(.2,.75,.25,1);
+    animation-timing-function: cubic-bezier(.16,1,.3,1);
     animation-fill-mode: both;
     animation-timeline: view(block);
-    animation-range: entry 0% cover 34%;
+    animation-range: entry 0% cover 30%;
   }
 
-  main section:not(.hero-premium) h2 {
+  section:not(.hero-premium) h2,
+  section:not(.hero-premium) .section-heading-premium {
     animation-name: hbc-heading-reveal;
     animation-duration: 1ms;
-    animation-timing-function: cubic-bezier(.2,.8,.2,1);
-    animation-fill-mode: both;
-    animation-timeline: view(block);
-    animation-range: entry 4% cover 30%;
-  }
-
-  main section:not(.hero-premium) .grid > *,
-  main section:not(.hero-premium) .flex > .card {
-    animation-name: hbc-card-reveal;
-    animation-duration: 1ms;
-    animation-timing-function: cubic-bezier(.2,.8,.2,1);
+    animation-timing-function: cubic-bezier(.16,1,.3,1);
     animation-fill-mode: both;
     animation-timeline: view(block);
     animation-range: entry 0% cover 28%;
   }
 
-  /* Deliberate stagger: each card enters at a slightly different point in the viewport. */
-  main section:not(.hero-premium) .grid > *:nth-child(2) { animation-range: entry 4% cover 32%; }
-  main section:not(.hero-premium) .grid > *:nth-child(3) { animation-range: entry 8% cover 36%; }
-  main section:not(.hero-premium) .grid > *:nth-child(4) { animation-range: entry 12% cover 40%; }
-  main section:not(.hero-premium) .grid > *:nth-child(5) { animation-range: entry 16% cover 44%; }
-  main section:not(.hero-premium) .grid > *:nth-child(6) { animation-range: entry 20% cover 48%; }
-  main section:not(.hero-premium) .grid > *:nth-child(7) { animation-range: entry 24% cover 52%; }
-  main section:not(.hero-premium) .grid > *:nth-child(8) { animation-range: entry 28% cover 56%; }
+  section:not(.hero-premium) .grid > * {
+    animation-name: hbc-card-reveal;
+    animation-duration: 1ms;
+    animation-timing-function: cubic-bezier(.16,1,.3,1);
+    animation-fill-mode: both;
+    animation-timeline: view(block);
+    animation-range: entry 0% cover 24%;
+  }
 
-  /* Selected imagery gets a restrained scroll reveal rather than the old automatic zoom. */
-  main section:not(.hero-premium) .relative.overflow-hidden img,
-  main section:not(.hero-premium) a.group img {
+  section:not(.hero-premium) .grid > *:nth-child(2) { animation-range: entry 4% cover 28%; }
+  section:not(.hero-premium) .grid > *:nth-child(3) { animation-range: entry 8% cover 32%; }
+  section:not(.hero-premium) .grid > *:nth-child(4) { animation-range: entry 12% cover 36%; }
+  section:not(.hero-premium) .grid > *:nth-child(5) { animation-range: entry 16% cover 40%; }
+  section:not(.hero-premium) .grid > *:nth-child(6) { animation-range: entry 20% cover 44%; }
+  section:not(.hero-premium) .grid > *:nth-child(7) { animation-range: entry 24% cover 48%; }
+  section:not(.hero-premium) .grid > *:nth-child(8) { animation-range: entry 28% cover 52%; }
+
+  section:not(.hero-premium) .relative.overflow-hidden img,
+  section:not(.hero-premium) a.group img {
     animation-name: hbc-image-reveal;
     animation-duration: 1ms;
     animation-timing-function: linear;
     animation-fill-mode: both;
     animation-timeline: view(block);
-    animation-range: entry 0% cover 42%;
-  }
-
-  /* Icons stay still; only content around them moves. */
-  main section:not(.hero-premium) svg,
-  main section:not(.hero-premium) .h-12,
-  main section:not(.hero-premium) .h-10 {
-    animation: none !important;
+    animation-range: entry 0% cover 38%;
   }
 }
 
-/* Hover motion remains separate from scroll motion. */
-main section:not(.hero-premium) .card,
-main section:not(.hero-premium) a.group[class*="aspect-"] {
+/* A reliable fallback for browsers that don't support scroll timelines. */
+@supports not (animation-timeline: view()) {
+  section:not(.hero-premium) {
+    animation: hbc-section-reveal .75s cubic-bezier(.16,1,.3,1) both;
+  }
+}
+
+/* Premium hover motion remains independent from scroll motion. */
+section:not(.hero-premium) .card,
+section:not(.hero-premium) a.group[class*="aspect-"] {
   transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s ease, border-color .3s ease;
   will-change: transform;
 }
 
-main section:not(.hero-premium) .card:hover,
-main section:not(.hero-premium) a.group[class*="aspect-"]:hover {
+section:not(.hero-premium) .card:hover,
+section:not(.hero-premium) a.group[class*="aspect-"]:hover {
   transform: translateY(-8px);
   box-shadow: 0 22px 50px rgb(38 58 45 / .14);
 }
 
-main section:not(.hero-premium) a.group[class*="aspect-"] img {
+section:not(.hero-premium) a.group[class*="aspect-"] img {
   transition: transform .8s cubic-bezier(.2,.8,.2,1), filter .5s ease;
 }
 
-main section:not(.hero-premium) a.group[class*="aspect-"]:hover img {
+section:not(.hero-premium) a.group[class*="aspect-"]:hover img {
   transform: scale(1.07);
   filter: saturate(1.05);
 }
 
-main section:not(.hero-premium) a.rounded-full,
-main section:not(.hero-premium) button.rounded-full {
+section:not(.hero-premium) a.rounded-full,
+section:not(.hero-premium) button.rounded-full {
   transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, background-color .25s ease;
 }
 
-main section:not(.hero-premium) a.rounded-full:hover,
-main section:not(.hero-premium) button.rounded-full:hover {
+section:not(.hero-premium) a.rounded-full:hover,
+section:not(.hero-premium) button.rounded-full:hover {
   transform: translateY(-2px);
 }
 
 @media (max-width: 639px) {
   @supports (animation-timeline: view()) {
-    main section:not(.hero-premium) {
-      animation-range: entry 0% cover 28%;
-    }
-    main section:not(.hero-premium) .grid > * {
-      animation-range: entry 0% cover 24%;
-    }
+    section:not(.hero-premium) { animation-range: entry 0% cover 26%; }
+    section:not(.hero-premium) .grid > * { animation-range: entry 0% cover 22%; }
   }
 
-  main section:not(.hero-premium) .card:hover,
-  main section:not(.hero-premium) a.group[class*="aspect-"]:hover {
+  section:not(.hero-premium) .card:hover,
+  section:not(.hero-premium) a.group[class*="aspect-"]:hover {
     transform: translateY(-4px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  main section:not(.hero-premium),
-  main section:not(.hero-premium) h2,
-  main section:not(.hero-premium) .grid > *,
-  main section:not(.hero-premium) img {
+  section:not(.hero-premium),
+  section:not(.hero-premium) h2,
+  section:not(.hero-premium) .grid > *,
+  section:not(.hero-premium) img {
     animation: none !important;
     transform: none !important;
   }
-
-  main section:not(.hero-premium) .card,
-  main section:not(.hero-premium) a.group[class*="aspect-"] {
-    transition: none !important;
-  }
+  section:not(.hero-premium) .card,
+  section:not(.hero-premium) a.group[class*="aspect-"] { transition: none !important; }
 }

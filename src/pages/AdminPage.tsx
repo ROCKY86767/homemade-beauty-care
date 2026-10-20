@@ -69,6 +69,21 @@ type Tab =
   | 'inventory'
   | 'reports'
   | 'settings'
+  | 'settings-general'
+  | 'settings-store'
+  | 'settings-homepage'
+  | 'settings-products'
+  | 'settings-checkout'
+  | 'settings-shipping'
+  | 'settings-payments'
+  | 'settings-customers'
+  | 'settings-notifications'
+  | 'settings-social'
+  | 'settings-marketing'
+  | 'settings-seo'
+  | 'settings-security'
+  | 'settings-integrations'
+  | 'settings-order-management'
   | 'combo'
   | 'moderators';
 
@@ -261,6 +276,21 @@ export default function AdminPage() {
       'inventory',
       'reports',
       'settings',
+      'settings-general',
+      'settings-store',
+      'settings-homepage',
+      'settings-products',
+      'settings-checkout',
+      'settings-shipping',
+      'settings-payments',
+      'settings-customers',
+      'settings-notifications',
+      'settings-social',
+      'settings-marketing',
+      'settings-seo',
+      'settings-security',
+      'settings-integrations',
+      'settings-order-management',
       'combo',
     ];
 
@@ -408,10 +438,24 @@ export default function AdminPage() {
       icon: Tag,
     },
     {
-      id: 'settings' as Tab,
-      label: 'Settings',
+      id: 'settings-general' as Tab,
+      label: 'General Settings',
       icon: Settings,
     },
+    { id: 'settings-store' as Tab, label: 'Store Settings', icon: Settings },
+    { id: 'settings-homepage' as Tab, label: 'Homepage Settings', icon: Settings },
+    { id: 'settings-products' as Tab, label: 'Product Settings', icon: Package },
+    { id: 'settings-checkout' as Tab, label: 'Checkout Settings', icon: ShoppingBag },
+    { id: 'settings-shipping' as Tab, label: 'Shipping Settings', icon: Tag },
+    { id: 'settings-payments' as Tab, label: 'Payment Settings', icon: Settings },
+    { id: 'settings-customers' as Tab, label: 'Customer Settings', icon: Users },
+    { id: 'settings-notifications' as Tab, label: 'Notifications', icon: MessageCircle },
+    { id: 'settings-social' as Tab, label: 'Social Media', icon: Bookmark },
+    { id: 'settings-marketing' as Tab, label: 'Marketing & Analytics', icon: BarChart3 },
+    { id: 'settings-seo' as Tab, label: 'SEO Settings', icon: Search },
+    { id: 'settings-security' as Tab, label: 'Security Settings', icon: Settings },
+    { id: 'settings-integrations' as Tab, label: 'Courier & Integrations', icon: Boxes },
+    { id: 'settings-order-management' as Tab, label: 'Order Management API', icon: RefreshCw },
     {
       id: 'moderators' as Tab,
       label: 'Moderators',
@@ -570,8 +614,23 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'settings' && (
-              <IntegrationSettingsView />
+              <AdminSettingsCenter initialSection="general" standalone />
             )}
+            {activeTab === 'settings-general' && <AdminSettingsCenter initialSection="general" standalone />}
+            {activeTab === 'settings-store' && <AdminSettingsCenter initialSection="store" standalone />}
+            {activeTab === 'settings-homepage' && <AdminSettingsCenter initialSection="homepage" standalone />}
+            {activeTab === 'settings-products' && <AdminSettingsCenter initialSection="products" standalone />}
+            {activeTab === 'settings-checkout' && <AdminSettingsCenter initialSection="checkout" standalone />}
+            {activeTab === 'settings-shipping' && <AdminSettingsCenter initialSection="shipping" standalone />}
+            {activeTab === 'settings-payments' && <AdminSettingsCenter initialSection="payments" standalone />}
+            {activeTab === 'settings-customers' && <AdminSettingsCenter initialSection="customers" standalone />}
+            {activeTab === 'settings-notifications' && <AdminSettingsCenter initialSection="notifications" standalone />}
+            {activeTab === 'settings-social' && <AdminSettingsCenter initialSection="social" standalone />}
+            {activeTab === 'settings-marketing' && <AdminSettingsCenter initialSection="marketing" standalone />}
+            {activeTab === 'settings-seo' && <AdminSettingsCenter initialSection="seo" standalone />}
+            {activeTab === 'settings-security' && <AdminSettingsCenter initialSection="security" standalone />}
+            {activeTab === 'settings-integrations' && <AdminIntegrationCenter />}
+            {activeTab === 'settings-order-management' && <OrderManagementIntegrationCenter />}
           </div>
         </main>
       </div>

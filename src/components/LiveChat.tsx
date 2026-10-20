@@ -148,7 +148,7 @@ export default function LiveChat() {
   }, [open]);
 
   useEffect(() => {
-    if (!open || !conversation?.id) return;
+    if (!conversation?.id) return;
     let active = true;
     const syncChat = async () => {
       const id = localStorage.getItem(CONVERSATION_KEY);
@@ -169,8 +169,10 @@ export default function LiveChat() {
         setMessage('');
       }
     };
-    syncChat();
-    const timer = window.setInterval(syncChat, 1500);
+    void syncChat();
+    // Keep syncing while the widget is minimized so replies can trigger
+    // browser notifications; a slower interval avoids excessive polling.
+    const timer = window.setInterval(() => { void syncChat(); }, 5000);
     return () => { active = false; window.clearInterval(timer); };
   }, [open, conversation?.id]);
 

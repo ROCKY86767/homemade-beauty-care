@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://homemadebeautycare.com/</loc></url>
-  <url><loc>https://homemadebeautycare.com/shop</loc></url>
-  <url><loc>https://homemadebeautycare.com/offers</loc></url>
-  <url><loc>https://homemadebeautycare.com/new-arrivals</loc></url>
-  <url><loc>https://homemadebeautycare.com/about</loc></url>
-  <url><loc>https://homemadebeautycare.com/contact</loc></url>
-  <url><loc>https://homemadebeautycare.com/delivery-information</loc></url>
-  <url><loc>https://homemadebeautycare.com/returns-refunds</loc></url>
-  <url><loc>https://homemadebeautycare.com/privacy-policy</loc></url>
-  <url><loc>https://homemadebeautycare.com/track-order</loc></url>
+  <url><loc>https://homemadebeautycare.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://homemadebeautycare.com/shop</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://homemadebeautycare.com/category/hair-care</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/category/hair-oil</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/category/hair-pack</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/category/skin-care</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/category/face-care</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/category/face-pack</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/offers</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/new-arrivals</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://homemadebeautycare.com/about</loc><priority>0.5</priority></url>
+  <url><loc>https://homemadebeautycare.com/contact</loc><priority>0.5</priority></url>
+  <url><loc>https://homemadebeautycare.com/delivery-information</loc><priority>0.5</priority></url>
+  <url><loc>https://homemadebeautycare.com/returns-refunds</loc><priority>0.5</priority></url>
+  <url><loc>https://homemadebeautycare.com/privacy-policy</loc><priority>0.3</priority></url>
 </urlset>

@@ -848,3 +848,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .card, .card img, section .grid > a.group[class*="aspect-"] { transition: none !important; }
 }
 
+
+
+/* Disable automatic zoom on storefront banners when the website opens. */
+.animate-slow-zoom,
+.hero-premium img,
+.hero-premium .animate-slow-zoom {
+  animation: none !important;
+  transform: none !important;
+  scale: 1 !important;
+}

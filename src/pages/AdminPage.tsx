@@ -4167,6 +4167,7 @@ function ReviewsView() {
   const [reviews, setReviews] =
     useState<Review[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [reviewDetails, setReviewDetails] = useState<any[]>([]);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
 
   const [loading, setLoading] =
@@ -4183,6 +4184,7 @@ function ReviewsView() {
       const [
         { data, error },
         { data: orderData, error: orderError },
+        { data: detailsData, error: detailsError },
       ] = await Promise.all([
         supabase
           .from('reviews')
@@ -4192,13 +4194,16 @@ function ReviewsView() {
           .from('orders')
           .select('id,order_number,customer_name,mobile,alt_phone,email,district,area,address,status,grand_total,total,created_at')
           .order('created_at', { ascending: false }),
+        supabase.from('review_customer_details').select('review_id,customer_phone,created_at'),
       ]);
 
       if (error) throw error;
       if (orderError) throw orderError;
+      if (detailsError) throw detailsError;
 
       setReviews(data || []);
       setOrders(orderData || []);
+      setReviewDetails(detailsData || []);
     } catch (err: any) {
       setError(
         err.message ||
@@ -4376,12 +4381,12 @@ function ReviewsView() {
                   >
                     <Eye className="h-3.5 w-3.5" /> Customer Details
                   </button>
-                  {review.customer_phone && (
+                  {reviewDetails.find((detail) => detail.review_id === review.id)?.customer_phone && (
                     <a
-                      href={`tel:${review.customer_phone}`}
+                      href={`tel:${reviewDetails.find((detail) => detail.review_id === review.id)?.customer_phone}`}
                       className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                     >
-                      Call: {review.customer_phone}
+                      Call: {reviewDetails.find((detail) => detail.review_id === review.id)?.customer_phone}
                     </a>
                   )}
                 </div>
@@ -4428,7 +4433,8 @@ function ReviewsView() {
       )}
 
       {selectedReview && (() => {
-        const phone = normalizePhone(selectedReview.customer_phone);
+        const selectedPhone = reviewDetails.find((detail) => detail.review_id === selectedReview.id)?.customer_phone || '';
+        const phone = normalizePhone(selectedPhone);
         const matchedOrders = phone
           ? orders.filter((order) => normalizePhone(order.mobile || order.customer_phone) === phone)
           : [];
@@ -4445,7 +4451,7 @@ function ReviewsView() {
               <div className="space-y-4 p-5">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Customer Name</p><p className="mt-1 font-semibold">{selectedReview.customer_name || '—'}</p></div>
-                  <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Order Phone Number</p>{selectedReview.customer_phone ? <a className="mt-1 inline-block font-semibold text-primary" href={`tel:${selectedReview.customer_phone}`}>{selectedReview.customer_phone}</a> : <p className="mt-1 text-sm text-gray-500">এই রিভিউয়ের সঙ্গে ফোন নম্বর সংরক্ষিত নেই।</p>}</div>
+                  <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Order Phone Number</p>{selectedPhone ? <a className="mt-1 inline-block font-semibold text-primary" href={`tel:${selectedPhone}`}>{selectedPhone}</a> : <p className="mt-1 text-sm text-gray-500">এই রিভিউয়ের সঙ্গে ফোন নম্বর সংরক্ষিত নেই।</p>}</div>
                   <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Product</p><p className="mt-1 font-medium">{selectedReview.product?.name_bn || selectedReview.product?.name_en || 'Product'}</p></div>
                   <div className="rounded-xl border bg-gray-50 p-4"><p className="text-xs text-gray-500">Review Date</p><p className="mt-1 font-medium">{dateTime(selectedReview.created_at)}</p></div>
                 </div>
@@ -4465,7 +4471,7 @@ function ReviewsView() {
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-2 text-sm text-gray-500">{selectedReview.customer_phone ? 'এই নম্বরের সঙ্গে কোনো অর্ডার মেলেনি।' : 'ফোন নম্বর না থাকায় অর্ডার মেলানো যায়নি।'}</p>
+                    <p className="mt-2 text-sm text-gray-500">{selectedPhone ? 'এই নম্বরের সঙ্গে কোনো অর্ডার মেলেনি।' : 'ফোন নম্বর না থাকায় অর্ডার মেলানো যায়নি।'}</p>
                   )}
                 </div>
                 <div className="flex justify-end"><button type="button" onClick={() => setSelectedReview(null)} className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50">Close</button></div>

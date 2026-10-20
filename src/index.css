@@ -564,3 +564,10 @@ textarea {
   0% { opacity: .16; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(24); }
 }
+
+/* Disable automatic zoom on storefront banners when the website opens. */
+.animate-slow-zoom {
+  animation: none !important;
+  transform: none !important;
+  scale: 1 !important;
+}

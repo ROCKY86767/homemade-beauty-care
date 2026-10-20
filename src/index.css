@@ -157,3 +157,40 @@ img { height: auto; }
   .hbc-scroll-reveal { opacity: 1; transform: none; filter: none; }
   .animate-reveal-scale, .animate-fade-in, .animate-fade-in-up, .animate-soft-float { animation: none !important; }
 }
+
+
+/* Accessible, polished interactions across storefront and admin */
+:focus-visible {
+  outline: 3px solid rgb(180 111 79 / .78);
+  outline-offset: 3px;
+}
+input, select, textarea {
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 4px rgb(95 116 72 / .14);
+}
+button:disabled {
+  cursor: not-allowed;
+}
+::placeholder {
+  color: #879087;
+  opacity: 1;
+}
+img {
+  height: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+@media (hover: none) {
+  .card:hover, .premium-hover:hover { transform: none; }
+}

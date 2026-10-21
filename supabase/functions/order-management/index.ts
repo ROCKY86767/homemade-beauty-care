@@ -334,7 +334,8 @@ async function webhook(p: any, req: Request) {
   const cfg = q.data;
   const secret = (await secrets(id)).WEBHOOK_SECRET;
   const header = cfg.webhook_secret_header || "x-webhook-secret";
-  if (secret && req.headers.get(header) !== secret) return out({ success: false, message: "Invalid webhook secret." }, 401);
+  if (!secret) return out({ success: false, message: "Webhook secret is not configured." }, 403);
+  if (req.headers.get(header) !== secret) return out({ success: false, message: "Invalid webhook secret." }, 401);
 
   if (cfg.webhook_enabled === false) return out({ success: false, message: "Webhook is disabled." }, 403);
   const payload = p.payload ?? p.data ?? p;

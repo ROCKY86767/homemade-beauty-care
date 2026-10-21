@@ -197,6 +197,7 @@ export default function OrderTrackingPage() {
               <p className="text-xs text-gray-400 mt-1.5">
                 অর্ডারের সময় যে মোবাইল নম্বর দিয়েছেন, সেটি দিন।
               </p>
+              </div>
             </div>
 
             {error && (

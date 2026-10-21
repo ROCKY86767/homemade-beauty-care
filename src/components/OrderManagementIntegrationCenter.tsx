@@ -87,7 +87,7 @@ const blank = (): Integration => ({
   status_mapping: {
     pending: 'Pending', confirmed: 'Confirmed', processing: 'Processing', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled'
   },
-  webhook_enabled: true,
+  webhook_enabled: false,
   provider_settings: {}
 });
 
@@ -348,7 +348,7 @@ export default function OrderManagementIntegrationCenter() {
     <div><label className="block text-sm font-medium mb-1.5">Webhook Payment Status Path</label><input value={current.webhook_payment_status_path || ''} onChange={e=>setCurrent({...current,webhook_payment_status_path:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" placeholder="data.payment_status" /></div>
     <div><label className="block text-sm font-medium mb-1.5">Webhook Secret Header</label><input value={current.webhook_secret_header || 'x-webhook-secret'} onChange={e=>setCurrent({...current,webhook_secret_header:e.target.value})} className="w-full border rounded-lg px-3 py-2.5 text-sm" /></div>
   </div>
-  <p className="text-xs text-amber-800 mt-2">Webhook endpoint: /functions/v1/order-management — integration_id query/body এবং saved Webhook Secret ব্যবহার করবে।</p>
+  <p className="text-xs text-amber-800 mt-2">Webhook endpoint: /functions/v1/order-management — integration_id query/body এবং saved Webhook Secret ব্যবহার করবে। নিরাপত্তার জন্য আগে Webhook Secret save করো, তারপর webhook enable করো; secret ছাড়া incoming webhook reject হবে।</p>
 </div>
 <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">
           API secret কখনো website code-এ যাবে না। Save করলে Supabase Vault-এ থাকবে। Order create হলে external Order ID ও Invoice URL আলাদাভাবে সংরক্ষণ করা হবে।

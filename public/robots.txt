@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+
+# Keep private/account and checkout pages out of crawling
 Disallow: /admin
 Disallow: /login
 Disallow: /reset-password
@@ -8,4 +10,4 @@ Disallow: /my-orders
 Disallow: /checkout
 Disallow: /cart
 
-Sitemap: https://homemadebeautycare.com/sitemap.xml
+Sitemap: https://homemade-beauty-care.vercel.app/sitemap.xml

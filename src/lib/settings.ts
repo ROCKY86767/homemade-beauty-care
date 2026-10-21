@@ -90,9 +90,22 @@ export async function getSettings(): Promise<SiteSettings> {
 }
 
 export async function updateSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {
+  // The Admin Settings UI keeps a form merged with defaults. Only persist fields
+  // that actually differ from the last loaded settings snapshot so saving one
+  // category cannot accidentally reset values belonging to another category.
+  const current = cachedSettings || await getSettings();
+  const safeUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([key, value]) => {
+      if (key === 'id') return false;
+      return (current as any)[key] !== value;
+    })
+  ) as Partial<SiteSettings>;
+
+  if (Object.keys(safeUpdates).length === 0) return current;
+
   const { data, error } = await supabase
     .from('site_settings')
-    .update(updates)
+    .update(safeUpdates)
     .eq('id', 1)
     .select()
     .single();

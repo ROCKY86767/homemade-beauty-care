@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import type { Product, Review, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
 import { getSettings } from '@/lib/settings';
+import { verifyCustomerPurchasedProduct } from '@/lib/reviewVerification';
 import { formatPrice, calculateDiscount, calculateDiscountPercent } from '@/lib/format';
 import StarRating from '@/components/StarRating';
 import ProductCard from '@/components/ProductCard';
@@ -140,7 +141,10 @@ export default function ProductDetailPage() {
     e.preventDefault();
     setReviewError('');
 
-    if (!reviewForm.name.trim() || !reviewForm.phone.trim() || !reviewForm.text.trim()) return;
+    if (!reviewForm.name.trim() || !reviewForm.phone.trim() || !reviewForm.text.trim()) {
+      setReviewError('নাম, অর্ডারের মোবাইল নম্বর ও রিভিউ লিখুন।');
+      return;
+    }
 
     const normalizedPhone = reviewForm.phone.replace(/[\s()-]/g, '');
     if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(normalizedPhone)) {
@@ -148,37 +152,40 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const reviewId = crypto.randomUUID();
-    const { error } = await supabase.from('reviews').insert({
-      id: reviewId,
-      product_id: product.id,
-      customer_name: reviewForm.name.trim(),
-      rating: reviewForm.rating,
-      review_bn: reviewForm.text.trim(),
-      is_approved: false,
-      is_verified: false,
-    });
+    try {
+      const purchased = await verifyCustomerPurchasedProduct(product.id, normalizedPhone);
+      if (!purchased) {
+        setReviewError('এই নম্বর দিয়ে এই পণ্যের Delivered অর্ডার পাওয়া যায়নি। অর্ডারে ব্যবহৃত নম্বর দিন।');
+        return;
+      }
 
-    if (error) {
+      const privatePhone = normalizedPhone.replace(/\D/g, '').replace(/^88/, '');
+      const reviewId = crypto.randomUUID();
+      const { error } = await supabase.from('reviews').insert({
+        id: reviewId,
+        product_id: product.id,
+        customer_name: reviewForm.name.trim(),
+        rating: reviewForm.rating,
+        review_bn: reviewForm.text.trim(),
+        is_approved: false,
+        is_verified: true,
+      });
+
+      if (error) throw error;
+
+      const { error: detailsError } = await supabase.from('review_customer_details').insert({
+        review_id: reviewId,
+        customer_phone: privatePhone,
+      });
+      if (detailsError) throw detailsError;
+
+      setReviewSubmitted(true);
+      setReviewForm({ name: '', phone: '', rating: 5, text: '' });
+      setTimeout(() => setReviewSubmitted(false), 5000);
+    } catch (error: any) {
       console.error('Review submission error:', error);
-      setReviewError('Reviews জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
-      return;
+      setReviewError(error?.message || 'Reviews জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     }
-
-    const privatePhone = normalizedPhone.replace(/\D/g, '').replace(/^88/, '');
-    const { error: detailsError } = await supabase.from('review_customer_details').insert({
-      review_id: reviewId,
-      customer_phone: privatePhone,
-    });
-    if (detailsError) {
-      console.error('Review customer details save error:', detailsError);
-      setReviewError('রিভিউ জমা হয়েছে, তবে ফোন নম্বর সংরক্ষণ হয়নি। অনুগ্রহ করে অ্যাডমিনকে জানান।');
-      return;
-    }
-
-    setReviewSubmitted(true);
-    setReviewForm({ name: '', phone: '', rating: 5, text: '' });
-    setTimeout(() => setReviewSubmitted(false), 5000);
   };
 
   return (
@@ -328,310 +335,122 @@ export default function ProductDetailPage() {
                     className="flex h-10 w-10 items-center justify-center text-ink hover:text-primary"
                     aria-label="Decrease quantity"
                   >
-                    <Minus size={18} />
+                    <Minus size={16} />
                   </button>
-                  <span className="w-12 text-center font-semibold text-ink">{quantity}</span>
+                  <span className="w-10 text-center font-medium">{quantity}</span>
                   <button
                     onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
                     className="flex h-10 w-10 items-center justify-center text-ink hover:text-primary"
                     aria-label="Increase quantity"
                   >
-                    <Plus size={18} />
+                    <Plus size={16} />
                   </button>
                 </div>
-                {product.size_bn && (
-                  <span className="text-sm text-gray-500">Size: {product.size_bn}</span>
-                )}
               </div>
             </div>
 
-            {cartMessage && (
-              <p className={`mt-3 text-sm font-medium ${cartMessage.includes('কার্টে') ? 'text-primary' : 'text-red-500'}`}>
-                {cartMessage}
-              </p>
-            )}
-
-            {/* Buttons */}
-            <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
-              <button
-                onClick={handleAddToCart}
-                disabled={outOfStock}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-medium text-white transition-all hover:bg-primary-dark hover:shadow-lg active:scale-95 disabled:opacity-50"
-              >
-                <ShoppingCart size={20} /> Add to Cart
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button onClick={handleAddToCart} disabled={outOfStock} className="btn-primary flex-1 min-w-[180px] justify-center disabled:opacity-50">
+                <ShoppingCart size={18} /> Add to Cart
               </button>
-              <button
-                onClick={handleBuyNow}
-                disabled={outOfStock}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 font-medium text-white transition-all hover:bg-accent-dark hover:shadow-lg active:scale-95 disabled:opacity-50"
-              >
-                <Zap size={20} /> Buy Now
+              <button onClick={handleBuyNow} disabled={outOfStock} className="btn-secondary flex-1 min-w-[180px] justify-center disabled:opacity-50">
+                <Zap size={18} /> Buy Now
+              </button>
+              <button onClick={() => toggleWishlist(product.id)} className="h-12 w-12 rounded-xl border border-gray-200 flex items-center justify-center hover:border-primary hover:text-primary" aria-label="Wishlist">
+                <Heart size={19} fill={inWishlist ? 'currentColor' : 'none'} />
               </button>
             </div>
 
-            <button
-              onClick={handleWhatsAppOrder}
-              disabled={outOfStock}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 font-medium text-white transition-all hover:bg-[#1da851] hover:shadow-lg active:scale-95 disabled:opacity-50"
-            >
-              <MessageCircle size={20} /> WhatsApp এ Buy Now
-            </button>
+            {cartMessage && <p className="mt-3 text-sm text-primary font-medium">{cartMessage}</p>}
 
-            <button
-              onClick={() => toggleWishlist(product.id)}
-              className={`mt-3 flex items-center gap-2 text-sm font-medium transition-colors ${
-                inWishlist ? 'text-accent' : 'text-gray-500 hover:text-accent'
-              }`}
-            >
-              <Heart size={18} className={inWishlist ? 'fill-accent' : ''} />
-              {inWishlist ? 'Wishlist-এ আছে' : 'Add to Wishlist'}
-            </button>
-
-            {/* Delivery Info */}
-            <div className="mt-5 rounded-2xl bg-cream p-4 sm:p-5 space-y-3">
-              <div className="flex items-center gap-3">
-                <Truck size={20} className="text-primary" />
-                <span className="text-sm text-ink">সারা বাংলাদেশে ডেলিভারি</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <CreditCard size={20} className="text-primary" />
-                <span className="text-sm text-ink">Cash on Delivery Available</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <ShieldCheck size={20} className="text-primary" />
-                <span className="text-sm text-ink">প্রাকৃতিক উপাদানে তৈরি</span>
-              </div>
+            <div className="mt-6 grid sm:grid-cols-3 gap-3">
+              <div className="rounded-2xl bg-cream p-4"><Truck className="text-primary mb-2" size={20} /><p className="text-xs font-semibold">Fast Delivery</p><p className="text-[11px] text-gray-500">ঢাকা ও সারা বাংলাদেশ</p></div>
+              <div className="rounded-2xl bg-cream p-4"><CreditCard className="text-primary mb-2" size={20} /><p className="text-xs font-semibold">Cash on Delivery</p><p className="text-[11px] text-gray-500">সহজ ও নিরাপদ</p></div>
+              <div className="rounded-2xl bg-cream p-4"><ShieldCheck className="text-primary mb-2" size={20} /><p className="text-xs font-semibold">Quality Care</p><p className="text-[11px] text-gray-500">প্রকৃতির যত্নে</p></div>
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="mt-8 sm:mt-12">
-          <div className="border-b border-gray-100 overflow-x-auto scrollbar-hide">
-            <div className="flex gap-1 min-w-max">
-              {TABS.filter(tab => settings?.product_allow_reviews !== false || tab.id !== 'reviews').map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-ink'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+        <div className="mt-10 border-t border-gray-100 pt-8">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {TABS.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-primary text-white' : 'bg-cream text-gray-600 hover:text-primary'}`}>
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          <div className="py-6">
-            {activeTab === 'description' && (
-              <div className="prose max-w-none">
-                <p className="text-gray-600 leading-relaxed">{product.description_bn || product.short_description_bn}</p>
-                {product.who_is_it_for_bn && (
-                  <div className="mt-4">
-                    <h3 className="font-display text-lg font-semibold text-ink mb-1">যাদের জন্য উপযুক্ত</h3>
-                    <p className="text-gray-600">{product.who_is_it_for_bn}</p>
-                  </div>
-                )}
-                {product.storage_bn && (
-                  <div className="mt-4">
-                    <h3 className="font-display text-lg font-semibold text-ink mb-1">সংরক্ষণ</h3>
-                    <p className="text-gray-600">{product.storage_bn}</p>
-                  </div>
-                )}
-                {product.notes_bn && (
-                  <div className="mt-4 rounded-xl bg-accent/5 p-4">
-                    <h3 className="font-display text-lg font-semibold text-ink mb-1">গুরুত্বপূর্ণ নোট</h3>
-                    <p className="text-gray-600 text-sm">{product.notes_bn}</p>
-                  </div>
-                )}
-              </div>
-            )}
-            {activeTab === 'benefits' && (
-              <p className="text-gray-600 leading-relaxed">{product.benefits_bn || 'তথ্য শীঘ্রই আপডেট করা হবে।'}</p>
-            )}
-            {activeTab === 'how-to-use' && (
-              <p className="text-gray-600 leading-relaxed">{product.how_to_use_bn || 'তথ্য শীঘ্রই আপডেট করা হবে।'}</p>
-            )}
-            {activeTab === 'ingredients' && (
-              <p className="text-gray-600 leading-relaxed">{product.ingredients_bn || 'তথ্য শীঘ্রই আপডেট করা হবে।'}</p>
-            )}
-            {activeTab === 'delivery' && (
-              <div className="space-y-3 text-gray-600">
-                <p>সারা বাংলাদেশে হোম ডেলিভারি সেবা গ্রহণযোগ্য।</p>
-                <p>ঢাকার ভিতরে সাধারণত ১-২ দিনের মধ্যে ডেলিভারি হয়।</p>
-                <p>ঢাকার বাইরে ৩-৫ দিন সময় লাগতে পারে।</p>
-                <p>ক্যাশ অন ডেলিভারি সেবা গ্রহণযোগ্য।</p>
-              </div>
-            )}
-            {activeTab === 'reviews' && (
-              <div>
-                <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-100">
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-ink">{product.rating}</p>
-                    <StarRating rating={product.rating} size={16} className="mt-1" />
-                    <p className="text-sm text-gray-400 mt-1">{product.review_count} reviews</p>
-                  </div>
-                  <div className="flex-1 space-y-1.5">
-                    {[5,4,3,2,1].map(star => {
-                      const count = reviews.filter(r => Math.round(r.rating) === star).length;
-                      const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
-                      return (
-                        <div key={star} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500 w-3">{star}</span>
-                          <div className="h-2 flex-1 rounded-full bg-gray-100 overflow-hidden max-w-200">
-                            <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
+          <div className="mt-6">
+            {activeTab === 'reviews' ? (
+              <div className="grid lg:grid-cols-[1fr_420px] gap-8">
+                <div>
+                  <h2 className="text-xl font-bold text-ink">Customer Reviews</h2>
+                  {reviews.length ? (
+                    <div className="mt-5 space-y-4">
+                      {reviews.map(review => (
+                        <div key={review.id} className="rounded-2xl border border-gray-100 p-5">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-ink">{review.customer_name}</p>
+                              <div className="mt-1 flex items-center gap-2"><StarRating rating={review.rating} size={14} />{review.is_verified && <span className="text-xs text-primary">Verified purchase</span>}</div>
+                            </div>
+                            <span className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('bn-BD')}</span>
                           </div>
+                          <p className="mt-3 text-sm leading-7 text-gray-600">{review.review_bn || review.review_text}</p>
                         </div>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  ) : <p className="mt-4 text-sm text-gray-500">এখনও কোনো approved review নেই।</p>}
                 </div>
 
-                {/* Review form */}
-                {settings?.product_allow_reviews !== false && <div className="mb-6 rounded-xl border border-gray-100 p-5">
-                  <h3 className="font-display text-lg font-semibold text-ink mb-3">Reviews লিখুন</h3>
+                <div className="rounded-2xl border border-gray-100 bg-cream/50 p-5">
+                  <h3 className="font-bold text-lg">Review দিন</h3>
+                  <p className="mt-1 text-xs text-gray-500">শুধু এই পণ্যের Delivered অর্ডার করা কাস্টমাররা review দিতে পারবেন।</p>
                   {reviewSubmitted ? (
-                    <p className="text-sm text-primary">ধন্যবাদ! আপনার Reviews অ্যাডমিন অনুমোদনের পর প্রকাশ করা হবে।</p>
+                    <div className="mt-5 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-700">আপনার review জমা হয়েছে। Admin approval-এর পর এটি প্রকাশিত হবে।</div>
                   ) : (
-                    <form onSubmit={handleReviewSubmit} className="space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3">
-                        <div>
-                          <label className="text-sm font-medium text-ink mb-1 block">আপনার নাম</label>
-                          <input
-                            type="text"
-                            required
-                            value={reviewForm.name}
-                            onChange={e => setReviewForm({ ...reviewForm, name: e.target.value })}
-                            className="input-field"
-                            placeholder="নাম"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-ink mb-1 block">অর্ডারের মোবাইল নম্বর *</label>
-                          <input
-                            type="tel"
-                            inputMode="tel"
-                            autoComplete="tel"
-                            required
-                            value={reviewForm.phone}
-                            onChange={e => setReviewForm({ ...reviewForm, phone: e.target.value })}
-                            className="input-field"
-                            placeholder="01XXXXXXXXX"
-                            aria-describedby="review-phone-help"
-                          />
-                          <p id="review-phone-help" className="mt-1 text-xs text-gray-500">অর্ডার করার সময় যে নম্বর দিয়েছিলেন</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-ink mb-1 block">রেটিং</label>
-                          <select
-                            value={reviewForm.rating}
-                            onChange={e => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })}
-                            className="input-field"
-                          >
-                            {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} ★</option>)}
-                          </select>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-ink mb-1 block">Reviews</label>
-                        <textarea
-                          required
-                          rows={3}
-                          value={reviewForm.text}
-                          onChange={e => setReviewForm({ ...reviewForm, text: e.target.value })}
-                          className="input-field resize-none"
-                          placeholder="আপনার অভিজ্ঞতা Share..."
-                        />
-                      </div>
-                      {reviewError && (
-                        <p className="text-sm text-red-500">{reviewError}</p>
-                      )}
-                      <button type="submit" className="btn-primary text-sm py-2.5 px-6">Reviews জমা দিন</button>
+                    <form onSubmit={handleReviewSubmit} className="mt-5 space-y-3">
+                      <input value={reviewForm.name} onChange={e => setReviewForm(f => ({ ...f, name: e.target.value }))} placeholder="আপনার নাম" className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm" />
+                      <input value={reviewForm.phone} onChange={e => setReviewForm(f => ({ ...f, phone: e.target.value }))} placeholder="অর্ডারে ব্যবহৃত মোবাইল নম্বর" inputMode="tel" className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm" />
+                      <select value={reviewForm.rating} onChange={e => setReviewForm(f => ({ ...f, rating: Number(e.target.value) }))} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm"><option value={5}>5 Stars</option><option value={4}>4 Stars</option><option value={3}>3 Stars</option><option value={2}>2 Stars</option><option value={1}>1 Star</option></select>
+                      <textarea value={reviewForm.text} onChange={e => setReviewForm(f => ({ ...f, text: e.target.value }))} placeholder="আপনার অভিজ্ঞতা লিখুন" rows={5} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm" />
+                      {reviewError && <p className="text-xs text-red-600">{reviewError}</p>}
+                      <button type="submit" className="btn-primary w-full justify-center">Submit Review</button>
                     </form>
                   )}
-                </div>}
-
-                <div className="space-y-4">
-                  {reviews.length > 0 ? reviews.map(review => (
-                    <div key={review.id} className="rounded-xl border border-gray-50 p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          {review.image_url ? (
-                            <img src={review.image_url} alt={review.customer_name} className="h-10 w-10 rounded-full object-cover" />
-                          ) : (
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
-                              {review.customer_name.charAt(0)}
-                            </div>
-                          )}
-                          <div>
-                            <h4 className="font-semibold text-ink text-sm">{review.customer_name}</h4>
-                            {review.location && <p className="text-xs text-gray-400">{review.location}</p>}
-                          </div>
-                        </div>
-                        {review.is_verified && (
-                          <span className="text-xs font-medium text-primary flex items-center gap-1">
-                            <ShieldCheck size={14} /> Verified
-                          </span>
-                        )}
-                      </div>
-                      <StarRating rating={review.rating} size={14} className="mb-2" />
-                      <p className="text-sm text-gray-600">{review.review_bn}</p>
-                    </div>
-                  )) : (
-                    <p className="text-gray-400 text-center py-8">এই পণ্যের জন্য এখনো কোনো Reviews নেই।</p>
-                  )}
                 </div>
+              </div>
+            ) : (
+              <div className="prose max-w-none text-gray-600 leading-8">
+                {activeTab === 'description' && <p>{product.description_bn || product.short_description_bn}</p>}
+                {activeTab === 'benefits' && <p>{product.benefits_bn || 'তথ্য শীঘ্রই যোগ করা হবে।'}</p>}
+                {activeTab === 'how-to-use' && <p>{product.how_to_use_bn || 'তথ্য শীঘ্রই যোগ করা হবে।'}</p>}
+                {activeTab === 'ingredients' && <p>{product.ingredients_bn || 'তথ্য শীঘ্রই যোগ করা হবে।'}</p>}
+                {activeTab === 'delivery' && <p>ঢাকার ভিতরে ও সারা বাংলাদেশে ডেলিভারি সুবিধা রয়েছে।</p>}
               </div>
             )}
           </div>
         </div>
 
-        {/* Related Products */}
         {related.length > 0 && (
-          <div className="mt-10 sm:mt-16">
-            <h2 className="font-display text-2xl font-bold text-dark mb-6">Related Products</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {related.map(p => <ProductCard key={p.id} product={p} />)}
+          <section className="mt-14">
+            <div className="flex items-end justify-between gap-4 mb-5">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">You may also like</p><h2 className="mt-1 text-2xl font-bold text-ink">Related Products</h2></div>
+              <Link to={`/category/${product.category?.slug || ''}`} className="text-sm font-medium text-primary">View all</Link>
             </div>
-          </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {related.map(item => <ProductCard key={item.id} product={item} />)}
+            </div>
+          </section>
         )}
       </div>
 
       {imageZoomOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3 sm:p-8" role="dialog" aria-modal="true" aria-label={product.name_bn + " — বড় ছবি"} onClick={() => setImageZoomOpen(false)}>
-          <button type="button" onClick={() => setImageZoomOpen(false)} aria-label="ছবি বন্ধ করুন" className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-            <X size={24} />
-          </button>
-          <img src={gallery[activeImage]} alt={product.name_bn} onClick={event => event.stopPropagation()} className="max-h-[90vh] max-w-full rounded-xl object-contain" />
+        <div className="fixed inset-0 z-[100] bg-black/80 p-4 flex items-center justify-center" onClick={() => setImageZoomOpen(false)}>
+          <button type="button" onClick={() => setImageZoomOpen(false)} className="absolute top-4 right-4 h-11 w-11 rounded-full bg-white/95 flex items-center justify-center text-ink" aria-label="Close image"><X size={22} /></button>
+          <img src={gallery[activeImage]} alt={product.name_bn} className="max-h-[90vh] max-w-[94vw] object-contain rounded-xl" onClick={e => e.stopPropagation()} />
         </div>
       )}
-
-      {/* Sticky Mobile Add to Cart */}
-      <div className="fixed bottom-16 left-0 right-0 z-30 lg:hidden bg-white border-t border-gray-100 p-3 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400 line-clamp-1">{product.name_bn}</p>
-            <p className="text-lg font-bold text-ink">{formatPrice(product.price)}</p>
-          </div>
-          <button
-            onClick={handleAddToCart}
-            disabled={outOfStock}
-            className="flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-3 text-sm font-medium text-white disabled:opacity-50"
-          >
-            <ShoppingCart size={18} /> Add
-          </button>
-          <button
-            onClick={handleBuyNow}
-            disabled={outOfStock}
-            className="flex items-center justify-center gap-1.5 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white disabled:opacity-50"
-          >
-            <Zap size={18} /> Buy
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

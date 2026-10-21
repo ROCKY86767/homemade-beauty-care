@@ -836,6 +836,34 @@ function DashboardView() {
     return set.size;
   }, [orders]);
 
+  const cancelledOrders = useMemo(
+    () => orders.filter((order) => order.status === 'Cancelled'),
+    [orders]
+  );
+
+  const awaitingShipment = useMemo(
+    () => orders.filter((order) => ['Confirmed', 'Processing'].includes(String(order.status || ''))),
+    [orders]
+  );
+
+  const deliveredRate = useMemo(
+    () => orders.length ? Math.round((delivered.length / orders.length) * 100) : 0,
+    [delivered, orders]
+  );
+
+  const averageDeliveredOrder = useMemo(
+    () => delivered.length ? realizedRevenue / delivered.length : 0,
+    [delivered, realizedRevenue]
+  );
+
+  const lowStockProducts = useMemo(
+    () => products
+      .filter((product) => product.is_active !== false && Number(product.stock ?? product.quantity ?? 0) <= 5)
+      .sort((a, b) => Number(a.stock ?? a.quantity ?? 0) - Number(b.stock ?? b.quantity ?? 0))
+      .slice(0, 6),
+    [products]
+  );
+
   const monthlySales = useMemo(() => {
     const result: {
       label: string;
@@ -947,6 +975,66 @@ function DashboardView() {
         <StatCard title="Delivered Revenue Today" value={money(todayDeliveredRevenue)} icon={BarChart3} />
         <StatCard title="Customers" value={customers} icon={Users} />
         <StatCard title="Products" value={products.length} icon={Package} />
+        <StatCard title="Awaiting Shipment" value={awaitingShipment.length} icon={Package} />
+        <StatCard title="Cancelled Orders" value={cancelledOrders.length} icon={XCircle} />
+        <StatCard title="Avg. Delivered Order" value={money(averageDeliveredOrder)} icon={BarChart3} />
+      </div>
+
+      <div className="grid xl:grid-cols-3 gap-4 mt-5">
+        <section className="bg-white rounded-xl border p-5 xl:col-span-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <div>
+              <h3 className="font-bold text-lg text-gray-900">Order Fulfilment</h3>
+              <p className="text-sm text-gray-500">How orders are progressing through your store</p>
+            </div>
+            <div className="text-sm font-semibold text-primary">{deliveredRate}% delivered</div>
+          </div>
+          <div className="h-2 rounded-full bg-gray-100 overflow-hidden mb-5">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${deliveredRate}%` }} />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { label: 'Pending / Placed', count: orders.filter((o) => ['Pending', 'Order Placed'].includes(String(o.status || ''))).length, tone: 'bg-amber-50 text-amber-800' },
+              { label: 'Confirmed / Processing', count: awaitingShipment.length, tone: 'bg-blue-50 text-blue-800' },
+              { label: 'Shipped', count: orders.filter((o) => o.status === 'Shipped').length, tone: 'bg-cyan-50 text-cyan-800' },
+              { label: 'Delivered', count: delivered.length, tone: 'bg-green-50 text-green-800' },
+              { label: 'Cancelled', count: cancelledOrders.length, tone: 'bg-red-50 text-red-800' },
+              { label: 'All Orders', count: orders.length, tone: 'bg-gray-50 text-gray-800' },
+            ].map((item) => (
+              <div key={item.label} className={`rounded-lg p-3 ${item.tone}`}>
+                <div className="text-xs opacity-80">{item.label}</div>
+                <div className="text-xl font-bold mt-1">{item.count}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-white rounded-xl border p-5">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div>
+              <h3 className="font-bold text-lg text-gray-900">Stock Alerts</h3>
+              <p className="text-sm text-gray-500">Active products with 5 or fewer in stock</p>
+            </div>
+            <Package className="w-5 h-5 text-primary shrink-0" />
+          </div>
+          {lowStockProducts.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4">No low-stock products found.</p>
+          ) : (
+            <div className="space-y-3">
+              {lowStockProducts.map((product, index) => (
+                <div key={product.id || product.sku || index} className="flex items-center justify-between gap-3 border-b last:border-0 pb-3 last:pb-0">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{product.name_bn || product.name_en || product.name || 'Product'}</div>
+                    <div className="text-xs text-gray-500">{product.sku || 'No SKU'}</div>
+                  </div>
+                  <span className={`shrink-0 text-xs font-semibold rounded-full px-2 py-1 ${Number(product.stock ?? product.quantity ?? 0) <= 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'}`}>
+                    {Number(product.stock ?? product.quantity ?? 0) <= 0 ? 'Out of stock' : `${Number(product.stock ?? product.quantity ?? 0)} left`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       <div className="grid xl:grid-cols-2 gap-6 mt-6">
@@ -1044,7 +1132,7 @@ function DashboardView() {
           <EmptyState text="No orders found." />
         ) : (
           <div className="divide-y">
-            {orders.slice(0, 5).map((order) => (
+            {orders.slice(0, 8).map((order) => (
               <div
                 key={order.id}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"

@@ -1,0 +1,10 @@
+project_id = "ccowyndqzlkpilygpepx"
+
+[functions.integrations]
+verify_jwt = false
+
+[functions.order-management]
+verify_jwt = false
+
+[functions.create-moderator]
+verify_jwt = true

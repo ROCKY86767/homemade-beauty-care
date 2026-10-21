@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Globe2, Store, Home, Package, ShoppingCart, Truck, CreditCard,
-  Users, Bell, Share2, BarChart3, Search, ShieldCheck, PlugZap,
+  Users, Bell, Share2, BarChart3, Search, ShieldCheck,
   Save, Loader2, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { getSettings, updateSettings } from '../lib/settings';
@@ -22,7 +22,6 @@ const groups = [
   { id: 'marketing', label: 'Marketing & Analytics', icon: BarChart3, desc: 'Meta Pixel, CAPI and Google Analytics' },
   { id: 'seo', label: 'SEO', icon: Search, desc: 'Search title, description and verification' },
   { id: 'security', label: 'Security', icon: ShieldCheck, desc: 'Maintenance and safe storefront controls' },
-  { id: 'integrations', label: 'Integrations', icon: PlugZap, desc: 'Pathao and external systems' },
 ];
 
 const defaults: SettingsForm = {
@@ -307,16 +306,8 @@ export default function AdminSettingsCenter({ initialSection = 'general', standa
 
         {active === 'security' && <div className={`grid gap-5 ${cardClass}`}>
           <Toggle label="Maintenance mode" checked={!!form.maintenance_mode} onChange={v => set('maintenance_mode', v)} help="Use only when you intentionally want to hide the storefront." />
-          <Toggle label="Automatic Pathao dispatch" checked={!!form.order_auto_dispatch_enabled} onChange={v => set('order_auto_dispatch_enabled', v)} />
         </div>}
 
-        {active === 'integrations' && <div className={`grid gap-5 ${cardClass}`}>
-          <p className="text-sm text-gray-600">Pathao, Meta CAPI and Universal Order Management keep their existing dedicated admin screens so your current setup is not broken.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border bg-gray-50 p-4 text-sm"><b>Pathao</b><br/>Configure credentials in the existing Integration Center.</div>
-            <div className="rounded-xl border bg-gray-50 p-4 text-sm"><b>Universal OMS</b><br/>Configure REST API, webhooks and status mapping in Order Management.</div>
-          </div>
-        </div>}
 
         <div className="mt-5 flex justify-end">
           <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-60">

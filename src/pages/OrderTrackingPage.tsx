@@ -35,6 +35,7 @@ export default function OrderTrackingPage() {
   const [mobileNumber, setMobileNumber] = useState(
     searchParams.get('mobile') || ''
   );
+  const [orderNumber, setOrderNumber] = useState(searchParams.get('order') || '');
 
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
@@ -47,8 +48,10 @@ export default function OrderTrackingPage() {
 
     const cleanMobile = mobileNumber.replace(/\s/g, '').trim();
 
-    if (!cleanMobile) {
-      setError('মোবাইল নম্বর দিন।');
+    const cleanOrderNumber = orderNumber.trim();
+
+    if (!cleanOrderNumber || !cleanMobile) {
+      setError('অর্ডার নম্বর ও মোবাইল নম্বর—দুটিই দিন।');
       setOrder(null);
       setItems([]);
       setSearched(true);
@@ -64,6 +67,7 @@ export default function OrderTrackingPage() {
     try {
       const { data, error: queryError } =
         await supabase.rpc('track_order', {
+          p_order_number: cleanOrderNumber,
           p_mobile_number: cleanMobile,
         });
 
@@ -80,7 +84,7 @@ export default function OrderTrackingPage() {
         !result.order
       ) {
         setError(
-          'এই মোবাইল নম্বর দিয়ে কোনো অর্ডার পাওয়া যায়নি। নম্বরটি ঠিক আছে কিনা দেখুন।'
+          'অর্ডার নম্বর ও মোবাইল নম্বর মিলছে না। দুটো তথ্য ঠিক আছে কিনা দেখুন।'
         );
         return;
       }
@@ -103,6 +107,7 @@ export default function OrderTrackingPage() {
           if (pathaoResult?.success) {
             const { data: refreshed } =
               await supabase.rpc('track_order', {
+                p_order_number: cleanOrderNumber,
                 p_mobile_number: cleanMobile,
               });
 
@@ -152,7 +157,7 @@ export default function OrderTrackingPage() {
         </h1>
 
         <p className="text-gray-500 mb-8">
-          আপনার মোবাইল নম্বর দিয়ে সর্বশেষ অর্ডারের বর্তমান অবস্থা জানুন।
+          অর্ডার নম্বর ও মোবাইল নম্বর দিয়ে আপনার অর্ডারের বর্তমান অবস্থা জানুন।
         </p>
 
         <div className="max-w-2xl">
@@ -160,7 +165,21 @@ export default function OrderTrackingPage() {
             onSubmit={handleTrack}
             className="card p-6 border border-gray-50 mb-6"
           >
-            <div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-ink mb-1.5 block">
+                  অর্ডার নম্বর
+                </label>
+                <input
+                  type="text"
+                  value={orderNumber}
+                  onChange={e => setOrderNumber(e.target.value)}
+                  className="input-field"
+                  placeholder="যেমন: HBC-12345"
+                  autoComplete="off"
+                />
+              </div>
+              <div>
               <label className="text-sm font-medium text-ink mb-1.5 block">
                 মোবাইল নম্বর
               </label>

@@ -728,6 +728,8 @@ function DashboardView() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -775,12 +777,21 @@ function DashboardView() {
     load();
   }, []);
 
+  const filteredOrders = useMemo(() => {
+    const start = startDate ? new Date(`${startDate}T00:00:00`).getTime() : null;
+    const end = endDate ? new Date(`${endDate}T23:59:59.999`).getTime() : null;
+    return orders.filter((order) => {
+      const timestamp = new Date(order.created_at).getTime();
+      return (start === null || timestamp >= start) && (end === null || timestamp <= end);
+    });
+  }, [orders, startDate, endDate]);
+
   const delivered = useMemo(
     () =>
-      orders.filter(
+      filteredOrders.filter(
         (order) => order.status === 'Delivered'
       ),
-    [orders]
+    [filteredOrders]
   );
 
   const realizedRevenue = useMemo(
@@ -798,17 +809,17 @@ function DashboardView() {
 
   const todayOrders = useMemo(() => {
     const now = new Date();
-    return orders.filter((order) => {
+    return filteredOrders.filter((order) => {
       const date = new Date(order.created_at);
       return date.getFullYear() === now.getFullYear()
         && date.getMonth() === now.getMonth()
         && date.getDate() === now.getDate();
     });
-  }, [orders]);
+  }, [filteredOrders]);
 
   const pendingOrders = useMemo(
     () => orders.filter((order) => ['Pending', 'Order Placed', 'Confirmed', 'Processing'].includes(String(order.status || ''))),
-    [orders]
+    [filteredOrders]
   );
 
   const todayDeliveredRevenue = useMemo(
@@ -837,18 +848,18 @@ function DashboardView() {
   }, [orders]);
 
   const cancelledOrders = useMemo(
-    () => orders.filter((order) => order.status === 'Cancelled'),
-    [orders]
+    () => filteredOrders.filter((order) => order.status === 'Cancelled'),
+    [filteredOrders]
   );
 
   const awaitingShipment = useMemo(
-    () => orders.filter((order) => ['Confirmed', 'Processing'].includes(String(order.status || ''))),
-    [orders]
+    () => filteredOrders.filter((order) => ['Confirmed', 'Processing'].includes(String(order.status || ''))),
+    [filteredOrders]
   );
 
   const deliveredRate = useMemo(
-    () => orders.length ? Math.round((delivered.length / orders.length) * 100) : 0,
-    [delivered, orders]
+    () => filteredOrders.length ? Math.round((delivered.length / filteredOrders.length) * 100) : 0,
+    [delivered, filteredOrders]
   );
 
   const averageDeliveredOrder = useMemo(
@@ -968,11 +979,30 @@ function DashboardView() {
 
       <ErrorBox error={error} retry={load} />
 
+      <section className="bg-white rounded-xl border p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="font-semibold text-gray-800">Filter by order date</span>
+          <span className="text-xs text-gray-500">Choose a date range or leave blank for all dates</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
+          <label className="text-sm text-gray-600">
+            From date
+            <input type="date" value={startDate} max={endDate || undefined} onChange={(e) => setStartDate(e.target.value)} className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800" />
+          </label>
+          <label className="text-sm text-gray-600">
+            To date
+            <input type="date" value={endDate} min={startDate || undefined} onChange={(e) => setEndDate(e.target.value)} className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800" />
+          </label>
+          <button onClick={() => { const today = new Date(); const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`; setStartDate(iso); setEndDate(iso); }} className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-50 text-sm">Today</button>
+          <button onClick={() => { setStartDate(''); setEndDate(''); }} className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm">Clear Filter</button>
+        </div>
+      </section>
+
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         <StatCard title="Realized Revenue" value={money(realizedRevenue)} icon={BarChart3} />
-        <StatCard title="Orders Today" value={todayOrders.length} icon={ShoppingBag} />
+        <StatCard title="Orders in Range" value={filteredOrders.length} icon={ShoppingBag} />
         <StatCard title="Pending Orders" value={pendingOrders.length} icon={AlertCircle} />
-        <StatCard title="Delivered Revenue Today" value={money(todayDeliveredRevenue)} icon={BarChart3} />
+        <StatCard title="Delivered Revenue in Range" value={money(delivered.reduce((sum, order) => sum + Number(order.grand_total ?? order.total ?? 0), 0))} icon={BarChart3} />
         <StatCard title="Customers" value={customers} icon={Users} />
         <StatCard title="Products" value={products.length} icon={Package} />
         <StatCard title="Awaiting Shipment" value={awaitingShipment.length} icon={Package} />
@@ -994,12 +1024,12 @@ function DashboardView() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { label: 'Pending / Placed', count: orders.filter((o) => ['Pending', 'Order Placed'].includes(String(o.status || ''))).length, tone: 'bg-amber-50 text-amber-800' },
+              { label: 'Pending / Placed', count: filteredOrders.filter((o) => ['Pending', 'Order Placed'].includes(String(o.status || ''))).length, tone: 'bg-amber-50 text-amber-800' },
               { label: 'Confirmed / Processing', count: awaitingShipment.length, tone: 'bg-blue-50 text-blue-800' },
-              { label: 'Shipped', count: orders.filter((o) => o.status === 'Shipped').length, tone: 'bg-cyan-50 text-cyan-800' },
+              { label: 'Shipped', count: filteredOrders.filter((o) => o.status === 'Shipped').length, tone: 'bg-cyan-50 text-cyan-800' },
               { label: 'Delivered', count: delivered.length, tone: 'bg-green-50 text-green-800' },
               { label: 'Cancelled', count: cancelledOrders.length, tone: 'bg-red-50 text-red-800' },
-              { label: 'All Orders', count: orders.length, tone: 'bg-gray-50 text-gray-800' },
+              { label: 'All Orders', count: filteredOrders.length, tone: 'bg-gray-50 text-gray-800' },
             ].map((item) => (
               <div key={item.label} className={`rounded-lg p-3 ${item.tone}`}>
                 <div className="text-xs opacity-80">{item.label}</div>
@@ -1124,15 +1154,15 @@ function DashboardView() {
       <div className="bg-white rounded-xl border mt-6 overflow-hidden">
         <div className="p-5 border-b">
           <h3 className="font-bold text-lg">
-            Recent Orders
+            Recent Orders ({filteredOrders.length})
           </h3>
         </div>
 
-        {orders.length === 0 ? (
-          <EmptyState text="No orders found." />
+        {filteredOrders.length === 0 ? (
+          <EmptyState text="No orders found for this date range." />
         ) : (
           <div className="divide-y">
-            {orders.slice(0, 8).map((order) => (
+            {filteredOrders.slice(0, 8).map((order) => (
               <div
                 key={order.id}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"

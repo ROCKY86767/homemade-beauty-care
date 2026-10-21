@@ -807,32 +807,9 @@ function DashboardView() {
     [delivered]
   );
 
-  const todayOrders = useMemo(() => {
-    const now = new Date();
-    return filteredOrders.filter((order) => {
-      const date = new Date(order.created_at);
-      return date.getFullYear() === now.getFullYear()
-        && date.getMonth() === now.getMonth()
-        && date.getDate() === now.getDate();
-    });
-  }, [filteredOrders]);
-
   const pendingOrders = useMemo(
     () => orders.filter((order) => ['Pending', 'Order Placed', 'Confirmed', 'Processing'].includes(String(order.status || ''))),
     [filteredOrders]
-  );
-
-  const todayDeliveredRevenue = useMemo(
-    () => delivered
-      .filter((order) => {
-        const date = new Date(order.created_at);
-        const now = new Date();
-        return date.getFullYear() === now.getFullYear()
-          && date.getMonth() === now.getMonth()
-          && date.getDate() === now.getDate();
-      })
-      .reduce((sum, order) => sum + Number(order.grand_total ?? order.total ?? 0), 0),
-    [delivered]
   );
 
   const customers = useMemo(() => {

@@ -688,6 +688,8 @@ export default function CheckoutPage() {
         throw orderError || new Error('Order creation failed.');
       }
 
+      let orderDispatchToken: string | null = null;
+
       // Automatically dispatch the confirmed order to every enabled
       // Order Management integration. Secrets stay server-side in the Edge Function.
       try {
@@ -703,6 +705,7 @@ export default function CheckoutPage() {
             dispatchTokenError
           );
         } else {
+          orderDispatchToken = dispatchToken;
           const { data: dispatchResult, error: dispatchError } =
             await supabase.functions.invoke('order-management', {
               body: {
@@ -750,6 +753,8 @@ export default function CheckoutPage() {
           body: {
             action: 'send_meta_purchase',
             order_number: orderNumber,
+            mobile: cleanMobile,
+            token: orderDispatchToken,
           },
         });
       } catch (metaError) {

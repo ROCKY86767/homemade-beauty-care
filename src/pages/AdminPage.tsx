@@ -1000,7 +1000,7 @@ function DashboardView() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { label: 'Pending / Placed', count: filteredOrders.filter((o) => ['Pending', 'Order Placed'].includes(String(o.status || ''))).length, tone: 'bg-amber-50 text-amber-800' },
+              { label: 'Pending', count: filteredOrders.filter((o) => ['Pending', 'Order Placed'].includes(String(o.status || ''))).length, tone: 'bg-amber-50 text-amber-800' },
               { label: 'Confirmed / Processing', count: awaitingShipment.length, tone: 'bg-blue-50 text-blue-800' },
               { label: 'Shipped', count: filteredOrders.filter((o) => o.status === 'Shipped').length, tone: 'bg-cyan-50 text-cyan-800' },
               { label: 'Delivered', count: delivered.length, tone: 'bg-green-50 text-green-800' },
@@ -2980,7 +2980,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
     setEditFreeDelivery(Number(order.delivery_charge || 0) === 0);
     setEditAdvancePayment(String(Number(order.advance_payment || 0)));
     setEditDeliveryCharge(String(Number(order.delivery_charge || 0)));
-    setEditStatus(String(order.status || 'Pending'));
+    setEditStatus(String(order.status || 'Pending') === 'Order Placed' ? 'Pending' : String(order.status || 'Pending'));
     const savedNotes = Array.isArray(order.internal_order_notes) ? order.internal_order_notes : [];
     setInternalOrderNotes(savedNotes.length ? savedNotes : (order.admin_note ? [{ text: String(order.admin_note), created_at: order.updated_at || order.created_at || new Date().toISOString(), legacy: true }] : []));
     setInternalNoteDraft('');
@@ -4076,7 +4076,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
               <div className="sm:col-span-2 rounded-xl border bg-white p-4">
                 <h4 className="mb-3 font-semibold">Order Status & Payment</h4>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <label className="text-xs font-medium text-gray-600">Order Status<select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} className="mt-1 w-full rounded-lg border bg-white px-3 py-2.5 text-sm">{[...new Set([...ORDER_STATUSES, editStatus])].map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label className="text-xs font-medium text-gray-600">Order Status<select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} className="mt-1 w-full rounded-lg border bg-white px-3 py-2.5 text-sm">{ORDER_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
                   <label className="text-xs font-medium text-gray-600">Payment Method<input value={editCustomerForm.payment_method || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, payment_method: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
                   <label className="text-xs font-medium text-gray-600">Payment Status<select value={editCustomerForm.payment_status || 'Unpaid'} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, payment_status: e.target.value }))} className="mt-1 w-full rounded-lg border bg-white px-3 py-2.5 text-sm">{[...new Set(['Unpaid', 'Partial', 'Paid', String(editCustomerForm.payment_status || '')].filter(Boolean))].map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
                 </div>

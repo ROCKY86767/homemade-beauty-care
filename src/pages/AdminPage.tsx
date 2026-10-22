@@ -3006,12 +3006,14 @@ function OrdersView() {
         payment_method: String(editCustomerForm.payment_method || '').trim() || 'Cash on Delivery',
         payment_status: String(editCustomerForm.payment_status || '').trim() || 'Unpaid',
       };
-      const { error } = await supabase.from('orders').update({ ...customerUpdates, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      const dueAfterAdvance = Math.max(0, grandTotal - advancePayment);
+      const { error } = await supabase.from('orders').update({ ...customerUpdates, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: dueAfterAdvance, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
       if (error) throw error;
-      const updated = { ...viewOrder, ...customerUpdates, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
+      const updated = { ...viewOrder, ...customerUpdates, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: dueAfterAdvance, advance_payment: advancePayment };
       setViewOrder(updated); setOrders((prev) => prev.map((o) => o.id === updated.id ? updated : o));
       setEditDiscount(String(discount)); setEditDeliveryCharge(String(delivery)); setEditAdvancePayment(String(advancePayment));
-      if (editStatus !== viewOrder.status) { await updateStatus(updated, editStatus); setViewOrder((prev: Order | null) => prev ? { ...prev, status: editStatus } : prev); }
+      if (editStatus !== viewOrder.status) await updateStatus(updated, editStatus);
+      setViewOrder(null);
     } catch (err:any) { setError(err.message || 'Order save failed.'); }
     finally { setSavingOrderEdit(false); }
   };
@@ -3072,6 +3074,7 @@ function OrdersView() {
       const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
       const grandTotal = Math.max(0, subtotal - discount + delivery);
       const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
+      const dueAfterAdvance = Math.max(0, grandTotal - advancePayment);
 
       const { error: totalError } = await supabase
         .from('orders')
@@ -3079,7 +3082,7 @@ function OrdersView() {
           subtotal,
           discount,
           delivery_charge: delivery,
-          grand_total: grandTotal,
+          grand_total: dueAfterAdvance,
           total: grandTotal,
           advance_payment: advancePayment,
           updated_at: new Date().toISOString(),
@@ -3128,7 +3131,8 @@ function OrdersView() {
       const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
       const grandTotal = Math.max(0, subtotal - discount + delivery);
       const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
-      const { error: totalError } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+       const dueAfterAdvance = Math.max(0, grandTotal - advancePayment);
+      const { error: totalError } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: dueAfterAdvance, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
       if (totalError) throw totalError;
       const updatedOrder = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
       setViewOrder(updatedOrder); setOrders((prev) => prev.map((order) => order.id === updatedOrder.id ? updatedOrder : order));
@@ -3163,9 +3167,10 @@ function OrdersView() {
       const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
       const grandTotal = Math.max(0, subtotal - discount + delivery);
       const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
+      const dueAfterAdvance = Math.max(0, grandTotal - advancePayment);
       const { data: savedOrder, error: totalError } = await supabase
         .from('orders')
-        .update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() })
+        .update({ subtotal, discount, delivery_charge: delivery, grand_total: dueAfterAdvance, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() })
         .eq('id', viewOrder.id)
         .select('*')
         .single();
@@ -3889,7 +3894,7 @@ function OrdersView() {
                   <label className="text-xs text-gray-600">Delivery Charge (৳)<input type="number" min="0" value={editDeliveryCharge} disabled={editFreeDelivery} onChange={(e) => setEditDeliveryCharge(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm disabled:bg-gray-100" /></label>
                   <label className="flex items-center gap-2 pt-5 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => { setEditFreeDelivery(e.target.checked); if (e.target.checked) setEditDeliveryCharge('0'); }} /> Free delivery</label>
                   <label className="text-xs text-gray-600">Advance Payment (৳)<input type="number" min="0" value={editAdvancePayment} onChange={(e) => setEditAdvancePayment(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></label>
-                  <div><p className="text-xs text-gray-500">Estimated Due</p><p className="mt-1 text-lg font-bold">{money(Math.max(0, itemsForOrder(viewOrder.id).reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0) - Math.max(0, Number(editDiscount || 0)) + (editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0))) - Number(editAdvancePayment || 0)))}</p></div>
+                  <div><p className="text-xs text-gray-500">Due After Advance</p><p className="mt-1 text-lg font-bold">{money(Math.max(0, itemsForOrder(viewOrder.id).reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0) - Math.max(0, Number(editDiscount || 0)) + (editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0))) - Number(editAdvancePayment || 0)))}</p></div>
                   <div><p className="text-xs text-gray-500">Estimated Total</p><p className="mt-1 text-lg font-bold">{money(Math.max(0, itemsForOrder(viewOrder.id).reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0) - Math.max(0, Number(editDiscount || 0)) + (editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0)))))}</p></div>
                 </div>
                 <div className="mt-4 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"><Save className="h-4 w-4" />{savingOrderEdit ? 'Saving...' : 'Save All Order Changes'}</button></div>

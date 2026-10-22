@@ -3606,10 +3606,15 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
 
   const handleBulkInvoicePrint = () => {
     if (!selectedOrders.length) return;
-    selectedOrders.forEach((order) => {
-      window.open(`/invoice?order_id=${encodeURIComponent(order.id)}`, '_blank', 'noopener,noreferrer');
-    });
-    setBulkMessage(`Opened invoice pages for ${selectedOrders.length} order(s). Print from each invoice page.`);
+    // Open one tab synchronously from the click to avoid popup blockers,
+    // then render all selected invoices in one print-ready document.
+    const invoiceUrl = `/invoice?order_ids=${selectedOrders.map((order) => encodeURIComponent(order.id)).join(',')}`;
+    const invoiceWindow = window.open(invoiceUrl, '_blank');
+    if (!invoiceWindow) {
+      setBulkMessage('Browser popup blocked the invoice page. Please allow pop-ups for this website and try again.');
+      return;
+    }
+    setBulkMessage(`Opened one print-ready page with ${selectedOrders.length} invoices. Click “সব Invoice একসাথে Print” to print them together.`);
   };
 
   // Only the newer order is marked as duplicate when an older order

@@ -306,18 +306,20 @@ export default function HomePage() { // centralized storefront settings
                   : 'opacity-0 pointer-events-none'
               }`}
             >
-              <div className="absolute inset-0">
-                <picture>
-                  <source media="(max-width: 639px)" srcSet={banner.mobile_image_url || banner.desktop_image_url || banner.image_url || ''} />
-                  <img
-                    src={banner.desktop_image_url || banner.image_url || banner.mobile_image_url || ''}
-                    alt={banner.title_bn}
-                    fetchPriority={idx === currentBanner ? 'high' : 'auto'}
-                    loading={idx === currentBanner ? 'eager' : 'lazy'}
-                    decoding="async"
-                    className={`h-full w-full object-cover ${idx === currentBanner ? 'animate-slow-zoom' : ''}`}
-                  />
-                </picture>
+              <div className="absolute inset-0 bg-[#e9e7dc]">
+                {idx === currentBanner && (
+                  <picture>
+                    <source media="(max-width: 639px)" srcSet={banner.mobile_image_url || banner.desktop_image_url || banner.image_url || ''} />
+                    <img
+                      src={banner.desktop_image_url || banner.image_url || banner.mobile_image_url || ''}
+                      alt={banner.title_bn}
+                      fetchPriority="high"
+                      loading="eager"
+                      decoding="async"
+                      className="h-full w-full object-cover animate-slow-zoom"
+                    />
+                  </picture>
+                )}
 
                 <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#17291f]/35 via-transparent to-white/5" />

@@ -22,8 +22,11 @@ export default function ProductCard({ product, compactActions = false }: Product
           <img
             src={product.image_url}
             alt={product.name_bn}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            width="600"
+            height="600"
             loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </Link>
 

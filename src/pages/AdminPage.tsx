@@ -2765,6 +2765,10 @@ function OrdersView() {
   const [editDiscount, setEditDiscount] = useState('');
   const [editFreeDelivery, setEditFreeDelivery] = useState(false);
   const [editAdvancePayment, setEditAdvancePayment] = useState('0');
+  const [editDeliveryCharge, setEditDeliveryCharge] = useState('0');
+  const [editStatus, setEditStatus] = useState('Pending');
+  const [editCustomerForm, setEditCustomerForm] = useState<any>({});
+  const [editItemDrafts, setEditItemDrafts] = useState<Record<string, { price: string; quantity: string }>>({});
   const [editAddingProduct, setEditAddingProduct] = useState('');
   const [editAddingQty, setEditAddingQty] = useState('1');
   const [savingOrderEdit, setSavingOrderEdit] = useState(false);
@@ -2970,37 +2974,50 @@ function OrdersView() {
     setEditDiscount(String(Number(order.discount || 0)));
     setEditFreeDelivery(Number(order.delivery_charge || 0) === 0);
     setEditAdvancePayment(String(Number(order.advance_payment || 0)));
+    setEditDeliveryCharge(String(Number(order.delivery_charge || 0)));
+    setEditStatus(String(order.status || 'Pending'));
+    setEditCustomerForm({ customer_name: order.customer_name || '', mobile: order.mobile || order.customer_phone || '', alt_phone: order.alt_phone || '', email: order.email || order.customer_email || '', district: order.district || '', area: order.area || '', address: order.address || '', order_note: order.order_note || order.note || '', admin_note: order.admin_note || '', payment_method: order.payment_method || 'Cash on Delivery', payment_status: order.payment_status || 'Unpaid' });
+    setEditItemDrafts(Object.fromEntries(items.filter((item) => item.order_id === order.id).map((item) => [item.id, { price: String(Number(item.price || 0)), quantity: String(Number(item.quantity || 1)) }])));
   };
 
   const saveOrderEdits = async () => {
-    if (!viewOrder || viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered') return;
-    setSavingOrderEdit(true);
+    if (!viewOrder) return;
+    setSavingOrderEdit(true); setError('');
     try {
       const orderItems = itemsForOrder(viewOrder.id);
       const subtotal = orderItems.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
-      const discount = Math.max(0, Number(editDiscount || 0));
-      const delivery =
-        editFreeDelivery || !settings
-          ? 0
-          : getDeliveryCharge(
-              settings,
-              String(viewOrder.district || ''),
-              subtotal,
-              String(viewOrder.area || '')
-            );
+      const discount = Math.min(subtotal, Math.max(0, Number(editDiscount || 0)));
+      const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
       const grandTotal = Math.max(0, subtotal - discount + delivery);
       const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
-      const { error } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      const customerName = String(editCustomerForm.customer_name || '').trim();
+      const mobile = String(editCustomerForm.mobile || '').trim();
+      if (!customerName || !mobile) throw new Error('Customer name and mobile number are required.');
+      const customerUpdates = {
+        customer_name: customerName, mobile, customer_phone: mobile,
+        alt_phone: String(editCustomerForm.alt_phone || '').trim() || null,
+        email: String(editCustomerForm.email || '').trim() || null,
+        customer_email: String(editCustomerForm.email || '').trim() || null,
+        district: String(editCustomerForm.district || '').trim() || null,
+        area: String(editCustomerForm.area || '').trim() || null,
+        address: String(editCustomerForm.address || '').trim() || null,
+        order_note: String(editCustomerForm.order_note || '').trim() || null,
+        admin_note: String(editCustomerForm.admin_note || '').trim() || null,
+        payment_method: String(editCustomerForm.payment_method || '').trim() || 'Cash on Delivery',
+        payment_status: String(editCustomerForm.payment_status || '').trim() || 'Unpaid',
+      };
+      const { error } = await supabase.from('orders').update({ ...customerUpdates, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
       if (error) throw error;
-      const updated = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
-      setViewOrder(updated);
-      setOrders((prev) => prev.map((o) => o.id === updated.id ? updated : o));
+      const updated = { ...viewOrder, ...customerUpdates, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
+      setViewOrder(updated); setOrders((prev) => prev.map((o) => o.id === updated.id ? updated : o));
+      setEditDiscount(String(discount)); setEditDeliveryCharge(String(delivery)); setEditAdvancePayment(String(advancePayment));
+      if (editStatus !== viewOrder.status) { await updateStatus(updated, editStatus); setViewOrder((prev: Order | null) => prev ? { ...prev, status: editStatus } : prev); }
     } catch (err:any) { setError(err.message || 'Order save failed.'); }
     finally { setSavingOrderEdit(false); }
   };
 
   const addProductToOrder = async () => {
-    if (!viewOrder || viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered' || !editAddingProduct) return;
+    if (!viewOrder || !editAddingProduct) return;
 
     const product = products.find((p) => p.id === editAddingProduct);
     const quantity = Math.max(1, Number(editAddingQty || 1));
@@ -3051,15 +3068,8 @@ function OrdersView() {
         (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
         0
       );
-      const discount = Math.max(0, Number(editDiscount || 0));
-      const delivery = editFreeDelivery
-        ? 0
-        : getDeliveryCharge(
-            settings,
-            String(viewOrder.district || ''),
-            subtotal,
-            String(viewOrder.area || '')
-          );
+      const discount = Math.min(subtotal, Math.max(0, Number(editDiscount || 0)));
+      const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
       const grandTotal = Math.max(0, subtotal - discount + delivery);
 
       const { error: totalError } = await supabase
@@ -3088,11 +3098,63 @@ function OrdersView() {
 
       setEditAddingProduct('');
       setEditAddingQty('1');
+      setEditDeliveryCharge(String(delivery));
+      setEditItemDrafts(Object.fromEntries((refreshedItems || []).map((item: OrderItem) => [item.id, { price: String(Number(item.price || 0)), quantity: String(Number(item.quantity || 1)) }])));
     } catch (err:any) {
       setError(err.message || 'Product add failed.');
     } finally {
       setSavingOrderEdit(false);
     }
+  };
+
+  const saveOrderItemDraft = async (item: OrderItem) => {
+    if (!viewOrder) return;
+    const draft = editItemDrafts[item.id];
+    const quantity = Math.floor(Number(draft?.quantity || 0));
+    const price = Number(draft?.price || 0);
+    if (!Number.isFinite(quantity) || quantity < 1 || !Number.isFinite(price) || price < 0) { setError('Quantity must be at least 1 and price cannot be negative.'); return; }
+    setSavingOrderEdit(true); setError('');
+    try {
+      const { error } = await supabase.from('order_items').update({ quantity, price }).eq('id', item.id).eq('order_id', viewOrder.id);
+      if (error) throw error;
+      const updatedItems = items.map((current) => current.id === item.id ? { ...current, quantity, price } : current);
+      setItems(updatedItems);
+      const subtotal = updatedItems.filter((current) => current.order_id === viewOrder.id).reduce((sum, current) => sum + Number(current.price || 0) * Number(current.quantity || 0), 0);
+      const discount = Math.min(subtotal, Math.max(0, Number(editDiscount || 0)));
+      const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
+      const grandTotal = Math.max(0, subtotal - discount + delivery);
+      const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
+      const { error: totalError } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      if (totalError) throw totalError;
+      const updatedOrder = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
+      setViewOrder(updatedOrder); setOrders((prev) => prev.map((order) => order.id === updatedOrder.id ? updatedOrder : order));
+      setEditDiscount(String(discount)); setEditDeliveryCharge(String(delivery)); setEditAdvancePayment(String(advancePayment));
+    } catch (err: any) { setError(err.message || 'Product update failed.'); }
+    finally { setSavingOrderEdit(false); }
+  };
+
+  const removeProductFromOrder = async (item: OrderItem) => {
+    if (!viewOrder) return;
+    if (!window.confirm(`Remove "${item.product_name || 'this product'}" from order #${displayOrderNumber(viewOrder)}?`)) return;
+    setSavingOrderEdit(true); setError('');
+    try {
+      const { error } = await supabase.from('order_items').delete().eq('id', item.id).eq('order_id', viewOrder.id);
+      if (error) throw error;
+      const updatedItems = items.filter((current) => current.id !== item.id); setItems(updatedItems);
+      const remaining = updatedItems.filter((current) => current.order_id === viewOrder.id);
+      const subtotal = remaining.reduce((sum, current) => sum + Number(current.price || 0) * Number(current.quantity || 0), 0);
+      const discount = Math.min(subtotal, Math.max(0, Number(editDiscount || 0)));
+      const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
+      const grandTotal = Math.max(0, subtotal - discount + delivery);
+      const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
+      const { error: totalError } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      if (totalError) throw totalError;
+      const updatedOrder = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
+      setViewOrder(updatedOrder); setOrders((prev) => prev.map((order) => order.id === updatedOrder.id ? updatedOrder : order));
+      setEditItemDrafts((prev) => { const next = { ...prev }; delete next[item.id]; return next; });
+      setEditDiscount(String(discount)); setEditDeliveryCharge(String(delivery)); setEditAdvancePayment(String(advancePayment));
+    } catch (err: any) { setError(err.message || 'Product removal failed.'); }
+    finally { setSavingOrderEdit(false); }
   };
 
   const createManualOrder = async () => {
@@ -3773,67 +3835,44 @@ function OrdersView() {
             </div>
 
             <div className="grid gap-4 p-5 sm:grid-cols-2">
-              <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs text-gray-400">Customer</p>
-                <p className="font-semibold">{viewOrder.customer_name || '—'}</p>
-                <p className="text-sm">{viewOrder.mobile || viewOrder.customer_phone || '—'}</p>
-
+              <div className="sm:col-span-2 rounded-xl border bg-white p-4">
+                <div className="mb-3 flex items-center justify-between gap-3"><h4 className="font-semibold">Customer & Delivery Details</h4><span className="text-xs text-gray-500">Editable by admin</span></div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="text-xs font-medium text-gray-600">Customer Name *<input value={editCustomerForm.customer_name || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, customer_name: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" required /></label>
+                  <label className="text-xs font-medium text-gray-600">Mobile Number *<input value={editCustomerForm.mobile || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, mobile: e.target.value.replace(/[^0-9+]/g, '').slice(0, 16) }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" required /></label>
+                  <label className="text-xs font-medium text-gray-600">Alternative Mobile<input value={editCustomerForm.alt_phone || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, alt_phone: e.target.value.replace(/[^0-9+]/g, '').slice(0, 16) }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <label className="text-xs font-medium text-gray-600">Email<input type="email" value={editCustomerForm.email || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, email: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <label className="text-xs font-medium text-gray-600">District<input value={editCustomerForm.district || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, district: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <label className="text-xs font-medium text-gray-600">Thana / Upazila<input value={editCustomerForm.area || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, area: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <label className="text-xs font-medium text-gray-600 sm:col-span-2">Full Delivery Address<textarea rows={2} value={editCustomerForm.address || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, address: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <label className="text-xs font-medium text-gray-600 sm:col-span-2">Customer Order Note<textarea rows={2} value={editCustomerForm.order_note || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, order_note: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <label className="text-xs font-medium text-gray-600 sm:col-span-2">Admin Note (internal)<textarea rows={2} value={editCustomerForm.admin_note || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, admin_note: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                </div>
               </div>
-
-              <div className="rounded-xl bg-gray-50 p-4">
-                <p className="text-xs text-gray-400">Total</p>
-                <p className="text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p>
-                <p className="text-sm">
-                  {viewOrder.payment_method || 'COD'} · {viewOrder.payment_status || 'Unpaid'}
-                </p>
+              <div className="sm:col-span-2 rounded-xl border bg-white p-4">
+                <h4 className="mb-3 font-semibold">Order Status & Payment</h4>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <label className="text-xs font-medium text-gray-600">Order Status<select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} className="mt-1 w-full rounded-lg border bg-white px-3 py-2.5 text-sm">{[...new Set([...ORDER_STATUSES, editStatus])].map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label className="text-xs font-medium text-gray-600">Payment Method<input value={editCustomerForm.payment_method || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, payment_method: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <label className="text-xs font-medium text-gray-600">Payment Status<select value={editCustomerForm.payment_status || 'Unpaid'} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, payment_status: e.target.value }))} className="mt-1 w-full rounded-lg border bg-white px-3 py-2.5 text-sm">{[...new Set(['Unpaid', 'Partial', 'Paid', String(editCustomerForm.payment_status || '')].filter(Boolean))].map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                </div>
               </div>
-
-              <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2">
-                <p className="text-xs text-gray-400">Delivery Address</p>
-                <p className="text-sm">
-                  {[viewOrder.district, viewOrder.area, viewOrder.address].filter(Boolean).join(', ') || '—'}
-                </p>
-                {(viewOrder.order_note || viewOrder.note) && (
-                  <p className="mt-2 text-xs text-gray-500">Note: {viewOrder.order_note || viewOrder.note}</p>
-                )}
-              </div>
-
               <div className="sm:col-span-2 rounded-xl border bg-gray-50 p-4">
-                {viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered' ? (
-                  <div className="space-y-3">
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                      This order is <strong>{viewOrder.status}</strong>. Only the order status can be changed.
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <div><label className="text-xs text-gray-500">Discount</label><p className="mt-1 text-lg font-semibold">{money(viewOrder.discount || 0)}</p></div>
-                      <div><label className="text-xs text-gray-500">Delivery Charge</label><p className="mt-1 text-lg font-semibold">{money(viewOrder.delivery_charge || 0)}</p></div>
-                      <div><label className="text-xs text-gray-500">Advance Payment</label><p className="mt-1 text-lg font-semibold">{money(viewOrder.advance_payment || 0)}</p></div>
-                      <div><label className="text-xs text-gray-500">Due</label><p className="mt-1 text-lg font-bold">{money(Math.max(0, Number(viewOrder.grand_total ?? viewOrder.total ?? 0) - Number(viewOrder.advance_payment || 0)))}</p></div>
-                      <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <div><label className="text-xs text-gray-500">Discount</label><input type="number" min="0" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></div>
-                      <div>
-                        <label className="text-xs text-gray-500">Delivery Charge</label>
-                        <p className="mt-1 text-lg font-semibold">{money(editFreeDelivery ? 0 : getDeliveryCharge(settings, String(viewOrder.district || ''), Number(viewOrder.subtotal || 0), String(viewOrder.area || '')))}</p>
-                      </div>
-                      <div><label className="text-xs text-gray-500">Delivery</label><label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => setEditFreeDelivery(e.target.checked)} /> Free delivery</label></div>
-                      <div><label className="text-xs text-gray-500">Advance Payment</label><input type="number" min="0" value={editAdvancePayment} onChange={(e) => setEditAdvancePayment(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="0" /></div>
-                      <div><label className="text-xs text-gray-500">Due</label><p className="mt-1 text-lg font-bold">{money(Math.max(0, Number(viewOrder.grand_total ?? viewOrder.total ?? 0) - Number(editAdvancePayment || 0)))}</p></div>
-                      <div><label className="text-xs text-gray-500">Total</label><p className="mt-1 text-lg font-bold">{money(viewOrder.grand_total ?? viewOrder.total)}</p></div>
-                    </div>
-                    <div className="mt-3 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Save Order Changes'}</button></div>
-                  </>
-                )}
+                <h4 className="mb-3 font-semibold">Price, Delivery & Advance</h4>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <label className="text-xs text-gray-600">Discount (৳)<input type="number" min="0" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></label>
+                  <label className="text-xs text-gray-600">Delivery Charge (৳)<input type="number" min="0" value={editDeliveryCharge} disabled={editFreeDelivery} onChange={(e) => setEditDeliveryCharge(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm disabled:bg-gray-100" /></label>
+                  <label className="flex items-center gap-2 pt-5 text-sm"><input type="checkbox" checked={editFreeDelivery} onChange={(e) => { setEditFreeDelivery(e.target.checked); if (e.target.checked) setEditDeliveryCharge('0'); }} /> Free delivery</label>
+                  <label className="text-xs text-gray-600">Advance Payment (৳)<input type="number" min="0" value={editAdvancePayment} onChange={(e) => setEditAdvancePayment(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></label>
+                  <div><p className="text-xs text-gray-500">Estimated Due</p><p className="mt-1 text-lg font-bold">{money(Math.max(0, itemsForOrder(viewOrder.id).reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0) - Math.max(0, Number(editDiscount || 0)) + (editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0))) - Number(editAdvancePayment || 0)))}</p></div>
+                  <div><p className="text-xs text-gray-500">Estimated Total</p><p className="mt-1 text-lg font-bold">{money(Math.max(0, itemsForOrder(viewOrder.id).reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0) - Math.max(0, Number(editDiscount || 0)) + (editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0)))))}</p></div>
+                </div>
+                <div className="mt-4 flex justify-end"><button onClick={saveOrderEdits} disabled={savingOrderEdit} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"><Save className="h-4 w-4" />{savingOrderEdit ? 'Saving...' : 'Save All Order Changes'}</button></div>
               </div>
-
               <div className="sm:col-span-2">
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h4 className="font-semibold">Order Items ({itemsForOrder(viewOrder.id).length})</h4>
-                  {!(viewOrder.status === 'Shipped' || viewOrder.status === 'Delivered') && (
+                  {true && (
                     <div className="flex gap-2">
                       <select value={editAddingProduct} onChange={(e) => setEditAddingProduct(e.target.value)} className="rounded-lg border px-2 py-1.5 text-xs">
                         <option value="">Add product...</option>
@@ -3849,35 +3888,18 @@ function OrdersView() {
                   {itemsForOrder(viewOrder.id).length === 0 ? (
                     <p className="text-sm text-gray-500">No items found for this order.</p>
                   ) : (
-                    itemsForOrder(viewOrder.id).map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 rounded-lg border bg-gray-50 p-2.5"
-                      >
-                        {item.image_url ? (
-                          <img
-                            src={item.image_url}
-                            alt={item.product_name || 'Product'}
-                            className="h-12 w-12 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-[10px] text-gray-500">
-                            No Image
-                          </div>
-                        )}
-
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{item.product_name}</p>
-                          <p className="text-xs text-gray-500">
-                            {money(item.price)} × {item.quantity}
-                          </p>
+                    itemsForOrder(viewOrder.id).map((item) => {
+                      const draft = editItemDrafts[item.id] || { price: String(Number(item.price || 0)), quantity: String(Number(item.quantity || 1)) };
+                      return (
+                        <div key={item.id} className="flex flex-col gap-3 rounded-lg border bg-gray-50 p-3 sm:flex-row sm:items-center">
+                          {item.image_url ? <img src={item.image_url} alt={item.product_name || 'Product'} className="h-12 w-12 rounded-lg object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-[10px] text-gray-500">No Image</div>}
+                          <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.product_name}</p><p className="text-xs text-gray-500">Line total: {money(Number(draft.price || 0) * Number(draft.quantity || 0))}</p></div>
+                          <label className="text-xs text-gray-600">Unit Price<input type="number" min="0" value={draft.price} onChange={(e) => setEditItemDrafts((prev) => ({ ...prev, [item.id]: { ...draft, price: e.target.value } }))} className="mt-1 w-24 rounded-lg border px-2 py-1.5 text-sm" /></label>
+                          <label className="text-xs text-gray-600">Qty<input type="number" min="1" step="1" value={draft.quantity} onChange={(e) => setEditItemDrafts((prev) => ({ ...prev, [item.id]: { ...draft, quantity: e.target.value } }))} className="mt-1 w-20 rounded-lg border px-2 py-1.5 text-sm" /></label>
+                          <div className="flex gap-2"><button onClick={() => saveOrderItemDraft(item)} disabled={savingOrderEdit} className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white disabled:opacity-50"><Save className="h-3.5 w-3.5" />Save</button><button onClick={() => removeProductFromOrder(item)} disabled={savingOrderEdit} className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button></div>
                         </div>
-
-                        <p className="text-sm font-semibold">
-                          {money(Number(item.price || 0) * Number(item.quantity || 0))}
-                        </p>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>

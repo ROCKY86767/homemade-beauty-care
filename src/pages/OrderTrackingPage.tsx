@@ -33,9 +33,12 @@ export default function OrderTrackingPage() {
   const [searchParams] = useSearchParams();
 
   const [mobileNumber, setMobileNumber] = useState(
-    searchParams.get('mobile') || ''
+    searchParams.get('mobile') || searchParams.get('phone') || ''
   );
-  const [orderNumber, setOrderNumber] = useState(searchParams.get('order') || '');
+  // Accept both the canonical "order" parameter and legacy links using "id".
+  const [orderNumber, setOrderNumber] = useState(
+    searchParams.get('order') || searchParams.get('order_number') || searchParams.get('id') || ''
+  );
 
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);

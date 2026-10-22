@@ -3082,8 +3082,8 @@ function OrdersView() {
           subtotal,
           discount,
           delivery_charge: delivery,
-          grand_total: dueAfterAdvance,
-          total: grandTotal,
+          grand_total: grandTotal,
+          total: dueAfterAdvance,
           advance_payment: advancePayment,
           updated_at: new Date().toISOString(),
         })
@@ -3096,7 +3096,7 @@ function OrdersView() {
         discount,
         delivery_charge: delivery,
         grand_total: grandTotal,
-        total: grandTotal,
+        total: dueAfterAdvance,
         advance_payment: advancePayment,
       };
       setViewOrder(updatedView);
@@ -3132,9 +3132,9 @@ function OrdersView() {
       const grandTotal = Math.max(0, subtotal - discount + delivery);
       const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
        const dueAfterAdvance = Math.max(0, grandTotal - advancePayment);
-      const { error: totalError } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: dueAfterAdvance, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      const { error: totalError } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: dueAfterAdvance, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
       if (totalError) throw totalError;
-      const updatedOrder = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
+      const updatedOrder = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: dueAfterAdvance, advance_payment: advancePayment };
       setViewOrder(updatedOrder); setOrders((prev) => prev.map((order) => order.id === updatedOrder.id ? updatedOrder : order));
       setEditDiscount(String(discount)); setEditDeliveryCharge(String(delivery)); setEditAdvancePayment(String(advancePayment));
     } catch (err: any) { setError(err.message || 'Product update failed.'); }
@@ -3170,13 +3170,13 @@ function OrdersView() {
       const dueAfterAdvance = Math.max(0, grandTotal - advancePayment);
       const { data: savedOrder, error: totalError } = await supabase
         .from('orders')
-        .update({ subtotal, discount, delivery_charge: delivery, grand_total: dueAfterAdvance, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() })
+        .update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: dueAfterAdvance, advance_payment: advancePayment, updated_at: new Date().toISOString() })
         .eq('id', viewOrder.id)
         .select('*')
         .single();
       if (totalError) throw totalError;
 
-      const updatedOrder = { ...viewOrder, ...savedOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
+      const updatedOrder = { ...viewOrder, ...savedOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: dueAfterAdvance, advance_payment: advancePayment };
       setViewOrder(updatedOrder);
       setOrders((prev) => prev.map((order) => order.id === updatedOrder.id ? updatedOrder : order));
       setEditItemDrafts(Object.fromEntries((remaining || []).map((current: OrderItem) => [current.id, { price: String(Number(current.price || 0)), quantity: String(Number(current.quantity || 1)) }])));
@@ -3694,7 +3694,7 @@ function OrdersView() {
 
                   <div className="xl:w-[13%]">
                     <p className="text-sm font-bold text-gray-900">
-                      {formatPrice(Number(order.grand_total ?? order.total ?? 0))}
+                      {formatPrice(Math.max(0, Number(order.grand_total ?? order.total ?? 0) - Number(order.advance_payment || 0)))}
                     </p>
                     <p className="text-[11px] text-gray-500">{order.payment_method || 'COD'}</p>
                   </div>

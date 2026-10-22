@@ -89,7 +89,7 @@ export default function InvoicePage() {
   return (
     <div className="invoice-print-root min-h-screen bg-cream py-10 px-4">
       <SEO title="Invoice - Homemade Beauty Care" />
-      <style>{`@media print { body > * { visibility: hidden !important; } .invoice-print-root, .invoice-print-root * { visibility: visible !important; } .invoice-print-root { position: absolute !important; inset: 0 !important; width: 100% !important; background: white !important; padding: 0 !important; } @page { margin: 10mm; } }`}</style>
+      <style>{`@page { size: auto; margin: 8mm; } @media print { html, body, #root { height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #fff !important; } body * { visibility: hidden !important; } .invoice-print-root, .invoice-print-root * { visibility: visible !important; } .invoice-print-root { position: static !important; inset: auto !important; width: 100% !important; min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #fff !important; } .invoice-print-root > div { width: 100% !important; max-width: none !important; margin: 0 !important; } .invoice-print-root .rounded-2xl { border-radius: 0 !important; box-shadow: none !important; } .invoice-print-root img { max-height: 52px !important; } }`}</style>
 
       <div className="max-w-3xl mx-auto">
         {!result ? (
@@ -163,16 +163,20 @@ export default function InvoicePage() {
               ))}
             </div>
 
-            <div className="py-5 space-y-2 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(result.order.subtotal)}</span></div>
-              <div className="flex justify-between"><span>Delivery Charge</span><span>{formatPrice(result.order.delivery_charge)}</span></div>
-              {result.order.discount > 0 && <div className="flex justify-between"><span>Discount</span><span>-{formatPrice(result.order.discount)}</span></div>}
-              <div className="flex justify-between border-t pt-3 text-lg font-bold"><span>Grand Total</span><span className="text-primary">{formatPrice(result.order.grand_total)}</span></div>
+            <div className="my-5 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm">
+              <div className="flex justify-between py-1.5"><span className="text-gray-600">Subtotal</span><span className="font-medium">{formatPrice(result.order.subtotal ?? result.items.reduce((sum: number, item: any) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0))}</span></div>
+              <div className="flex justify-between py-1.5"><span className="text-gray-600">Delivery Charge</span><span>{Number(result.order.delivery_charge || 0) === 0 ? 'FREE' : formatPrice(result.order.delivery_charge)}</span></div>
+              {Number(result.order.discount || 0) > 0 && <div className="flex justify-between py-1.5"><span className="text-gray-600">Discount</span><span>-{formatPrice(result.order.discount)}</span></div>}
+              <div className="mt-2 flex justify-between border-t border-gray-200 pt-3 text-base font-bold"><span>Grand Total</span><span className="text-primary">{formatPrice(result.order.grand_total ?? result.order.total)}</span></div>
+              <div className="flex justify-between py-2 text-emerald-700"><span>Advance Paid</span><span className="font-semibold">− {formatPrice(result.order.advance_payment || 0)}</span></div>
+              <div className="flex justify-between border-t border-gray-200 pt-3 text-lg font-bold"><span>Balance Due</span><span className="text-red-700">{formatPrice(Math.max(0, Number(result.order.grand_total ?? result.order.total ?? 0) - Number(result.order.advance_payment || 0)))}</span></div>
             </div>
 
             <div className="border-t border-primary/10 pt-5 text-sm text-gray-600 space-y-2">
-              <div className="flex gap-2"><MapPin size={16} /> {result.order.address}, {result.order.area}, {result.order.district}</div>
-              <div className="flex gap-2"><CreditCard size={16} /> {result.order.payment_method}</div>
+              {(result.order.customer_phone || result.order.mobile) && <div className="flex items-center gap-2"><CreditCard size={16} /> {result.order.customer_phone || result.order.mobile}</div>}
+              {([result.order.address, result.order.area, result.order.district].filter(Boolean).length > 0) && <div className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 shrink-0" /> <span>{[result.order.address, result.order.area, result.order.district].filter(Boolean).join(', ')}</span></div>}
+              <div className="flex items-center gap-2"><CreditCard size={16} /> {result.order.payment_method || 'Cash on Delivery'} · {result.order.payment_status || (Number(result.order.advance_payment || 0) > 0 ? 'Partially Paid' : 'Unpaid')}</div>
+              <p className="pt-3 text-center text-xs text-gray-400">Thank you for choosing Homemade Beauty Care.</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-6 print:hidden">

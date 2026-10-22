@@ -3811,7 +3811,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
                     checked={statusOrders.length > 0 && statusOrders.every((order) => selectedOrderIds.includes(order.id))}
                     onChange={(e) => setSelectedOrderIds((prev) => e.target.checked
                       ? Array.from(new Set([...prev, ...statusOrders.map((order) => order.id)]))
-                      : prev.filter((id) => !statusOrders.some((order) => order.id === id))}
+                      : prev.filter((id) => !statusOrders.some((order) => order.id === id)))}
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <h3 className="text-sm font-bold text-gray-800">{status === 'Cancelled' ? 'Cancelled Orders' : `${status} Orders`}</h3>

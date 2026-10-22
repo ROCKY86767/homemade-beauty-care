@@ -97,7 +97,6 @@ type Banner = any;
 
 const ORDER_STATUSES = [
   'Pending',
-  'Order Placed',
   'Confirmed',
   'Processing',
   'Shipped',
@@ -2779,6 +2778,10 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
   const [manualForm, setManualForm] = useState({ name:'', phone:'', district:'', area:'', address:'', note:'', discount:'0', freeDelivery:false });
   const [manualItems, setManualItems] = useState<{ productId: string; quantity: string }[]>([]);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState('Confirmed');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -3555,6 +3558,60 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
   const itemsForOrder = (orderId: string) =>
     items.filter((item) => item.order_id === orderId);
 
+  // Map legacy records to Pending; "Order Placed" is no longer a valid status.
+  const normalizeOrderStatus = (status: unknown) =>
+    String(status || 'Pending') === 'Order Placed' ? 'Pending' : String(status || 'Pending');
+
+  const selectedOrders = orders.filter((order) => selectedOrderIds.includes(order.id));
+
+  const handleBulkStatusChange = async () => {
+    if (!selectedOrders.length || bulkBusy) return;
+    setBulkBusy(true);
+    setBulkMessage('');
+    try {
+      for (const order of selectedOrders) await updateStatus(order, bulkStatus);
+      setSelectedOrderIds([]);
+      setBulkMessage(`Status update completed for ${selectedOrders.length} order(s).`);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkCourierSubmit = async () => {
+    if (!selectedOrders.length || bulkBusy) return;
+    setBulkBusy(true);
+    setBulkMessage('');
+    let succeeded = 0;
+    const failed: string[] = [];
+    try {
+      for (const order of selectedOrders) {
+        try {
+          const { data, error } = await supabase.functions.invoke('integrations', {
+            body: { action: 'create_pathao_order', order_id: order.id },
+          });
+          if (error) throw error;
+          if (data?.success === false && !data?.skipped) throw new Error(data.message || 'Courier submission failed');
+          if (data?.skipped) failed.push(`#${displayOrderNumber(order)}: Pathao is not enabled`);
+          else succeeded += 1;
+        } catch (err: any) {
+          failed.push(`#${displayOrderNumber(order)}: ${err?.message || 'Failed'}`);
+        }
+      }
+      setBulkMessage(`Pathao submitted: ${succeeded}; failed/skipped: ${failed.length}.${failed.length ? ' ' + failed.slice(0, 3).join('; ') : ''}`);
+      if (!failed.length) setSelectedOrderIds([]);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkInvoicePrint = () => {
+    if (!selectedOrders.length) return;
+    selectedOrders.forEach((order) => {
+      window.open(`/invoice?order_id=${encodeURIComponent(order.id)}`, '_blank', 'noopener,noreferrer');
+    });
+    setBulkMessage(`Opened invoice pages for ${selectedOrders.length} order(s). Print from each invoice page.`);
+  };
+
   // Only the newer order is marked as duplicate when an older order
   // with the same mobile number is still active (not Delivered/Cancelled).
   const duplicateOrderIds = useMemo(() => {
@@ -3719,30 +3776,53 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </div>
 
+      {selectedOrderIds.length > 0 && (
+        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-primary/20 bg-white p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-gray-900">{selectedOrderIds.length} order(s) selected</p>
+            <button onClick={() => setSelectedOrderIds([])} className="text-xs font-medium text-gray-600 underline">Clear selection</button>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+              {ORDER_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+            </select>
+            <button onClick={handleBulkStatusChange} disabled={bulkBusy} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{bulkBusy ? 'Working...' : 'Change Status'}</button>
+            <button onClick={handleBulkCourierSubmit} disabled={bulkBusy} className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 disabled:opacity-50">{bulkBusy ? 'Working...' : 'Submit to Pathao'}</button>
+            <button onClick={handleBulkInvoicePrint} disabled={bulkBusy} className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 disabled:opacity-50">Open / Print Invoices</button>
+          </div>
+          {bulkMessage && <p className="text-xs text-gray-600">{bulkMessage}</p>}
+        </div>
+      )}
+
       <div className="space-y-5">
-        {Array.from(new Set([
-          ...ORDER_STATUSES,
-          ...filtered
-            .map((order) => String(order.status || 'Pending'))
-            .filter((status) => !ORDER_STATUSES.includes(status)),
-        ])).map((status) => {
+        {ORDER_STATUSES.map((status) => {
           const statusOrders = filtered.filter(
-            (order) => String(order.status || 'Pending') === status
+            (order) => normalizeOrderStatus(order.status) === status
           );
           if (statusOrders.length === 0) return null;
 
           return (
             <section key={status} className="space-y-2">
               <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-[#f7f5ed] px-3 py-2.5">
-                <h3 className="text-sm font-bold text-gray-800">{status === 'Cancelled' ? 'Cancelled Orders' : `${status} Orders`}</h3>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select all ${status} orders`}
+                    checked={statusOrders.length > 0 && statusOrders.every((order) => selectedOrderIds.includes(order.id))}
+                    onChange={(e) => setSelectedOrderIds((prev) => e.target.checked
+                      ? Array.from(new Set([...prev, ...statusOrders.map((order) => order.id)]))
+                      : prev.filter((id) => !statusOrders.some((order) => order.id === id))}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <h3 className="text-sm font-bold text-gray-800">{status === 'Cancelled' ? 'Cancelled Orders' : `${status} Orders`}</h3>
+                </div>
                 <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">{statusOrders.length} {statusOrders.length === 1 ? 'order' : 'orders'}</span>
               </div>
               <div className="space-y-2">
                 {statusOrders.map((order) => {
           const orderItems = itemsForOrder(order.id);
-          const knownStatuses = ORDER_STATUSES.includes(order.status)
-            ? ORDER_STATUSES
-            : [order.status, ...ORDER_STATUSES];
+          const normalizedStatus = normalizeOrderStatus(order.status);
+          const knownStatuses = ORDER_STATUSES;
 
           return (
             <div
@@ -3751,6 +3831,15 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
             >
               <div className="px-3 py-2.5">
                 <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+                  <div className="flex items-center gap-2 xl:pr-1">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select order #${displayOrderNumber(order)}`}
+                      checked={selectedOrderIds.includes(order.id)}
+                      onChange={(e) => setSelectedOrderIds((prev) => e.target.checked ? [...prev, order.id] : prev.filter((id) => id !== order.id))}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                  </div>
                   <div className="min-w-0 xl:w-[20%]">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <div className="flex items-center gap-1.5">
@@ -3772,7 +3861,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
                           <Copy className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <StatusBadge status={order.status} />
+                      <StatusBadge status={normalizedStatus} />
                       {duplicateOrderIds.has(order.id) && (
                         <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
                           DUPLICATE
@@ -3796,7 +3885,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
 
                   <div className="xl:w-[17%]">
                     <select
-                      value={order.status || ''}
+                      value={normalizedStatus}
                       disabled={updating === order.id}
                       onChange={(e) => updateStatus(order, e.target.value)}
                       className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-gray-500 disabled:bg-gray-100"

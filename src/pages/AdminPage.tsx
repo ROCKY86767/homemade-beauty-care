@@ -3719,8 +3719,26 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        {filtered.map((order) => {
+      <div className="space-y-5">
+        {Array.from(new Set([
+          ...ORDER_STATUSES,
+          ...filtered
+            .map((order) => String(order.status || 'Pending'))
+            .filter((status) => !ORDER_STATUSES.includes(status)),
+        ])).map((status) => {
+          const statusOrders = filtered.filter(
+            (order) => String(order.status || 'Pending') === status
+          );
+          if (statusOrders.length === 0) return null;
+
+          return (
+            <section key={status} className="space-y-2">
+              <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-[#f7f5ed] px-3 py-2.5">
+                <h3 className="text-sm font-bold text-gray-800">{status === 'Cancelled' ? 'Cancelled Orders' : `${status} Orders`}</h3>
+                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">{statusOrders.length} {statusOrders.length === 1 ? 'order' : 'orders'}</span>
+              </div>
+              <div className="space-y-2">
+                {statusOrders.map((order) => {
           const orderItems = itemsForOrder(order.id);
           const knownStatuses = ORDER_STATUSES.includes(order.status)
             ? ORDER_STATUSES
@@ -3820,6 +3838,10 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
                 </div>
               </div>
             </div>
+          );
+                })}
+              </div>
+            </section>
           );
         })}
       </div>

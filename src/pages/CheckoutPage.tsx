@@ -53,6 +53,8 @@ export default function CheckoutPage() {
 
   const navigate = useNavigate();
   const checkoutEventSent = useRef(false);
+  const [isBangla, setIsBangla] = useState(false);
+  const t = (english: string, bangla: string) => isBangla ? bangla : english;
 
   const [settings, setSettings] =
     useState<SiteSettings | null>(null);
@@ -435,7 +437,7 @@ export default function CheckoutPage() {
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       setCouponError(
-        'Please enter a coupon code.'
+        t('Please enter a coupon code.', 'অনুগ্রহ করে কুপন কোড লিখুন।')
       );
 
       setCouponSuccess('');
@@ -461,7 +463,7 @@ export default function CheckoutPage() {
 
     if (queryError) {
       setCouponError(
-        'Unable to validate the coupon.'
+        t('Unable to validate the coupon.', 'কুপন যাচাই করা যায়নি। আবার চেষ্টা করুন।')
       );
 
       setAppliedCoupon(null);
@@ -471,7 +473,7 @@ export default function CheckoutPage() {
 
     if (!coupon) {
       setCouponError(
-        'Invalid or inactive coupon code.'
+        t('Invalid or inactive coupon code.', 'কুপন কোডটি ভুল অথবা বর্তমানে সক্রিয় নয়।')
       );
 
       setAppliedCoupon(null);
@@ -485,7 +487,7 @@ export default function CheckoutPage() {
         new Date()
     ) {
       setCouponError(
-        'This coupon is not active yet.'
+        t('This coupon is not active yet.', 'কুপনটি এখনো কার্যকর হয়নি।')
       );
 
       setAppliedCoupon(null);
@@ -499,7 +501,7 @@ export default function CheckoutPage() {
         new Date()
     ) {
       setCouponError(
-        'This coupon code has expired.'
+        t('This coupon code has expired.', 'কুপনের মেয়াদ শেষ হয়ে গেছে।')
       );
 
       setAppliedCoupon(null);
@@ -513,7 +515,7 @@ export default function CheckoutPage() {
         Number(coupon.usage_limit)
     ) {
       setCouponError(
-        'This coupon has reached its usage limit.'
+        t('This coupon has reached its usage limit.', 'কুপনটি ব্যবহারের নির্ধারিত সীমা পূর্ণ হয়েছে।')
       );
 
       setAppliedCoupon(null);
@@ -528,11 +530,7 @@ export default function CheckoutPage() {
       )
     ) {
       setCouponError(
-        `Minimum order for this coupon is ${formatPrice(
-          Number(
-            coupon.minimum_order || 0
-          )
-        )}।`
+        t('Minimum order for this coupon is ', 'এই কুপন ব্যবহার করতে ন্যূনতম অর্ডার হতে হবে ') + formatPrice(Number(coupon.minimum_order || 0)) + '।'
       );
 
       setAppliedCoupon(null);
@@ -548,7 +546,7 @@ export default function CheckoutPage() {
 
     if (couponDiscount <= 0) {
       setCouponError(
-        'This coupon is not applicable to this order.'
+        t('This coupon is not applicable to this order.', 'এই অর্ডারে কুপনটি প্রযোজ্য নয়।')
       );
 
       setAppliedCoupon(null);
@@ -559,9 +557,7 @@ export default function CheckoutPage() {
     setAppliedCoupon(coupon);
 
     setCouponSuccess(
-      `Coupon applied! You save ${formatPrice(
-        couponDiscount
-      )} .`
+      (isBangla ? 'কুপন প্রয়োগ হয়েছে! আপনার সাশ্রয় ' : 'Coupon applied! You save ') + formatPrice(couponDiscount) + (isBangla ? '।' : '.')
     );
   };
 
@@ -590,7 +586,7 @@ export default function CheckoutPage() {
       !form.address
     ) {
       setError(
-        'Please fill in all required fields.'
+        t('Please fill in all required fields.', 'অনুগ্রহ করে (*) চিহ্নিত সব প্রয়োজনীয় তথ্য পূরণ করুন।')
       );
 
       return;
@@ -602,7 +598,7 @@ export default function CheckoutPage() {
       )
     ) {
       setError(
-        'Please enter a valid mobile number (e.g. 01XXXXXXXXX).'
+        t('Please enter a valid mobile number (e.g. 01XXXXXXXXX).', 'সঠিক ১১ সংখ্যার মোবাইল নম্বর লিখুন (যেমন: 01XXXXXXXXX)।')
       );
 
       return;
@@ -614,29 +610,29 @@ export default function CheckoutPage() {
     }
 
     if (settings?.checkout_guest_enabled === false && !userId) {
-      setError('Please log in before placing an order.');
+      setError(t('Please log in before placing an order.', 'অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।'));
       navigate('/login');
       return;
     }
 
     if (settings?.checkout_require_email === true && !form.email.trim()) {
-      setError('Please enter your email address.');
+      setError(t('Please enter your email address.', 'অনুগ্রহ করে ইমেইল ঠিকানা লিখুন।'));
       return;
     }
 
     if (settings?.checkout_require_terms === true && !termsAccepted) {
-      setError('Please accept the terms and conditions to continue.');
+      setError(t('Please accept the terms and conditions to continue.', 'চালিয়ে যেতে শর্তাবলিতে সম্মতি দিন।'));
       return;
     }
 
     if (settings?.cod_enabled !== true && paymentMethod === 'Cash on Delivery') {
-      setError('Cash on Delivery is currently unavailable. Please select an available payment method.');
+      setError(t('Cash on Delivery is currently unavailable. Please select an available payment method.', 'ক্যাশ অন ডেলিভারি বর্তমানে চালু নেই। অনুগ্রহ করে অন্য পেমেন্ট পদ্ধতি বেছে নিন।'));
       return;
     }
 
     if (paymentMethod === 'Online Payment' && settings?.online_payment_enabled !== true) {
       setError(
-        'Online Payment is not available yet. Please select Cash on Delivery.'
+        t('Online Payment is not available yet. Please select Cash on Delivery.', 'অনলাইন পেমেন্ট এখনো চালু হয়নি। অনুগ্রহ করে ক্যাশ অন ডেলিভারি বেছে নিন।')
       );
 
       return;
@@ -792,8 +788,8 @@ export default function CheckoutPage() {
 
       setError(
         duplicateOrder
-          ? 'An order has already been confirmed with this mobile number within the last 5 minutes. Please try again after 5 minutes.'
-          : 'Unable to place the order. Please try again.'
+          ? t('An order has already been confirmed with this mobile number within the last 5 minutes. Please try again after 5 minutes.', 'এই মোবাইল নম্বর দিয়ে গত ৫ মিনিটের মধ্যে একটি অর্ডার নিশ্চিত হয়েছে। ৫ মিনিট পর আবার চেষ্টা করুন।')
+          : t('Unable to place the order. Please try again.', 'অর্ডারটি সম্পন্ন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।')
       );
 
       setSubmitting(false);
@@ -806,18 +802,18 @@ export default function CheckoutPage() {
         <SEO title="Checkout - Homemade Beauty Care" />
 
         <h2 className="font-display text-xl sm:text-2xl font-bold text-dark mb-2">
-          Your cart is empty
+          {t('Your cart is empty', 'আপনার কার্ট খালি')}
         </h2>
 
         <p className="text-gray-500 mb-6 text-center">
-          Add products to your cart before proceeding to checkout.
+          {t('Add products to your cart before proceeding to checkout.', 'চেকআউট করার আগে কার্টে পণ্য যোগ করুন।')}
         </p>
 
         <Link
           to="/shop"
           className="btn-primary"
         >
-          Continue Shopping
+          {t('Continue Shopping', 'কেনাকাটা চালিয়ে যান')}
         </Link>
       </div>
     );
@@ -829,24 +825,31 @@ export default function CheckoutPage() {
 
       <div className="section-padding py-8">
 
+        <div className="flex justify-end mb-4">
+          <button type="button" onClick={() => setIsBangla(value => !value)} aria-label={isBangla ? 'Switch checkout to English' : 'Checkout page in Bangla'} className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/5">
+            <span aria-hidden="true">{isBangla ? '🌐' : 'আ'}</span>
+            {isBangla ? 'Switch to English' : 'বাংলা করুন'}
+          </button>
+        </div>
+
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">
           <Link
             to="/cart"
             className="hover:text-primary"
           >
-            Cart
+            {t('Cart', 'কার্ট')}
           </Link>
 
           <ChevronRight size={14} />
 
           <span className="text-ink font-medium">
-            Complete Your Order
+            {t('Complete Your Order', 'আপনার অর্ডার সম্পন্ন করুন')}
           </span>
         </div>
 
         <h1 className="font-display text-3xl font-bold text-dark mb-8">
-          Complete Your Order
+          {t('Complete Your Order', 'আপনার অর্ডার সম্পন্ন করুন')}
         </h1>
 
         <form
@@ -860,7 +863,7 @@ export default function CheckoutPage() {
             {/* Customer Info */}
             <div className="card p-4 sm:p-6 border border-gray-50">
               <h2 className="font-display text-base sm:text-lg font-semibold text-ink mb-4">
-                Customer Information
+                {t('Customer Information', 'গ্রাহকের তথ্য')}
               </h2>
 
               <div className="grid sm:grid-cols-2 gap-4">
@@ -868,7 +871,7 @@ export default function CheckoutPage() {
                 {/* Name */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    Full Name *
+                    {t('Full Name *', 'সম্পূর্ণ নাম *')}
                   </label>
 
                   <input
@@ -883,14 +886,14 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field"
-                    placeholder="Enter your full name"
+                    placeholder={t('Enter your full name', 'আপনার সম্পূর্ণ নাম লিখুন')}
                   />
                 </div>
 
                 {/* Mobile */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    Mobile Number *
+                    {t('Mobile Number *', 'মোবাইল নম্বর *')}
                   </label>
 
                   <input
@@ -905,7 +908,7 @@ export default function CheckoutPage() {
                       });
                     }}
                     className="input-field"
-                    placeholder="Enter mobile number"
+                    placeholder={t('Enter mobile number', 'মোবাইল নম্বর লিখুন')}
                     inputMode="numeric"
                     maxLength={11}
                     pattern="01[0-9]{9}"
@@ -915,7 +918,7 @@ export default function CheckoutPage() {
                 {/* Alternative Mobile */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    Alternative Number
+                    {t('Alternative Number', 'বিকল্প মোবাইল নম্বর')}
                   </label>
 
                   <input
@@ -929,14 +932,14 @@ export default function CheckoutPage() {
                       });
                     }}
                     className="input-field"
-                    placeholder="Enter alternative mobile number" inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
+                    placeholder={t('Enter alternative mobile number', 'বিকল্প মোবাইল নম্বর লিখুন')} inputMode="numeric" maxLength={11} pattern="01[0-9]{9}"
                   />
                 </div>
 
                 {/* Email */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    Email Address
+                    {t('Email Address', 'ইমেইল ঠিকানা')}
                   </label>
 
                   <input
@@ -956,12 +959,12 @@ export default function CheckoutPage() {
                         ? 'bg-gray-50'
                         : ''
                     }`}
-                    placeholder="Enter your email address"
+                    placeholder={t('Enter your email address', 'আপনার ইমেইল ঠিকানা লিখুন')}
                   />
 
                   {userId && (
                     <p className="text-xs text-gray-400 mt-1">
-                      Your verified account email
+                      {t('Your verified account email', 'আপনার যাচাইকৃত অ্যাকাউন্টের ইমেইল')}
                     </p>
                   )}
                 </div>
@@ -969,7 +972,7 @@ export default function CheckoutPage() {
                 {/* District */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    District *
+                    {t('District *', 'জেলা *')}
                   </label>
 
                   <select
@@ -1002,7 +1005,7 @@ export default function CheckoutPage() {
                 {/* Thana / Upazila */}
                 <div>
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    Thana / Upazila *
+                    {t('Thana / Upazila *', 'থানা / উপজেলা *')}
                   </label>
 
                   <select
@@ -1019,10 +1022,10 @@ export default function CheckoutPage() {
                   >
                     <option value="">
                       {locationLoading
-                        ? 'Loading locations...'
+                        ? t('Loading locations...', 'ঠিকানা লোড হচ্ছে...')
                         : thanas.length === 0
-                          ? 'No area found'
-                          : 'Select Thana / Upazila'}
+                          ? t('No area found', 'কোনো এলাকা পাওয়া যায়নি')
+                          : t('Select Thana / Upazila', 'থানা / উপজেলা নির্বাচন করুন')}
                     </option>
                     {thanas.map(thana => (
                       <option
@@ -1038,7 +1041,7 @@ export default function CheckoutPage() {
                 {/* Address */}
                 <div className="sm:col-span-2">
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    Full Delivery Address *
+                    {t('Full Delivery Address *', 'সম্পূর্ণ ডেলিভারি ঠিকানা *')}
                   </label>
 
                   <textarea
@@ -1053,14 +1056,14 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field resize-none"
-                    placeholder="House/Holding number, road, thana/police station"
+                    placeholder={t('House/Holding number, road, thana/police station', 'বাড়ি/হোল্ডিং নম্বর, সড়ক, থানা/পুলিশ স্টেশনের ঠিকানা')}
                   />
                 </div>
 
                 {/* Note */}
                 <div className="sm:col-span-2">
                   <label className="text-sm font-medium text-ink mb-1.5 block">
-                    Order Note
+                    {t('Order Note', 'অর্ডার সম্পর্কে বিশেষ নির্দেশনা')}
                   </label>
 
                   <textarea
@@ -1074,7 +1077,7 @@ export default function CheckoutPage() {
                       })
                     }
                     className="input-field resize-none"
-                    placeholder="Any special instructions for your order (optional)"
+                    placeholder={t('Any special instructions for your order (optional)', 'অর্ডার সম্পর্কে বিশেষ নির্দেশনা (ঐচ্ছিক)')}
                   />
                 </div>
 
@@ -1088,11 +1091,11 @@ export default function CheckoutPage() {
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <div>
                     <h2 className="font-display text-lg font-semibold text-ink">
-                      Saved Addresses
+                      {t('Saved Addresses', 'সংরক্ষিত ঠিকানা')}
                     </h2>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      Saved addresses for this account
+                      {t('Saved addresses for this account', 'এই অ্যাকাউন্টে সংরক্ষিত ঠিকানা')}
                     </p>
                   </div>
 
@@ -1104,7 +1107,7 @@ export default function CheckoutPage() {
 
                 {savedAddressLoading ? (
                   <p className="text-sm text-gray-400">
-                    Loading saved addresses...
+                    {t('Loading saved addresses...', 'সংরক্ষিত ঠিকানা লোড হচ্ছে...')}
                   </p>
                 ) : savedAddresses.length > 0 ? (
                   <div className="space-y-3">
@@ -1162,7 +1165,7 @@ export default function CheckoutPage() {
 
                             {savedAddress.is_default && (
                               <span className="shrink-0 rounded-full bg-primary/10 text-primary text-xs px-2.5 py-1">
-                                Default
+                                {t('Default', 'ডিফল্ট')}
                               </span>
                             )}
 
@@ -1175,14 +1178,14 @@ export default function CheckoutPage() {
                 ) : (
                   <div className="rounded-xl bg-gray-50 p-4">
                     <p className="text-sm text-gray-500">
-                      No saved address found for this mobile number.
+                      {t('No saved address found for this mobile number.', 'এই মোবাইল নম্বরের জন্য কোনো সংরক্ষিত ঠিকানা পাওয়া যায়নি।')}
                     </p>
                   </div>
                 )}
 
                 <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
                   <Plus size={14} />
-                  Your new address will be saved to your account when you place the order.
+                  {t('Your new address will be saved to your account when you place the order.', 'অর্ডার করলে নতুন ঠিকানাটি আপনার অ্যাকাউন্টে সংরক্ষিত হবে।')}
                 </div>
 
               </div>
@@ -1193,18 +1196,18 @@ export default function CheckoutPage() {
               !userId && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <p className="text-sm text-gray-600">
-                    To use Saved Addresses, please{' '}
+                    {t('To use Saved Addresses, please', 'সংরক্ষিত ঠিকানা ব্যবহার করতে')} {' '}
                     <Link
                       to="/login"
                       className="font-semibold text-primary hover:underline"
                     >
-                      Log in
+                      {t('Log in', 'লগইন করুন')}
                     </Link>
                     ।
                   </p>
 
                   <p className="text-xs text-gray-400 mt-1">
-                    You can also continue as a guest without logging in.
+                    {t('You can also continue as a guest without logging in.', 'লগইন না করেও অতিথি হিসেবে অর্ডার করতে পারবেন।')}
                   </p>
                 </div>
               )}
@@ -1213,7 +1216,7 @@ export default function CheckoutPage() {
             <div className="card p-6 border border-gray-50">
 
               <h2 className="font-display text-lg font-semibold text-ink mb-4">
-                Payment Method
+                {t('Payment Method', 'পেমেন্ট পদ্ধতি')}
               </h2>
 
               <div className="space-y-3">
@@ -1246,13 +1249,13 @@ export default function CheckoutPage() {
 
                   <div>
                     <span className="font-medium text-ink">
-                      Cash on Delivery
+                      {t('Cash on Delivery', 'ক্যাশ অন ডেলিভারি')}
                     </span>
 
                     <p className="text-sm text-gray-500">
                       {settings?.cod_enabled === false
-                        ? 'Currently unavailable'
-                        : 'Pay when you receive your order'}
+                        ? t('Currently unavailable', 'বর্তমানে চালু নেই')
+                        : t('Pay when you receive your order', 'পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন')}
                     </p>
                   </div>
                 </label>
@@ -1285,13 +1288,13 @@ export default function CheckoutPage() {
 
                   <div>
                     <span className="font-medium text-ink">
-                      Online Payment
+                      {t('Online Payment', 'অনলাইন পেমেন্ট')}
                     </span>
 
                     <p className="text-sm text-gray-500">
                       {settings?.online_payment_enabled === true
-                        ? 'Pay securely online'
-                        : 'Currently unavailable'}
+                        ? t('Pay securely online', 'নিরাপদে অনলাইনে পেমেন্ট করুন')
+                        : t('Currently unavailable', 'বর্তমানে চালু নেই')}
                     </p>
                   </div>
                 </label>
@@ -1307,7 +1310,7 @@ export default function CheckoutPage() {
             <div className="card p-6 border border-gray-50 sticky top-44">
 
               <h2 className="font-display text-lg font-semibold text-ink mb-4">
-                Order Summary
+                {t('Order Summary', 'অর্ডারের বিবরণ')}
               </h2>
 
               {/* Products */}
@@ -1337,7 +1340,7 @@ export default function CheckoutPage() {
                       </p>
 
                       <p className="text-xs text-gray-400">
-                        Qty: {item.quantity}
+                        {t('Qty', 'পরিমাণ')}: {item.quantity}
                       </p>
 
                     </div>
@@ -1399,7 +1402,7 @@ export default function CheckoutPage() {
                         )
                       }
                       className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
-                      placeholder="Enter coupon code"
+                      placeholder={t('Enter coupon code', 'কুপন কোড লিখুন')}
                     />
 
                     <button
@@ -1409,7 +1412,7 @@ export default function CheckoutPage() {
                       }
                       className="rounded-lg bg-dark px-4 py-2 text-sm font-medium text-white hover:bg-primary"
                     >
-                      Apply
+                      {t('Apply', 'প্রয়োগ করুন')}
                     </button>
 
                   </div>
@@ -1437,7 +1440,7 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">
-                    Subtotal
+                    {t('Subtotal', 'পণ্যের মোট মূল্য')}
                   </span>
 
                   <span className="font-medium">
@@ -1449,13 +1452,13 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">
-                    Delivery Charge
+                    {t('Delivery Charge', 'ডেলিভারি চার্জ')}
                   </span>
 
                   <span className="font-medium">
                     {deliveryCharge ===
                     0
-                      ? 'Free'
+                      ? t('Free', 'ফ্রি')
                       : formatPrice(
                           deliveryCharge
                         )}
@@ -1466,7 +1469,7 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-sm">
 
                     <span className="text-gray-500">
-                      Discount
+                      {t('Discount', 'ছাড়')}
                     </span>
 
                     <span className="font-medium text-accent">
@@ -1485,7 +1488,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between items-center py-4 sm:py-5">
 
                 <span className="font-display text-lg font-bold text-dark">
-                  Total
+                  {t('Total', 'সর্বমোট')}
                 </span>
 
                 <span className="font-display text-2xl font-bold text-primary">
@@ -1512,7 +1515,7 @@ export default function CheckoutPage() {
                     onChange={e => setTermsAccepted(e.target.checked)}
                     className="mt-0.5 h-4 w-4 accent-primary"
                   />
-                  <span>I agree to the terms and conditions and confirm that my order information is correct.</span>
+                  <span>{t('I agree to the terms and conditions and confirm that my order information is correct.', 'আমি শর্তাবলিতে সম্মত এবং নিশ্চিত করছি যে আমার অর্ডারের তথ্য সঠিক।')}</span>
                 </label>
               )}
 
@@ -1522,13 +1525,12 @@ export default function CheckoutPage() {
                 className="btn-primary w-full disabled:opacity-50"
               >
                 {submitting
-                  ? 'Placing Order...'
-                  : 'Place Order'}
+                  ? t('Placing Order...', 'অর্ডার করা হচ্ছে...')
+                  : t('Place Order', 'অর্ডার নিশ্চিত করুন')}
               </button>
 
               <p className="text-xs text-gray-400 text-center mt-3">
-                By placing this order, you agree to our
-                terms and conditions.
+                {t('By placing this order, you agree to our terms and conditions.', 'অর্ডার করার মাধ্যমে আপনি আমাদের শর্তাবলিতে সম্মতি দিচ্ছেন।')}
               </p>
 
               {false && <OrderJourneyAnimation />}

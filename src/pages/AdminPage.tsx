@@ -543,7 +543,7 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'orders' && (
-              <OrdersView />
+              <OrdersView isAdmin={isAdmin} />
             )}
 
             {activeTab === 'customers' && (
@@ -2741,7 +2741,7 @@ function CategoriesView() {
    ORDERS
 ========================================================= */
 
-function OrdersView() {
+function OrdersView({ isAdmin }: { isAdmin: boolean }) {
   // Compact order rows + dedicated View modal.
   const [orders, setOrders] = useState<Order[]>([]);
   const [items, setItems] = useState<OrderItem[]>([]);
@@ -3011,6 +3011,32 @@ function OrdersView() {
       setInternalNoteDraft('');
     } catch (err: any) {
       setError(err.message || 'Internal note could not be saved.');
+    } finally {
+      setSavingOrderEdit(false);
+    }
+  };
+
+  const deleteInternalOrderNote = async (displayIndex: number) => {
+    if (!isAdmin || !viewOrder) return;
+    const noteIndex = internalOrderNotes.length - 1 - displayIndex;
+    if (noteIndex < 0 || noteIndex >= internalOrderNotes.length) return;
+    if (!window.confirm('এই internal note-টি মুছে ফেলবেন?')) return;
+
+    setSavingOrderEdit(true);
+    setError('');
+    try {
+      const { data, error } = await supabase.rpc('delete_internal_order_note', {
+        p_order_id: viewOrder.id,
+        p_note_index: noteIndex,
+      });
+      if (error) throw error;
+      const nextNotes = Array.isArray(data) ? data : internalOrderNotes.filter((_, index) => index !== noteIndex);
+      const updated = { ...viewOrder, internal_order_notes: nextNotes };
+      setInternalOrderNotes(nextNotes);
+      setViewOrder(updated);
+      setOrders((prev) => prev.map((order) => order.id === updated.id ? updated : order));
+    } catch (err: any) {
+      setError(err.message || 'Internal note could not be deleted.');
     } finally {
       setSavingOrderEdit(false);
     }
@@ -3930,7 +3956,7 @@ function OrdersView() {
                   <label className="text-xs font-medium text-gray-600 sm:col-span-2">Customer Order Note<textarea rows={2} value={editCustomerForm.order_note || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, order_note: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
                   <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
                     <div className="mb-2 flex items-center justify-between gap-2"><label className="text-xs font-semibold text-amber-900">Internal Order Notes (Admin only)</label><span className="text-[11px] text-amber-800">{internalOrderNotes.length} note(s)</span></div>
-                    {internalOrderNotes.length > 0 && <div className="mb-3 max-h-44 space-y-2 overflow-y-auto">{[...internalOrderNotes].reverse().map((note: any, index: number) => <div key={`${note.created_at || 'note'}-${index}`} className="rounded-md border border-amber-100 bg-white p-2.5"><div className="mb-1 flex flex-wrap items-center justify-between gap-1"><span className="text-[11px] font-semibold text-amber-900">{note.role || 'Staff'} · {note.author || 'Previous staff'}</span><span className="text-[10px] text-gray-500">{note.created_at ? dateTime(note.created_at) : 'Time unavailable'}</span></div><p className="whitespace-pre-wrap text-sm text-gray-800">{note.text}</p></div>)}</div>}
+                    {internalOrderNotes.length > 0 && <div className="mb-3 max-h-44 space-y-2 overflow-y-auto">{[...internalOrderNotes].reverse().map((note: any, index: number) => <div key={`${note.created_at || 'note'}-${index}`} className="rounded-md border border-amber-100 bg-white p-2.5"><div className="mb-1 flex flex-wrap items-center justify-between gap-1"><span className="text-[11px] font-semibold text-amber-900">{note.role || 'Staff'} · {note.author || 'Previous staff'}</span><div className="flex items-center gap-2"><span className="text-[10px] text-gray-500">{note.created_at ? dateTime(note.created_at) : 'Time unavailable'}</span>{isAdmin && <button type="button" onClick={() => deleteInternalOrderNote(index)} disabled={savingOrderEdit} className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-[10px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50" title="Delete note"><Trash2 className="h-3 w-3" /> Delete</button>}</div></div><p className="whitespace-pre-wrap text-sm text-gray-800">{note.text}</p></div>)}</div>}
                     <textarea rows={2} value={internalNoteDraft} onChange={(e) => setInternalNoteDraft(e.target.value)} placeholder="Write a new internal note..." className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm" />
                     <div className="mt-2 flex justify-end"><button type="button" onClick={addInternalOrderNote} disabled={savingOrderEdit || !internalNoteDraft.trim()} className="rounded-lg bg-amber-800 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Add Note'}</button></div>
                   </div>

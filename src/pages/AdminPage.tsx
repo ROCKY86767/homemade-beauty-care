@@ -3071,6 +3071,7 @@ function OrdersView() {
       const discount = Math.min(subtotal, Math.max(0, Number(editDiscount || 0)));
       const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
       const grandTotal = Math.max(0, subtotal - discount + delivery);
+      const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
 
       const { error: totalError } = await supabase
         .from('orders')
@@ -3080,6 +3081,7 @@ function OrdersView() {
           delivery_charge: delivery,
           grand_total: grandTotal,
           total: grandTotal,
+          advance_payment: advancePayment,
           updated_at: new Date().toISOString(),
         })
         .eq('id', viewOrder.id);
@@ -3092,6 +3094,7 @@ function OrdersView() {
         delivery_charge: delivery,
         grand_total: grandTotal,
         total: grandTotal,
+        advance_payment: advancePayment,
       };
       setViewOrder(updatedView);
       setOrders((prev) => prev.map((o) => o.id === updatedView.id ? updatedView : o));
@@ -3099,6 +3102,7 @@ function OrdersView() {
       setEditAddingProduct('');
       setEditAddingQty('1');
       setEditDeliveryCharge(String(delivery));
+      setEditAdvancePayment(String(advancePayment));
       setEditItemDrafts(Object.fromEntries((refreshedItems || []).map((item: OrderItem) => [item.id, { price: String(Number(item.price || 0)), quantity: String(Number(item.quantity || 1)) }])));
     } catch (err:any) {
       setError(err.message || 'Product add failed.');
@@ -3140,19 +3144,40 @@ function OrdersView() {
     try {
       const { error } = await supabase.from('order_items').delete().eq('id', item.id).eq('order_id', viewOrder.id);
       if (error) throw error;
-      const updatedItems = items.filter((current) => current.id !== item.id); setItems(updatedItems);
-      const remaining = updatedItems.filter((current) => current.order_id === viewOrder.id);
-      const subtotal = remaining.reduce((sum, current) => sum + Number(current.price || 0) * Number(current.quantity || 0), 0);
+
+      // Re-read the remaining items from the database so the totals never rely on stale React state.
+      const { data: remaining, error: itemsError } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', viewOrder.id)
+        .order('created_at', { ascending: true });
+      if (itemsError) throw itemsError;
+
+      const updatedItems = [
+        ...items.filter((current) => current.order_id !== viewOrder.id),
+        ...(remaining || []),
+      ];
+      setItems(updatedItems);
+      const subtotal = (remaining || []).reduce((sum, current) => sum + Number(current.price || 0) * Number(current.quantity || 0), 0);
       const discount = Math.min(subtotal, Math.max(0, Number(editDiscount || 0)));
       const delivery = editFreeDelivery ? 0 : Math.max(0, Number(editDeliveryCharge || 0));
       const grandTotal = Math.max(0, subtotal - discount + delivery);
       const advancePayment = Math.min(grandTotal, Math.max(0, Number(editAdvancePayment || 0)));
-      const { error: totalError } = await supabase.from('orders').update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      const { data: savedOrder, error: totalError } = await supabase
+        .from('orders')
+        .update({ subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment, updated_at: new Date().toISOString() })
+        .eq('id', viewOrder.id)
+        .select('*')
+        .single();
       if (totalError) throw totalError;
-      const updatedOrder = { ...viewOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
-      setViewOrder(updatedOrder); setOrders((prev) => prev.map((order) => order.id === updatedOrder.id ? updatedOrder : order));
-      setEditItemDrafts((prev) => { const next = { ...prev }; delete next[item.id]; return next; });
-      setEditDiscount(String(discount)); setEditDeliveryCharge(String(delivery)); setEditAdvancePayment(String(advancePayment));
+
+      const updatedOrder = { ...viewOrder, ...savedOrder, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: grandTotal, advance_payment: advancePayment };
+      setViewOrder(updatedOrder);
+      setOrders((prev) => prev.map((order) => order.id === updatedOrder.id ? updatedOrder : order));
+      setEditItemDrafts(Object.fromEntries((remaining || []).map((current: OrderItem) => [current.id, { price: String(Number(current.price || 0)), quantity: String(Number(current.quantity || 1)) }])));
+      setEditDiscount(String(discount));
+      setEditDeliveryCharge(String(delivery));
+      setEditAdvancePayment(String(advancePayment));
     } catch (err: any) { setError(err.message || 'Product removal failed.'); }
     finally { setSavingOrderEdit(false); }
   };

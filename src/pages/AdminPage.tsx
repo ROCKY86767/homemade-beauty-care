@@ -2768,6 +2768,8 @@ function OrdersView() {
   const [editDeliveryCharge, setEditDeliveryCharge] = useState('0');
   const [editStatus, setEditStatus] = useState('Pending');
   const [editCustomerForm, setEditCustomerForm] = useState<any>({});
+  const [internalOrderNotes, setInternalOrderNotes] = useState<any[]>([]);
+  const [internalNoteDraft, setInternalNoteDraft] = useState('');
   const [editItemDrafts, setEditItemDrafts] = useState<Record<string, { price: string; quantity: string }>>({});
   const [editAddingProduct, setEditAddingProduct] = useState('');
   const [editAddingQty, setEditAddingQty] = useState('1');
@@ -2976,8 +2978,41 @@ function OrdersView() {
     setEditAdvancePayment(String(Number(order.advance_payment || 0)));
     setEditDeliveryCharge(String(Number(order.delivery_charge || 0)));
     setEditStatus(String(order.status || 'Pending'));
+    const savedNotes = Array.isArray(order.internal_order_notes) ? order.internal_order_notes : [];
+    setInternalOrderNotes(savedNotes.length ? savedNotes : (order.admin_note ? [{ text: String(order.admin_note), created_at: order.updated_at || order.created_at || new Date().toISOString(), legacy: true }] : []));
+    setInternalNoteDraft('');
     setEditCustomerForm({ customer_name: order.customer_name || '', mobile: order.mobile || order.customer_phone || '', alt_phone: order.alt_phone || '', email: order.email || order.customer_email || '', district: order.district || '', area: order.area || '', address: order.address || '', order_note: order.order_note || order.note || '', admin_note: order.admin_note || '', payment_method: order.payment_method || 'Cash on Delivery', payment_status: order.payment_status || 'Unpaid' });
     setEditItemDrafts(Object.fromEntries(items.filter((item) => item.order_id === order.id).map((item) => [item.id, { price: String(Number(item.price || 0)), quantity: String(Number(item.quantity || 1)) }])));
+  };
+
+  const addInternalOrderNote = async () => {
+    if (!viewOrder || !internalNoteDraft.trim()) return;
+    setSavingOrderEdit(true); setError('');
+    try {
+      const nextNotes = [...internalOrderNotes, { text: internalNoteDraft.trim(), created_at: new Date().toISOString() }];
+      const { error } = await supabase.from('orders').update({ internal_order_notes: nextNotes, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      if (error) throw error;
+      const updated = { ...viewOrder, internal_order_notes: nextNotes };
+      setInternalOrderNotes(nextNotes);
+      setViewOrder(updated);
+      setOrders((prev) => prev.map((o) => o.id === updated.id ? updated : o));
+      setInternalNoteDraft('');
+    } catch (err: any) { setError(err.message || 'Internal note could not be saved.'); }
+    finally { setSavingOrderEdit(false); }
+  };
+
+  const deleteOrder = async (order: Order) => {
+    const orderNumber = displayOrderNumber(order);
+    if (!window.confirm(`Delete order #${orderNumber} permanently? This cannot be undone.`)) return;
+    setUpdating(order.id); setError('');
+    try {
+      const { error } = await supabase.from('orders').delete().eq('id', order.id);
+      if (error) throw error;
+      setOrders((prev) => prev.filter((item) => item.id !== order.id));
+      setItems((prev) => prev.filter((item) => item.order_id !== order.id));
+      if (viewOrder?.id === order.id) setViewOrder(null);
+    } catch (err: any) { setError(err.message || 'Order delete failed.'); }
+    finally { setUpdating(null); }
   };
 
   const saveOrderEdits = async () => {
@@ -3005,6 +3040,7 @@ function OrdersView() {
         admin_note: String(editCustomerForm.admin_note || '').trim() || null,
         payment_method: String(editCustomerForm.payment_method || '').trim() || 'Cash on Delivery',
         payment_status: String(editCustomerForm.payment_status || '').trim() || 'Unpaid',
+        internal_order_notes: internalOrderNotes,
       };
       const dueAfterAdvance = Math.max(0, grandTotal - advancePayment);
       const { error } = await supabase.from('orders').update({ ...customerUpdates, subtotal, discount, delivery_charge: delivery, grand_total: grandTotal, total: dueAfterAdvance, advance_payment: advancePayment, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
@@ -3690,12 +3726,12 @@ function OrdersView() {
                   <div className="min-w-0 xl:w-[22%]">
                     <p className="truncate text-sm font-medium text-gray-900">{order.customer_name || '—'}</p>
                     <p className="text-xs text-gray-600">{order.mobile || order.customer_phone || '—'}</p>
+                    {(() => { const notes = Array.isArray(order.internal_order_notes) ? order.internal_order_notes : []; const latest = notes.length ? notes[notes.length - 1] : (order.admin_note ? { text: order.admin_note } : null); return latest?.text ? <p className="mt-1 line-clamp-2 text-[11px] text-amber-800" title={latest.text}>Internal note: {latest.text}</p> : null; })()}
                   </div>
 
                   <div className="xl:w-[13%]">
-                    <p className="text-sm font-bold text-gray-900">
-                      {formatPrice(Math.max(0, Number(order.grand_total ?? order.total ?? 0) - Number(order.advance_payment || 0)))}
-                    </p>
+                    <p className="text-sm font-bold text-gray-900">Due: {formatPrice(Math.max(0, Number(order.grand_total ?? order.total ?? 0) - Number(order.advance_payment || 0)))}</p>
+                    <p className="text-[11px] font-medium text-emerald-700">Paid: {formatPrice(Number(order.advance_payment || 0))}</p>
                     <p className="text-[11px] text-gray-500">{order.payment_method || 'COD'}</p>
                   </div>
 
@@ -3738,6 +3774,7 @@ function OrdersView() {
                         Cancel
                       </button>
                     )}
+                    <button onClick={() => deleteOrder(order)} disabled={updating === order.id} className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button>
                   </div>
                 </div>
               </div>
@@ -3876,7 +3913,12 @@ function OrdersView() {
                   <label className="text-xs font-medium text-gray-600">Thana / Upazila<input value={editCustomerForm.area || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, area: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
                   <label className="text-xs font-medium text-gray-600 sm:col-span-2">Full Delivery Address<textarea rows={2} value={editCustomerForm.address || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, address: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
                   <label className="text-xs font-medium text-gray-600 sm:col-span-2">Customer Order Note<textarea rows={2} value={editCustomerForm.order_note || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, order_note: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
-                  <label className="text-xs font-medium text-gray-600 sm:col-span-2">Admin Note (internal)<textarea rows={2} value={editCustomerForm.admin_note || ''} onChange={(e) => setEditCustomerForm((v: any) => ({ ...v, admin_note: e.target.value }))} className="mt-1 w-full rounded-lg border px-3 py-2.5 text-sm" /></label>
+                  <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                    <div className="mb-2 flex items-center justify-between gap-2"><label className="text-xs font-semibold text-amber-900">Internal Order Notes (Admin only)</label><span className="text-[11px] text-amber-800">{internalOrderNotes.length} note(s)</span></div>
+                    {internalOrderNotes.length > 0 && <div className="mb-3 max-h-36 space-y-2 overflow-y-auto">{[...internalOrderNotes].reverse().map((note: any, index: number) => <div key={`${note.created_at || 'note'}-${index}`} className="rounded-md bg-white p-2"><p className="whitespace-pre-wrap text-sm text-gray-800">{note.text}</p><p className="mt-1 text-[10px] text-gray-500">{note.created_at ? dateTime(note.created_at) : ''}</p></div>)}</div>}
+                    <textarea rows={2} value={internalNoteDraft} onChange={(e) => setInternalNoteDraft(e.target.value)} placeholder="Write a new internal note..." className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm" />
+                    <div className="mt-2 flex justify-end"><button type="button" onClick={addInternalOrderNote} disabled={savingOrderEdit || !internalNoteDraft.trim()} className="rounded-lg bg-amber-800 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{savingOrderEdit ? 'Saving...' : 'Add Note'}</button></div>
+                  </div>
                 </div>
               </div>
               <div className="sm:col-span-2 rounded-xl border bg-white p-4">

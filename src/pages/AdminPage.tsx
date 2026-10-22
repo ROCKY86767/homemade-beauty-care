@@ -2986,22 +2986,34 @@ function OrdersView() {
   };
 
   const addInternalOrderNote = async () => {
-    if (!viewOrder || !internalNoteDraft.trim()) return;
-    setSavingOrderEdit(true); setError('');
+    const noteText = internalNoteDraft.trim();
+    if (!viewOrder || !noteText || savingOrderEdit) return;
+
+    setSavingOrderEdit(true);
+    setError('');
     try {
-      const noteRole = String(staffAccess?.role || 'admin').toLowerCase();
-      const noteIsAdmin = noteRole === 'admin' || noteRole === 'owner' || noteRole === 'super_admin';
-      const noteAuthor = String(staffAccess?.name || staffAccess?.full_name || staffAccess?.display_name || session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || session?.user?.email || (noteIsAdmin ? 'Admin' : 'Moderator'));
-      const nextNotes = [...internalOrderNotes, { text: internalNoteDraft.trim(), created_at: new Date().toISOString(), author: noteAuthor, role: noteIsAdmin ? 'Admin' : 'Moderator' }];
-      const { error } = await supabase.from('orders').update({ internal_order_notes: nextNotes, updated_at: new Date().toISOString() }).eq('id', viewOrder.id);
+      const { data, error } = await supabase.rpc('add_internal_order_note', {
+        p_order_id: viewOrder.id,
+        p_text: noteText,
+      });
       if (error) throw error;
+
+      const nextNotes = Array.isArray(data) ? data : [...internalOrderNotes, {
+        text: noteText,
+        created_at: new Date().toISOString(),
+        author: staffAccess?.display_name || session?.user?.email || (staffAccess?.role === 'admin' ? 'Admin' : 'Moderator'),
+        role: staffAccess?.role === 'admin' ? 'Admin' : 'Moderator',
+      }];
       const updated = { ...viewOrder, internal_order_notes: nextNotes };
       setInternalOrderNotes(nextNotes);
       setViewOrder(updated);
-      setOrders((prev) => prev.map((o) => o.id === updated.id ? updated : o));
+      setOrders((prev) => prev.map((order) => order.id === updated.id ? updated : order));
       setInternalNoteDraft('');
-    } catch (err: any) { setError(err.message || 'Internal note could not be saved.'); }
-    finally { setSavingOrderEdit(false); }
+    } catch (err: any) {
+      setError(err.message || 'Internal note could not be saved.');
+    } finally {
+      setSavingOrderEdit(false);
+    }
   };
 
   const deleteOrder = async (order: Order) => {

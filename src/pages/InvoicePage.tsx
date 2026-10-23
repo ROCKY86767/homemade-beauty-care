@@ -71,16 +71,8 @@ export default function InvoicePage() {
       { data: order, error: orderError },
       { data: items, error: itemsError },
     ] = await Promise.all([
-      supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .maybeSingle(),
-      supabase
-        .from('order_items')
-        .select('*')
-        .eq('order_id', orderId)
-        .order('created_at', { ascending: true }),
+      supabase.from('orders').select('*').eq('id', orderId).maybeSingle(),
+      supabase.from('order_items').select('*').eq('order_id', orderId).order('created_at', { ascending: true }),
     ]);
 
     setLoading(false);
@@ -90,11 +82,7 @@ export default function InvoicePage() {
       return;
     }
 
-    setResult({
-      success: true,
-      order,
-      items: items || [],
-    });
+    setResult({ success: true, order, items: items || [] });
   }
 
   async function loadInvoice(phone: string) {
@@ -121,6 +109,29 @@ export default function InvoicePage() {
     await loadInvoice(mobile);
   };
 
+  const customerDetails = (order: any, compact = false) => (
+    <div className={`${compact ? 'grid sm:grid-cols-2 gap-3' : 'grid sm:grid-cols-2 gap-4'} rounded-xl border border-primary/10 bg-cream/40 p-4 text-sm`}>
+      <div>
+        <p className="text-xs text-gray-400">Customer Name</p>
+        <p className="font-semibold text-gray-800">{order.customer_name || '—'}</p>
+      </div>
+      <div>
+        <p className="text-xs text-gray-400">Phone Number</p>
+        <p className="font-medium text-gray-800">{order.customer_phone || order.mobile || '—'}</p>
+      </div>
+      <div className="sm:col-span-2">
+        <p className="text-xs text-gray-400">Delivery Address</p>
+        <p className="font-medium text-gray-800">{[order.address, order.area, order.district].filter(Boolean).join(', ') || '—'}</p>
+      </div>
+      {order.pathao_consignment_id && (
+        <div className="sm:col-span-2 border-t border-primary/10 pt-3">
+          <p className="text-xs text-gray-400">Consignment ID</p>
+          <p className="font-bold tracking-wide text-primary">{order.pathao_consignment_id}</p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="invoice-print-root min-h-screen bg-cream py-10 px-4">
       <SEO title="Invoice - Homemade Beauty Care" />
@@ -145,8 +156,9 @@ export default function InvoicePage() {
                 <div className="grid sm:grid-cols-2 gap-3 py-4 border-b border-gray-100 text-sm">
                   <div><p className="text-xs text-gray-400">Order ID</p><p className="font-bold text-lg">{invoice.order.order_number || invoice.order.id}</p></div>
                   <div><p className="text-xs text-gray-400">Date</p><p>{new Date(invoice.order.created_at).toLocaleString('en-BD')}</p></div>
-                  <div><p className="text-xs text-gray-400">Customer</p><p className="font-medium">{invoice.order.customer_name}</p></div>
-                  <div><p className="text-xs text-gray-400">Status</p><p>{invoice.order.status}</p></div>
+                </div>
+                <div className="py-4 border-b border-gray-100">
+                  {customerDetails(invoice.order, true)}
                 </div>
                 <div className="py-4 border-b border-gray-100">
                   {invoice.items.map((item: any) => <div key={item.id} className="flex gap-3 py-2"><div className="flex-1"><p className="font-medium">{item.product_name}</p><p className="text-xs text-gray-400">{item.quantity} × {formatPrice(item.price)}</p></div><p className="font-semibold">{formatPrice(Number(item.price || 0) * Number(item.quantity || 0))}</p></div>)}
@@ -160,8 +172,6 @@ export default function InvoicePage() {
                   <div className="flex justify-between border-t border-gray-200 pt-3 text-lg font-bold"><span>Balance Due</span><span>{formatPrice(Math.max(0, Number(invoice.order.grand_total ?? invoice.order.total ?? 0) - Number(invoice.order.advance_payment || 0)))}</span></div>
                 </div>
                 <div className="border-t border-primary/10 pt-4 text-sm text-gray-600 space-y-2">
-                  {(invoice.order.customer_phone || invoice.order.mobile) && <p>Phone: {invoice.order.customer_phone || invoice.order.mobile}</p>}
-                  {[invoice.order.address, invoice.order.area, invoice.order.district].filter(Boolean).length > 0 && <p>Address: {[invoice.order.address, invoice.order.area, invoice.order.district].filter(Boolean).join(', ')}</p>}
                   <p>Payment: {invoice.order.payment_method || 'Cash on Delivery'} · {invoice.order.payment_status || (Number(invoice.order.advance_payment || 0) > 0 ? 'Partially Paid' : 'Unpaid')}</p>
                   <p className="pt-2 text-center text-xs text-gray-400">Thank you for choosing Homemade Beauty Care.</p>
                 </div>
@@ -174,22 +184,10 @@ export default function InvoicePage() {
               <h1 className="font-display text-3xl font-bold text-dark">Invoice</h1>
               <p className="text-gray-500 mt-2">Enter your order mobile number to view and print your invoice.</p>
             </div>
-
             <form onSubmit={handleSearch} className="space-y-4 max-w-md mx-auto">
-              <input
-                required
-                value={mobile}
-                onChange={e => setMobile(e.target.value)}
-                className="input-field"
-                placeholder="Enter Your Mobile Number"
-              />
-
+              <input required value={mobile} onChange={e => setMobile(e.target.value)} className="input-field" placeholder="Enter Your Mobile Number" />
               {error && <p className="rounded-lg bg-red-50 text-red-600 px-4 py-3 text-sm">{error}</p>}
-
-              <button disabled={loading} className="btn-primary w-full disabled:opacity-50">
-                <Search size={18} />
-                {loading ? 'খোঁজা হচ্ছে...' : 'Invoice দেখুন'}
-              </button>
+              <button disabled={loading} className="btn-primary w-full disabled:opacity-50"><Search size={18} />{loading ? 'খোঁজা হচ্ছে...' : 'Invoice দেখুন'}</button>
             </form>
           </div>
         ) : (
@@ -197,43 +195,25 @@ export default function InvoicePage() {
             <div className="flex items-start justify-between gap-4 border-b border-primary/10 pb-6">
               <div className="flex items-center gap-3">
                 <img src="/new-homemade-logo.png" alt="Homemade Beauty Care" className="h-16 w-16 rounded-xl object-contain" />
-                <div>
-                  <h1 className="font-display text-2xl font-bold text-dark">Homemade Beauty Care</h1>
-                  <p className="text-sm text-gray-500">Official Order Invoice</p>
-                </div>
+                <div><h1 className="font-display text-2xl font-bold text-dark">Homemade Beauty Care</h1><p className="text-sm text-gray-500">Official Order Invoice</p></div>
               </div>
-              <button onClick={() => window.print()} className="btn-secondary print:hidden">
-                <Printer size={18} /> Print
-              </button>
+              <button onClick={() => window.print()} className="btn-secondary print:hidden"><Printer size={18} /> Print</button>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 py-5 border-b border-gray-100">
-              <div>
-                <p className="text-xs text-gray-400">Order ID</p>
-                <p className="font-bold text-lg">{result.order.order_number}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Date</p>
-                <p>{new Date(result.order.created_at).toLocaleString('en-BD')}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Customer</p>
-                <p className="font-medium">{result.order.customer_name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Status</p>
-                <p>{result.order.status}</p>
-              </div>
+              <div><p className="text-xs text-gray-400">Order ID</p><p className="font-bold text-lg">{result.order.order_number}</p></div>
+              <div><p className="text-xs text-gray-400">Date</p><p>{new Date(result.order.created_at).toLocaleString('en-BD')}</p></div>
+            </div>
+
+            <div className="py-5 border-b border-gray-100">
+              {customerDetails(result.order)}
             </div>
 
             <div className="py-5 border-b border-gray-100">
               {result.items.map((item: any) => (
                 <div key={item.id} className="flex gap-3 py-2">
                   {item.image_url && <img src={item.image_url} alt="" className="h-12 w-12 rounded-lg object-cover" />}
-                  <div className="flex-1">
-                    <p className="font-medium">{item.product_name}</p>
-                    <p className="text-xs text-gray-400">{item.quantity} × {formatPrice(item.price)}</p>
-                  </div>
+                  <div className="flex-1"><p className="font-medium">{item.product_name}</p><p className="text-xs text-gray-400">{item.quantity} × {formatPrice(item.price)}</p></div>
                   <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
                 </div>
               ))}
@@ -249,8 +229,6 @@ export default function InvoicePage() {
             </div>
 
             <div className="border-t border-primary/10 pt-5 text-sm text-gray-600 space-y-2">
-              {(result.order.customer_phone || result.order.mobile) && <div className="flex items-center gap-2"><CreditCard size={16} /> {result.order.customer_phone || result.order.mobile}</div>}
-              {([result.order.address, result.order.area, result.order.district].filter(Boolean).length > 0) && <div className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 shrink-0" /> <span>{[result.order.address, result.order.area, result.order.district].filter(Boolean).join(', ')}</span></div>}
               <div className="flex items-center gap-2"><CreditCard size={16} /> {result.order.payment_method || 'Cash on Delivery'} · {result.order.payment_status || (Number(result.order.advance_payment || 0) > 0 ? 'Partially Paid' : 'Unpaid')}</div>
               <p className="pt-3 text-center text-xs text-gray-400">Thank you for choosing Homemade Beauty Care.</p>
             </div>

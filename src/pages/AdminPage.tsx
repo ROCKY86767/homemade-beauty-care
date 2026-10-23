@@ -3532,7 +3532,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
         matchesPayment &&
         matchesDate
       );
-    });
+    }).sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
   }, [
     orders,
     search,
@@ -3799,32 +3799,21 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
         </div>
       )}
 
-      <div className="space-y-5">
-        {ORDER_STATUSES.map((status) => {
-          const statusOrders = filtered.filter(
-            (order) => normalizeOrderStatus(order.status) === status
-          );
-          if (statusOrders.length === 0) return null;
-
-          return (
-            <section key={status} className="space-y-2">
-              <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-[#f7f5ed] px-3 py-2.5">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    aria-label={`Select all ${status} orders`}
-                    checked={statusOrders.length > 0 && statusOrders.every((order) => selectedOrderIds.includes(order.id))}
-                    onChange={(e) => setSelectedOrderIds((prev) => e.target.checked
-                      ? Array.from(new Set([...prev, ...statusOrders.map((order) => order.id)]))
-                      : prev.filter((id) => !statusOrders.some((order) => order.id === id)))}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  <h3 className="text-sm font-bold text-gray-800">{status === 'Cancelled' ? 'Cancelled Orders' : `${status} Orders`}</h3>
-                </div>
-                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">{statusOrders.length} {statusOrders.length === 1 ? 'order' : 'orders'}</span>
-              </div>
-              <div className="space-y-2">
-                {statusOrders.map((order) => {
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-[#f7f5ed] px-3 py-2.5">
+          <input
+            type="checkbox"
+            aria-label="Select all visible orders"
+            checked={filtered.length > 0 && filtered.every((order) => selectedOrderIds.includes(order.id))}
+            onChange={(e) => setSelectedOrderIds((prev) => e.target.checked
+              ? Array.from(new Set([...prev, ...filtered.map((order) => order.id)]))
+              : prev.filter((id) => !filtered.some((order) => order.id === id)))}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          <h3 className="text-sm font-bold text-gray-800">All Orders · Sorted by creation time (newest first)</h3>
+          <span className="ml-auto rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">{filtered.length} orders</span>
+        </div>
+        {filtered.map((order) => {
           const orderItems = itemsForOrder(order.id);
           const normalizedStatus = normalizeOrderStatus(order.status);
           const knownStatuses = ORDER_STATUSES;
@@ -3933,10 +3922,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
               </div>
             </div>
           );
-                })}
-              </div>
-            </section>
-          );
+
         })}
       </div>
 

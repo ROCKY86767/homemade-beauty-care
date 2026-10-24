@@ -1314,7 +1314,7 @@ function OrdersView({ isAdmin, staffAccess, session }: { isAdmin: boolean; staff
             <option value="yesterday">Yesterday</option>
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
-            <option value="custom">Custom Date</option>
+            <option value="custom">Custom Range (From–To)</option>
           </select>
         </div>
 

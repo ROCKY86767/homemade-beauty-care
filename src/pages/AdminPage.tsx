@@ -58,6 +58,272 @@ export default function AdminPage() {
   return <div className={`bg-gray-50 ${activeTab === 'chat' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}><div className={`${activeTab === 'chat' ? 'h-full' : 'min-h-screen'} flex`}><aside className={`fixed z-50 inset-y-0 left-0 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}><div className="h-full flex flex-col"><div className="h-16 px-5 flex items-center justify-between border-b"><Link to="/" className="font-bold text-lg text-gray-900">Homemade Beauty Care</Link><button onClick={() => setMobileMenu(false)} className="lg:hidden"><X className="w-5 h-5" /></button></div><nav className="p-3 space-y-1 flex-1 overflow-y-auto">{visibleNavItems.map((item) => { const Icon = item.icon; const isSettingsItem = item.id === 'settings'; const active = isSettingsItem ? activeTab === 'settings' || activeTab.startsWith('settings-') : activeTab === item.id; return <div key={item.id}><button onClick={() => { if (isSettingsItem) navigateTab(activeTab.startsWith('settings-') ? 'settings' : 'settings-general'); else navigateTab(item.id); setMobileMenu(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition ${active ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'}`}><Icon className="w-4 h-4" /><span className="flex-1">{item.label}</span>{isSettingsItem && <ChevronDown className={`w-4 h-4`} />}</button></div>; })}</nav><div className="p-3 border-t"><button onClick={logout} className="w-full rounded-lg border px-3 py-2 text-sm">Logout</button></div></div></aside><main className="flex-1 lg:ml-64 min-w-0"><div className="lg:hidden h-14 bg-white border-b flex items-center px-4"><button onClick={() => setMobileMenu(true)}><Menu className="w-5 h-5" /></button><span className="ml-3 font-semibold">Homemade Beauty Care</span></div><div className="p-4 sm:p-6">{activeTab === 'orders' ? <OrdersView isAdmin={isAdmin} staffAccess={staffAccess} session={session} /> : activeTab === 'dashboard' ? <DashboardView /> : activeTab === 'products' ? <ProductsView /> : activeTab === 'categories' ? <CategoriesView /> : activeTab === 'customers' ? <CustomersView /> : activeTab === 'chat' ? <ChatAdminView /> : activeTab === 'quick-responses' ? <QuickResponsesView /> : activeTab === 'reviews' ? <ReviewsView /> : activeTab === 'coupons' ? <CouponsView /> : activeTab === 'banners' ? <BannersView /> : activeTab === 'inventory' ? <InventoryView /> : activeTab === 'reports' ? <ReportsView /> : activeTab === 'settings' ? <AdminSettingsCenter /> : activeTab.startsWith('settings-') ? <SettingsSubPage tab={activeTab} /> : activeTab === 'combo' ? <ComboView /> : activeTab === 'moderators' ? <ModeratorView /> : null}</div></main></div></div>;
 }
 
+function PageHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {title}
+        </h1>
+
+        {description && (
+          <p className="text-sm text-gray-500 mt-1">
+            {description}
+          </p>
+        )}
+      </div>
+
+      {action}
+    </div>
+  );
+}
+
+function ErrorBox({
+  error,
+  retry,
+}: {
+  error: string;
+  retry?: () => void;
+}) {
+  if (!error) return null;
+
+  return (
+    <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <AlertCircle className="w-4 h-4" />
+        <span>{error}</span>
+      </div>
+
+      {retry && (
+        <button
+          onClick={retry}
+          className="underline"
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
+
+function LoadingBox() {
+  return (
+    <div className="min-h-[300px] flex items-center justify-center">
+      <Loader2 className="w-7 h-7 animate-spin text-primary" />
+    </div>
+  );
+}
+
+function EmptyState({
+  text,
+}: {
+  text: string;
+}) {
+  return (
+    <div className="p-10 text-center text-sm text-gray-500">
+      {text}
+    </div>
+  );
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function StatusBadge({
+  status,
+}: {
+  status: string;
+}) {
+  const styles: Record<string, string> = {
+    Pending:
+      'bg-yellow-100 text-yellow-700',
+    'Order Placed':
+      'bg-blue-100 text-blue-700',
+    Confirmed:
+      'bg-indigo-100 text-indigo-700',
+    Processing:
+      'bg-purple-100 text-purple-700',
+    Shipped:
+      'bg-cyan-100 text-cyan-700',
+    Delivered:
+      'bg-green-100 text-green-700',
+    Cancelled:
+      'bg-red-100 text-red-700',
+  };
+
+  return (
+    <span
+      className={`inline-flex mt-1 px-2 py-1 rounded-full text-xs ${
+        styles[status] ||
+        'bg-gray-100 text-gray-700'
+      }`}
+    >
+      {status || 'Unknown'}
+    </span>
+  );
+}
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+function Input({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+  type?: string;
+  required?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5">
+        {label}
+
+        {required && (
+          <span className="text-red-500 ml-1">
+            *
+          </span>
+        )}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        required={required}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+      />
+    </div>
+  );
+}
+
+function TextArea({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5">
+        {label}
+      </label>
+
+      <textarea
+        value={value}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        rows={4}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+      />
+    </div>
+  );
+}
+
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+  options: {
+    value: string;
+    label: string;
+  }[];
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5">
+        {label}
+      </label>
+
+      <select
+        value={value}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+      >
+        {options.map(
+          (option) => (
+            <option
+              key={option.value}
+              value={option.value}
+            >
+              {option.label}
+            </option>
+          )
+        )}
+      </select>
+    </div>
+  );
+}
+
+function Checkbox({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (
+    checked: boolean
+  ) => void;
+}) {
+  return (
+    <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) =>
+          onChange(
+            e.target.checked
+          )
+        }
+        className="w-4 h-4 accent-primary"
+      />
+
+      <span>{label}</span>
+    </label>
+  );
+}
+
 function OrdersView({ isAdmin, staffAccess, session }: { isAdmin: boolean; staffAccess: any; session: any }) {
   // Compact order rows + dedicated View modal.
   const [orders, setOrders] = useState<Order[]>([]);

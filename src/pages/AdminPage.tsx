@@ -39,6 +39,7 @@ import {
   Copy,
   Bookmark,
   ChevronDown,
+  Activity,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
@@ -48,6 +49,7 @@ import { ChatAdminView } from '../components/LiveChat';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import AdminSettingsCenter from '../components/AdminSettingsCenter';
 import OrderManagementIntegrationCenter from '../components/OrderManagementIntegrationCenter';
+import AdminAnalyticsView from '../components/AdminAnalyticsView';
 import { formatPrice } from '../lib/format';
 import { getSettings, updateSettings, getDeliveryCharge } from '../lib/settings';
 import { getDistricts, getThanas, DHAKA_CITY_THANAS } from '../lib/bangladeshLocations';
@@ -69,6 +71,7 @@ type Tab =
   | 'banners'
   | 'inventory'
   | 'reports'
+  | 'analytics'
   | 'settings'
   | 'settings-general'
   | 'settings-store'
@@ -276,6 +279,7 @@ export default function AdminPage() {
       'banners',
       'inventory',
       'reports',
+      'analytics',
       'settings',
       'settings-general',
       'settings-store',
@@ -385,6 +389,7 @@ export default function AdminPage() {
     { id: 'banners' as Tab, label: 'Banners', icon: ImageIcon },
     { id: 'inventory' as Tab, label: 'Inventory', icon: Package },
     { id: 'reports' as Tab, label: 'Reports', icon: BarChart3 },
+    { id: 'analytics' as Tab, label: 'Website Analytics', icon: Activity },
     { id: 'settings' as Tab, label: 'Settings', icon: Settings },
     { id: 'combo' as Tab, label: 'Homepage Combo Offer', icon: Bookmark },
     { id: 'moderators' as Tab, label: 'Moderators', icon: Users },
@@ -576,6 +581,10 @@ export default function AdminPage() {
 
             {activeTab === 'reports' && (
               <ReportsView />
+            )}
+
+            {activeTab === 'analytics' && isAdmin && (
+              <AdminAnalyticsView />
             )}
 
             {activeTab === 'combo' && (

@@ -95,6 +95,7 @@ type Product = any;
 type Category = any;
 type Order = any;
 type OrderItem = any;
+type FailedCheckout = { session_id: string; customer_name?: string | null; mobile?: string | null; email?: string | null; district?: string | null; area?: string | null; address?: string | null; cart_items?: any; created_at?: string; last_seen_at?: string; };
 type Review = any;
 type Banner = any;
 
@@ -2753,6 +2754,8 @@ function CategoriesView() {
 function OrdersView({ isAdmin }: { isAdmin: boolean }) {
   // Compact order rows + dedicated View modal.
   const [orders, setOrders] = useState<Order[]>([]);
+  const [failedCheckouts, setFailedCheckouts] = useState<FailedCheckout[]>([]);
+  const [expandedFailedCheckout, setExpandedFailedCheckout] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [settings, setSettings] = useState<any>(null);
@@ -2827,6 +2830,13 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
       setOrders(ordersData || []);
       setItems(itemsData || []);
       setProducts(productsData || []);
+      // Failed leads are optional: never let their RPC permissions affect normal order loading.
+      try {
+        const { data: failedData, error: failedError } = await supabase.rpc('get_failed_checkouts_admin');
+        setFailedCheckouts(failedError ? [] : ((failedData || []) as FailedCheckout[]));
+      } catch {
+        setFailedCheckouts([]);
+      }
     } catch (err: any) {
       setError(err.message || 'Orders load failed.');
     } finally {
@@ -3411,6 +3421,36 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
   /*
    * Filter orders
    */
+  const filteredFailedCheckouts = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return failedCheckouts.filter((lead) => {
+      const matchesSearch = !q || [lead.customer_name, lead.mobile, lead.email, lead.district, lead.area, lead.address]
+        .some((value) => String(value || '').toLowerCase().includes(q));
+      const created = new Date(lead.last_seen_at || lead.created_at || '');
+      let matchesDate = true;
+      if (dateFilter) {
+        if (Number.isNaN(created.getTime())) matchesDate = false;
+        else {
+          const now = new Date();
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          let start: Date | null = null;
+          let end: Date | null = null;
+          if (dateFilter === 'today') { start = new Date(todayStart); end = new Date(todayStart); end.setDate(end.getDate() + 1); }
+          if (dateFilter === 'yesterday') { end = new Date(todayStart); start = new Date(todayStart); start.setDate(start.getDate() - 1); }
+          if (dateFilter === '7') { start = new Date(todayStart); start.setDate(start.getDate() - 6); end = new Date(todayStart); end.setDate(end.getDate() + 1); }
+          if (dateFilter === '30') { start = new Date(todayStart); start.setDate(start.getDate() - 29); end = new Date(todayStart); end.setDate(end.getDate() + 1); }
+          if (dateFilter === 'custom') {
+            if (customFrom) start = new Date(`${customFrom}T00:00:00`);
+            if (customTo) { end = new Date(`${customTo}T00:00:00`); end.setDate(end.getDate() + 1); }
+          }
+          if (start && created < start) matchesDate = false;
+          if (end && created >= end) matchesDate = false;
+        }
+      }
+      return matchesSearch && matchesDate;
+    }).sort((a, b) => new Date(b.last_seen_at || b.created_at || 0).getTime() - new Date(a.last_seen_at || a.created_at || 0).getTime());
+  }, [failedCheckouts, search, dateFilter, customFrom, customTo]);
+
   const filtered = useMemo(() => {
     return orders.filter((order) => {
       const q = search.toLowerCase().trim();
@@ -3441,10 +3481,10 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
       /*
        * Order status filter
        */
-      const matchesStatus =
+      const matchesStatus = statusFilter !== '__failed__' && (
         !statusFilter ||
-        String(order.status || '').toLowerCase() ===
-          statusFilter.toLowerCase();
+        String(order.status || '').toLowerCase() === statusFilter.toLowerCase()
+      );
 
       /*
        * Payment status filter
@@ -3704,10 +3744,11 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
 
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => { setStatusFilter(e.target.value); setSelectedOrderIds([]); }}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-gray-500"
           >
             <option value="">All Status</option>
+            <option value="__failed__">Failed Orders</option>
             {ORDER_STATUSES.map((status) => (
               <option key={status} value={status}>{status}</option>
             ))}
@@ -3810,7 +3851,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
       )}
 
       <div className="space-y-2">
-        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-[#f7f5ed] px-3 py-2.5">
+        {statusFilter !== '__failed__' && <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-[#f7f5ed] px-3 py-2.5">
           <input
             type="checkbox"
             aria-label="Select all visible orders"
@@ -3820,10 +3861,28 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
               : prev.filter((id) => !filtered.some((order) => order.id === id)))}
             className="h-4 w-4 rounded border-gray-300"
           />
-          <h3 className="text-sm font-bold text-gray-800">All Orders · Sorted by creation time (newest first)</h3>
-          <span className="ml-auto rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">{filtered.length} orders</span>
-        </div>
-        {filtered.map((order) => {
+          <h3 className="text-sm font-bold text-gray-800">{statusFilter === '__failed__' ? 'Failed Orders · Checkout not completed' : 'All Orders · Sorted by creation time (newest first)'}</h3>
+          <span className="ml-auto rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">{statusFilter === '__failed__' ? filteredFailedCheckouts.length : filtered.length} {statusFilter === '__failed__' ? 'failed checkouts' : 'orders'}</span>
+        </div>}
+        {statusFilter === '__failed__' ? filteredFailedCheckouts.map((lead) => {
+          const cartItems = Array.isArray(lead.cart_items) ? lead.cart_items : [];
+          const expanded = expandedFailedCheckout === lead.session_id;
+          return <div key={lead.session_id} className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Failed checkout</span><span className="text-xs text-gray-500">Last activity: {dateTime(lead.last_seen_at || lead.created_at)}</span></div>
+                <h4 className="mt-2 font-semibold text-gray-900">{lead.customer_name || 'Name not provided'}</h4>
+                <p className="text-sm text-gray-600">{lead.mobile || 'Phone not provided'}{lead.email ? ` · ${lead.email}` : ''}</p>
+                <p className="mt-1 text-xs text-gray-500">{[lead.area, lead.district].filter(Boolean).join(', ') || 'Location not provided'}</p>
+                {expanded && <div className="mt-3 space-y-3 border-t pt-3">
+                  {lead.address && <p className="text-sm text-gray-700"><strong>Address:</strong> {lead.address}</p>}
+                  <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Products in cart</p>{cartItems.length ? <div className="space-y-2">{cartItems.map((item: any, index: number) => <div key={`${lead.session_id}-${item.product_id || index}`} className="flex items-center gap-3 rounded-lg bg-gray-50 p-2">{item.image_url && <img src={item.image_url} alt="" className="h-10 w-10 rounded object-cover" />}<div className="min-w-0 flex-1"><p className="text-sm font-medium text-gray-800">{item.product_name || item.name || 'Product'}</p><p className="text-xs text-gray-500">Qty: {Number(item.quantity || 1)} · ৳{Number(item.price || 0).toLocaleString()}</p></div></div>)}</div> : <p className="text-sm text-gray-500">No product details were captured for this checkout.</p>}</div>
+                </div>}
+              </div>
+              <button type="button" onClick={() => setExpandedFailedCheckout(expanded ? null : lead.session_id)} className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">{expanded ? 'Hide details' : 'View details'}</button>
+            </div>
+          </div>;
+        }) : filtered.map((order) => {
           const orderItems = itemsForOrder(order.id);
           const normalizedStatus = normalizeOrderStatus(order.status);
           const knownStatuses = ORDER_STATUSES;
@@ -3936,8 +3995,8 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
         })}
       </div>
 
-      {filtered.length === 0 && (
-        <EmptyState text="No orders found. Try changing your search or filters." />
+      {(statusFilter === '__failed__' ? filteredFailedCheckouts.length === 0 : filtered.length === 0) && (
+        <EmptyState text={statusFilter === '__failed__' ? 'No failed checkout leads found.' : 'No orders found. Try changing your search or filters." />
       )}
 
       {showManualOrder && (

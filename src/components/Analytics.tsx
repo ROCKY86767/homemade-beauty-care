@@ -18,8 +18,21 @@ export default function Analytics() {
   const [gaReady, setGaReady] = useState(false);
   const [gaId, setGaId] = useState('');
 
+  const isAdminArea = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
+  const isAuthUtilityPage = location.pathname === '/login' || location.pathname === '/reset-password';
+  const shouldTrack = !isAdminArea && !isAuthUtilityPage;
+
   useEffect(() => {
     let active = true;
+
+    if (!shouldTrack) {
+      setGaReady(false);
+      setGaId('');
+      setMetaPixelId('');
+      return () => {
+        active = false;
+      };
+    }
 
     getSettings().then(async (settings) => {
       if (!active) return;
@@ -61,10 +74,10 @@ export default function Analytics() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [shouldTrack]);
 
   useEffect(() => {
-    if (!metaPixelId || document.querySelector('script[data-meta-pixel]')) return;
+    if (!shouldTrack || !metaPixelId || document.querySelector('script[data-meta-pixel]')) return;
 
     window.fbq = window.fbq || function (...args: any[]) {
       (window.fbq as any).callMethod
@@ -83,9 +96,11 @@ export default function Analytics() {
     script.src = 'https://connect.facebook.net/en_US/fbevents.js';
     script.dataset.metaPixel = 'true';
     document.head.appendChild(script);
-  }, [metaPixelId]);
+  }, [metaPixelId, shouldTrack]);
 
   useEffect(() => {
+    if (!shouldTrack) return;
+
     if (gaReady && gaId && window.gtag) {
       window.gtag('event', 'page_view', {
         page_location: window.location.href,
@@ -97,7 +112,7 @@ export default function Analytics() {
     if (metaPixelId && window.fbq) {
       window.fbq('track', 'PageView');
     }
-  }, [gaReady, gaId, metaPixelId, location.pathname, location.search, location.hash]);
+  }, [gaReady, gaId, metaPixelId, shouldTrack, location.pathname, location.search, location.hash]);
 
   return null;
 }

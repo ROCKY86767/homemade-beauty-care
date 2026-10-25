@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { getSettings } from '@/lib/settings';
+import { useCart } from '@/lib/cart-context';
 
 declare global {
   interface Window {
@@ -29,6 +30,7 @@ function getCheckoutSessionId() {
 
 export default function Analytics() {
   const location = useLocation();
+  const { items } = useCart();
   const [metaPixelId, setMetaPixelId] = useState('');
   const [gaReady, setGaReady] = useState(false);
   const [gaId, setGaId] = useState('');
@@ -153,7 +155,7 @@ export default function Analytics() {
     const saveLead = async () => {
       const textInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input'));
       const telInput = textInputs.find((input) => input.type === 'tel');
-      const nameInput = textInputs.find((input) => input.type === 'text');
+      const nameInput = textInputs.find((input) => input.name === 'name') || textInputs.find((input) => input.type === 'text');
       const emailInput = textInputs.find((input) => input.type === 'email');
       const textareas = Array.from(document.querySelectorAll<HTMLTextAreaElement>('textarea'));
       const selects = Array.from(document.querySelectorAll<HTMLSelectElement>('select'));
@@ -167,6 +169,14 @@ export default function Analytics() {
 
       if (!name && !mobile && !address) return;
 
+      const cartItems = items.map((item) => ({
+        product_id: item.product.id,
+        product_name: item.product.name_bn || item.product.name_en || item.product.name || 'Product',
+        price: Number(item.product.sale_price ?? item.product.price ?? 0),
+        quantity: Number(item.quantity || 1),
+        image_url: item.product.image_url || null,
+      }));
+
       const { data: sessionData } = await supabase.auth.getSession();
       await supabase.rpc('upsert_failed_checkout', {
         p_session_id: sessionId,
@@ -177,13 +187,13 @@ export default function Analytics() {
         p_district: district,
         p_area: area,
         p_address: address,
-        p_cart_items: [],
+        p_cart_items: cartItems,
       });
     };
 
     const scheduleSave = () => {
       if (timer) window.clearTimeout(timer);
-      timer = window.setTimeout(() => void saveLead(), 1500);
+      timer = window.setTimeout(() => void saveLead(), 1000);
     };
 
     document.addEventListener('input', scheduleSave, true);
@@ -195,7 +205,7 @@ export default function Analytics() {
       document.removeEventListener('input', scheduleSave, true);
       document.removeEventListener('change', scheduleSave, true);
     };
-  }, [location.pathname, shouldTrack]);
+  }, [location.pathname, shouldTrack, items]);
 
   return null;
 }

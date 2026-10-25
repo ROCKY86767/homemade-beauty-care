@@ -3996,7 +3996,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       {(statusFilter === '__failed__' ? filteredFailedCheckouts.length === 0 : filtered.length === 0) && (
-        <EmptyState text={statusFilter === '__failed__' ? 'No failed checkout leads found.' : 'No orders found. Try changing your search or filters." />
+        <EmptyState text={statusFilter === '__failed__' ? 'No failed checkout leads found.' : 'No orders found. Try changing your search or filters.'} />
       )}
 
       {showManualOrder && (

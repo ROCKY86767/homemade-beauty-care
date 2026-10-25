@@ -12,6 +12,21 @@ declare global {
   }
 }
 
+function getCheckoutSessionId() {
+  const key = 'hbc-failed-checkout-session';
+  try {
+    const existing = window.localStorage.getItem(key);
+    if (existing) return existing;
+    const created = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `hbc-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    window.localStorage.setItem(key, created);
+    return created;
+  } catch {
+    return `hbc-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
 export default function Analytics() {
   const location = useLocation();
   const [metaPixelId, setMetaPixelId] = useState('');
@@ -113,6 +128,74 @@ export default function Analytics() {
       window.fbq('track', 'PageView');
     }
   }, [gaReady, gaId, metaPixelId, shouldTrack, location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    if (!shouldTrack) return;
+
+    if (location.pathname.startsWith('/order-success/')) {
+      const sessionId = window.localStorage.getItem('hbc-failed-checkout-session');
+      if (sessionId) {
+        void supabase.rpc('mark_failed_checkout_converted', { p_session_id: sessionId });
+        try {
+          window.localStorage.removeItem('hbc-failed-checkout-session');
+        } catch {
+          // Ignore storage failures.
+        }
+      }
+      return;
+    }
+
+    if (location.pathname !== '/checkout') return;
+
+    const sessionId = getCheckoutSessionId();
+    let timer: number | undefined;
+
+    const saveLead = async () => {
+      const textInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input'));
+      const telInput = textInputs.find((input) => input.type === 'tel');
+      const nameInput = textInputs.find((input) => input.type === 'text');
+      const emailInput = textInputs.find((input) => input.type === 'email');
+      const textareas = Array.from(document.querySelectorAll<HTMLTextAreaElement>('textarea'));
+      const selects = Array.from(document.querySelectorAll<HTMLSelectElement>('select'));
+
+      const name = nameInput?.value.trim() || '';
+      const mobile = telInput?.value.replace(/\s/g, '').trim() || '';
+      const email = emailInput?.value.trim() || '';
+      const district = selects[0]?.value || '';
+      const area = selects[1]?.value || '';
+      const address = textareas[0]?.value.trim() || '';
+
+      if (!name && !mobile && !address) return;
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      await supabase.rpc('upsert_failed_checkout', {
+        p_session_id: sessionId,
+        p_user_id: sessionData.session?.user?.id || null,
+        p_customer_name: name,
+        p_mobile: mobile,
+        p_email: email,
+        p_district: district,
+        p_area: area,
+        p_address: address,
+        p_cart_items: [],
+      });
+    };
+
+    const scheduleSave = () => {
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => void saveLead(), 1500);
+    };
+
+    document.addEventListener('input', scheduleSave, true);
+    document.addEventListener('change', scheduleSave, true);
+    scheduleSave();
+
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      document.removeEventListener('input', scheduleSave, true);
+      document.removeEventListener('change', scheduleSave, true);
+    };
+  }, [location.pathname, shouldTrack]);
 
   return null;
 }

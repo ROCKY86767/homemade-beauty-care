@@ -15,6 +15,8 @@ declare global {
 export default function Analytics() {
   const location = useLocation();
   const [metaPixelId, setMetaPixelId] = useState('');
+  const [gaReady, setGaReady] = useState(false);
+  const [gaId, setGaId] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -22,23 +24,28 @@ export default function Analytics() {
     getSettings().then(async (settings) => {
       if (!active) return;
 
-      const gaId = settings.google_analytics_enabled
+      const configuredGaId = settings.google_analytics_enabled
         ? settings.google_analytics_id?.trim()
         : '';
 
-      if (gaId && !document.querySelector('script[data-ga4]')) {
+      if (configuredGaId) {
         window.dataLayer = window.dataLayer || [];
-        window.gtag = function (...args: any[]) {
+        window.gtag = window.gtag || function (...args: any[]) {
           window.dataLayer.push(args);
         };
         window.gtag('js', new Date());
-        window.gtag('config', gaId, { send_page_view: false });
+        window.gtag('config', configuredGaId, { send_page_view: false });
 
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
-        script.dataset.ga4 = 'true';
-        document.head.appendChild(script);
+        if (!document.querySelector('script[data-ga4]')) {
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(configuredGaId)}`;
+          script.dataset.ga4 = 'true';
+          document.head.appendChild(script);
+        }
+
+        setGaId(configuredGaId);
+        setGaReady(true);
       }
 
       if (settings.meta_pixel_enabled) {
@@ -47,6 +54,8 @@ export default function Analytics() {
           setMetaPixelId(data.pixel_id);
         }
       }
+    }).catch((error) => {
+      console.error('Analytics settings could not be loaded:', error);
     });
 
     return () => {
@@ -67,9 +76,6 @@ export default function Analytics() {
     (window.fbq as any).loaded = true;
     (window.fbq as any).version = '2.0';
     (window.fbq as any).queue = (window.fbq as any).queue || [];
-    (window.fbq as any).loaded = true;
-    (window.fbq as any).version = '2.0';
-    (window.fbq as any).queue = (window.fbq as any).queue || [];
     (window.fbq as any)('init', metaPixelId);
 
     const script = document.createElement('script');
@@ -80,10 +86,10 @@ export default function Analytics() {
   }, [metaPixelId]);
 
   useEffect(() => {
-    if (window.gtag) {
+    if (gaReady && gaId && window.gtag) {
       window.gtag('event', 'page_view', {
         page_location: window.location.href,
-        page_path: location.pathname,
+        page_path: location.pathname + location.search + location.hash,
         page_title: document.title,
       });
     }
@@ -91,7 +97,7 @@ export default function Analytics() {
     if (metaPixelId && window.fbq) {
       window.fbq('track', 'PageView');
     }
-  }, [metaPixelId, location.pathname, location.search, location.hash]);
+  }, [gaReady, gaId, metaPixelId, location.pathname, location.search, location.hash]);
 
   return null;
 }

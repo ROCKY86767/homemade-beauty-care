@@ -352,8 +352,8 @@ export default function Analytics() {
 
       const cartItems = items.map((item) => ({
         product_id: item.product.id,
-        product_name: item.product.name_bn || item.product.name_en || item.product.name || 'Product',
-        price: Number(item.product.sale_price ?? item.product.price ?? 0),
+        product_name: item.product.name_bn || item.product.name_en || 'Product',
+        price: Number(item.product.price ?? 0),
         quantity: Number(item.quantity || 1),
         image_url: item.product.image_url || null,
       }));

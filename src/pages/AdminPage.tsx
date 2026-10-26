@@ -4597,6 +4597,7 @@ function ReviewsView() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [reviewDetails, setReviewDetails] = useState<any[]>([]);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [uploadingMediaReview, setUploadingMediaReview] = useState<string | null>(null);
 
   const [loading, setLoading] =
     useState(true);

@@ -83,7 +83,7 @@ export default function Footer() {
                 className="flex-1 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm text-white placeholder-white/50 outline-none focus:border-primary-light focus:bg-white/15"
               />
               <button
-                type="Submit"
+                type="submit"
                 className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-light"
               >
                 Subscribe

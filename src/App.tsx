@@ -171,8 +171,8 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <Analytics />
       <CartProvider>
+        <Analytics />
         <AppContent />
       </CartProvider>
     </BrowserRouter>

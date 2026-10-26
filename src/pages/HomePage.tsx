@@ -647,7 +647,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* ⭐ ALL ACTIVE PRODUCTS */}
       {settings?.homepage_show_all_products !== false && allProducts.length > 0 && (
-        <section className="py-10 sm:py-16 bg-cream">
+        <section className="py-10 sm:py-16 bg-cream compact-reviews-section">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
@@ -911,7 +911,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Why Choose Us */}
       {settings?.homepage_show_why_choose_us !== false && (
-      <section className="py-10 sm:py-16 bg-dark text-white">
+      <section className="py-10 sm:py-16 bg-dark text-white compact-why-section">
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
@@ -1076,7 +1076,7 @@ export default function HomePage() { // centralized storefront settings
         { name: 'Instagram', url: settings?.instagram_url, icon: 'M16 11.37A4 4 0 1 1 7.63 8 4 4 0 0 1 16 11.37z M17.5 6.5h.01 M3 11.37A8.37 8.37 0 0 1 11.37 3h1.26A8.37 8.37 0 0 1 21 11.37v1.26A8.37 8.37 0 0 1 12.63 21h-1.26A8.37 8.37 0 0 1 3 12.63z', color: 'bg-gradient-to-br from-[#E4405F] to-[#F77737]' },
         { name: 'TikTok', url: settings?.tiktok_url, icon: 'M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5', color: 'bg-dark' },
       ].filter(social => social.url).length > 0 && (
-        <section className="py-10 sm:py-16">
+        <section className="py-10 sm:py-16 compact-social-section">
           <div className="section-padding">
             <div className="text-center mb-10">
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">

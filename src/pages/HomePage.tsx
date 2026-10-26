@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -84,7 +84,6 @@ export default function HomePage() { // centralized storefront settings
   const [reviews, setReviews] = useState<Review[]>([]);
   const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
   const [fullscreenReviewMedia, setFullscreenReviewMedia] = useState<{ url: string; isVideo: boolean } | null>(null);
-  const reviewScrollerRef = useRef<HTMLDivElement | null>(null);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -283,56 +282,6 @@ export default function HomePage() { // centralized storefront settings
 
     loadHomePageData();
   }, []);
-
-  useEffect(() => {
-    const scroller = reviewScrollerRef.current;
-    if (!scroller || editorialReviews.length < 2) return;
-
-    let paused = false;
-    let frame = 0;
-    let previousTime = 0;
-    const pixelsPerSecond = 32;
-    const pause = () => { paused = true; };
-    const resume = () => { paused = false; previousTime = 0; };
-
-    const step = (time: number) => {
-      if (previousTime === 0) previousTime = time;
-      const elapsed = Math.min(time - previousTime, 40);
-      previousTime = time;
-
-      if (!paused) {
-        const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-        if (maxScroll > 1) {
-          // Increasing scrollLeft moves the review cards from right to left.
-          if (scroller.scrollLeft >= maxScroll - 1) {
-            scroller.scrollLeft = 0;
-          } else {
-            scroller.scrollLeft += (pixelsPerSecond * elapsed) / 1000;
-          }
-        }
-      }
-      frame = window.requestAnimationFrame(step);
-    };
-
-    scroller.scrollLeft = 0;
-    scroller.addEventListener('mouseenter', pause);
-    scroller.addEventListener('mouseleave', resume);
-    scroller.addEventListener('focusin', pause);
-    scroller.addEventListener('focusout', resume);
-    scroller.addEventListener('touchstart', pause, { passive: true });
-    scroller.addEventListener('touchend', resume, { passive: true });
-    frame = window.requestAnimationFrame(step);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      scroller.removeEventListener('mouseenter', pause);
-      scroller.removeEventListener('mouseleave', resume);
-      scroller.removeEventListener('focusin', pause);
-      scroller.removeEventListener('focusout', resume);
-      scroller.removeEventListener('touchstart', pause);
-      scroller.removeEventListener('touchend', resume);
-    };
-  }, [editorialReviews]);
 
   useEffect(() => {
     if (banners.length <= 1 || settings?.homepage_banner_autoplay === false) return;
@@ -589,10 +538,12 @@ export default function HomePage() { // centralized storefront settings
               </div>
               <span className="hidden text-xs font-medium text-[#8A9A70] sm:block">Swipe to explore →</span>
             </div>
-            <div ref={reviewScrollerRef} className="homepage-review-marquee relative -mx-4 overflow-x-auto overflow-y-hidden px-4 sm:-mx-6 sm:px-6">
-              <div className="homepage-review-track flex w-max gap-4 py-3 sm:gap-5">
-                {editorialReviews.map((item) => (
-                  <article key={item.id} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
+            <div className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
+              <div className="homepage-review-track flex w-max py-3">
+                {[0, 1].map((copy) => (
+                  <div key={copy} className="homepage-review-group flex shrink-0 gap-4 pr-4 sm:gap-5 sm:pr-5" aria-hidden={copy === 1 ? true : undefined} inert={copy === 1}>
+                    {editorialReviews.map((item) => (
+                  <article key={`${copy}-${item.id}`} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
                     <div className="relative aspect-[9/13] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
                         ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-contain" /><button type="button" onClick={() => setFullscreenReviewMedia({ url: item.media_urls[0], isVideo: true })} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
@@ -609,6 +560,8 @@ export default function HomePage() { // centralized storefront settings
                       {item.review_text && <p className="text-sm leading-6 text-gray-600" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.review_text}</p>}
                     </div>
                   </article>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Grid3x3, Search, User, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function MobileNav() {
   const location = useLocation();
@@ -9,8 +9,22 @@ export default function MobileNav() {
   const { cartCount } = useCart();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [footerVisible, setFooterVisible] = useState(false);
   const isActive = (path: string) =>
     location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
+
+  useEffect(() => {
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0.05 }
+    );
+
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, [location.pathname]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +37,12 @@ export default function MobileNav() {
 
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden border-t border-gray-100 bg-white/95 shadow-lg backdrop-blur safe-area-bottom">
+      <nav
+        className={`fixed inset-x-0 bottom-0 z-40 lg:hidden border-t border-gray-100 bg-white/95 shadow-lg backdrop-blur safe-area-bottom transition-transform duration-200 ${
+          footerVisible ? 'translate-y-full pointer-events-none' : 'translate-y-0'
+        }`}
+        aria-hidden={footerVisible}
+      >
         <div className="flex items-center justify-around py-2 click-feedback-soft">
           <Link
             to="/"

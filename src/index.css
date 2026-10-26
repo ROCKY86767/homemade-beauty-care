@@ -244,3 +244,59 @@ img {
 @media (prefers-reduced-motion: reduce) {
   .homepage-review-track { animation: none !important; }
 }
+
+
+/* Compact premium storefront spacing: preserve content, reduce oversized gaps. */
+.homepage-compact > section:not(.hero-premium) {
+  padding-top: 2.5rem !important;
+  padding-bottom: 2.5rem !important;
+}
+.homepage-compact > section:not(.hero-premium) .section-padding > div[class*="mb-"] {
+  margin-bottom: 1.5rem !important;
+}
+.homepage-compact > section:not(.hero-premium) .section-padding > div[class*="text-center mb-"] {
+  margin-bottom: 1.75rem !important;
+}
+.homepage-compact .card > div:last-child {
+  padding: .75rem;
+}
+@media (max-width: 639px) {
+  .homepage-compact > section:not(.hero-premium) {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+  .homepage-compact > section:not(.hero-premium) .section-padding > div[class*="mb-"] {
+    margin-bottom: 1rem !important;
+  }
+  .homepage-compact section .grid {
+    gap: .65rem;
+  }
+  .homepage-compact .card > div:first-child > div:first-child {
+    left: .5rem;
+    top: .5rem;
+    gap: .25rem;
+  }
+  .homepage-compact .card > div:first-child > div:first-child span {
+    padding: .2rem .4rem;
+    font-size: .625rem;
+  }
+  .homepage-compact .card > div:first-child > button {
+    top: .5rem;
+    right: .5rem;
+    width: 2rem;
+    height: 2rem;
+  }
+  .homepage-compact .card > div:last-child {
+    padding: .6rem;
+  }
+  .homepage-compact .card > div:last-child h3 {
+    font-size: .82rem;
+    line-height: 1.35;
+  }
+  .homepage-compact .card > div:last-child .mt-2 {
+    margin-top: .35rem;
+  }
+  .homepage-compact .card > div:last-child .mt-3 {
+    margin-top: .5rem;
+  }
+}

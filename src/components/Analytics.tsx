@@ -13,6 +13,20 @@ declare global {
   }
 }
 
+function getJourneySessionId() {
+  const key = 'hbc-visitor-journey-session-id';
+  try {
+    let id = window.sessionStorage.getItem(key) || '';
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      id = crypto.randomUUID();
+      window.sessionStorage.setItem(key, id);
+    }
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
 function getCheckoutSessionId() {
   const key = 'hbc-failed-checkout-session';
   try {
@@ -138,6 +152,7 @@ export default function Analytics() {
       body: {
         mode: 'pageview',
         visitorId,
+        sessionId: getJourneySessionId(),
         currentPath: window.location.pathname + window.location.search + window.location.hash,
         pageTitle: document.title,
         trafficSource,
@@ -146,6 +161,60 @@ export default function Analytics() {
     }).then(({ error }) => {
       if (error) console.error('Page-view analytics could not be saved:', error.message);
     });
+  }, [shouldTrack, location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    if (!shouldTrack) return;
+    const visitorId = (() => {
+      try {
+        const id = window.localStorage.getItem('hbc-visitor-presence-id') || '';
+        return id || crypto.randomUUID();
+      } catch { return crypto.randomUUID(); }
+    })();
+    const sessionId = getJourneySessionId();
+    const enteredAt = Date.now();
+    let finished = false;
+    const sourceDetails = () => {
+      const params = new URLSearchParams(window.location.search);
+      const utmSource = params.get('utm_source');
+      const utmMedium = params.get('utm_medium');
+      const referrer = document.referrer;
+      let referrerHost = '';
+      let trafficSource = 'Direct / none';
+      if (utmSource) trafficSource = `${utmSource} / ${utmMedium || 'unknown'}`;
+      else if (referrer) {
+        try {
+          referrerHost = new URL(referrer).hostname.replace(/^www\\./, '');
+          trafficSource = referrerHost === window.location.hostname.replace(/^www\\./, '') ? 'Internal navigation' : `${referrerHost} / referral`;
+        } catch { trafficSource = 'Referral'; }
+      }
+      return { trafficSource, referrerHost };
+    };
+    const sendEvent = (payload: Record<string, unknown>) => {
+      void supabase.functions.invoke('visitor-presence', {
+        body: { mode: 'journey-event', visitorId, sessionId, currentPath: window.location.pathname + window.location.search + window.location.hash, pageTitle: document.title, ...sourceDetails(), ...payload },
+      });
+    };
+    const finishPage = () => {
+      if (finished) return;
+      finished = true;
+      sendEvent({ eventType: 'page_exit', durationSeconds: Math.floor((Date.now() - enteredAt) / 1000) });
+    };
+    const onClick = (event: MouseEvent) => {
+      const target = event.target instanceof Element ? event.target.closest('a,button,[role="button"],input[type="submit"],input[type="button"],[data-analytics-click]') : null;
+      if (!target) return;
+      const tag = target.tagName.toLowerCase();
+      const elementText = (target.getAttribute('aria-label') || target.textContent || (target instanceof HTMLInputElement ? target.value : '') || '').trim().replace(/\\s+/g, ' ').slice(0, 200);
+      const elementHref = target instanceof HTMLAnchorElement ? target.href : '';
+      sendEvent({ eventType: 'click', elementText, elementTag: tag, elementHref });
+    };
+    document.addEventListener('click', onClick, true);
+    window.addEventListener('pagehide', finishPage);
+    return () => {
+      document.removeEventListener('click', onClick, true);
+      window.removeEventListener('pagehide', finishPage);
+      finishPage();
+    };
   }, [shouldTrack, location.pathname, location.search, location.hash]);
 
   useEffect(() => {

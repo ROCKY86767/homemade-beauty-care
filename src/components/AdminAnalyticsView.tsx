@@ -195,7 +195,7 @@ export default function AdminAnalyticsView({ journeyOnly = false }: { journeyOnl
         <span className="min-w-0"><span className="block font-semibold text-gray-900">Visitor Activity & Journey</span><span className="mt-1 block text-sm text-gray-500">প্রতিটি ভিজিটরের পেজ, ক্লিক, সোর্স ও সময়ের বিস্তারিত দেখুন · {periodLabel}</span><span className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600"><span className="rounded-full bg-gray-100 px-2 py-1">{number(uniqueJourneyVisitors)} visitors</span><span className="rounded-full bg-gray-100 px-2 py-1">{number(journeyClicks)} clicks</span></span></span>
       </div>
       <span className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">{showJourneyDetails ? 'Close details' : 'Open details'} <span aria-hidden="true">{showJourneyDetails ? '−' : '+'}</span></span>
-    </button>
+    </button>}
 
     {(showJourneyDetails || journeyOnly) && <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
       <div className="border-b bg-gray-50/70 px-5 py-5">

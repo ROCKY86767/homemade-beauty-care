@@ -7,6 +7,10 @@ type JourneyEvent = {
   id: number;
   visitor_id: string;
   ip_address: string | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
+  country_code?: string | null;
   session_id: string;
   event_type: 'page_view' | 'click' | 'page_exit';
   page_path: string;
@@ -41,7 +45,7 @@ export default function AdminAnalyticsView({ journeyOnly = false }: { journeyOnl
   const today = localDate();
   const [report, setReport] = useState<Report | null>(null);
   const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
-  const [liveVisitorDetails, setLiveVisitorDetails] = useState<{ ipAddress: string | null; page: string; title: string; source: string; referrerHost: string; lastSeenAt: string }[]>([]);
+  const [liveVisitorDetails, setLiveVisitorDetails] = useState<{ ipAddress: string | null; city?: string | null; region?: string | null; country?: string | null; countryCode?: string | null; page: string; title: string; source: string; referrerHost: string; lastSeenAt: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -178,9 +182,9 @@ export default function AdminAnalyticsView({ journeyOnly = false }: { journeyOnl
         </div>
       </div>
       {liveVisitorDetails.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm">
-        <thead className="bg-gray-50 text-xs uppercase text-gray-600"><tr><th className="px-5 py-3 font-medium">IP Address</th><th className="px-5 py-3 font-medium">Current page</th><th className="px-5 py-3 font-medium">Traffic source</th><th className="px-5 py-3 font-medium">Referrer</th><th className="px-5 py-3 font-medium">Last active</th></tr></thead>
+        <thead className="bg-gray-50 text-xs uppercase text-gray-600"><tr><th className="px-5 py-3 font-semibold">IP Address</th><th className="px-5 py-3 font-semibold">Approx. location</th><th className="px-5 py-3 font-semibold">Current page</th><th className="px-5 py-3 font-medium">Traffic source</th><th className="px-5 py-3 font-medium">Referrer</th><th className="px-5 py-3 font-medium">Last active</th></tr></thead>
         <tbody className="divide-y">{liveVisitorDetails.map((visitor, index) => <tr key={index}>
-          <td className="whitespace-nowrap px-5 py-3 font-mono text-xs text-gray-700">{visitor.ipAddress || 'Unavailable'}</td><td className="max-w-[280px] px-5 py-3"><div className="break-all font-medium text-gray-900">{visitor.page || '/'}</div>{visitor.title && <div className="mt-1 truncate text-xs text-gray-600">{visitor.title}</div>}</td>
+          <td className="whitespace-nowrap px-5 py-3 font-mono text-xs font-semibold text-gray-800">{visitor.ipAddress || 'Unavailable'}</td><td className="min-w-[160px] px-5 py-3 text-gray-700"><div className="font-medium">{[visitor.city, visitor.region].filter(Boolean).join(", ") || "Location unavailable"}</div><div className="mt-1 text-xs">{visitor.country || ""}{visitor.countryCode ? ` (${visitor.countryCode})` : ""}</div></td><td className="max-w-[280px] px-5 py-3"><div className="break-all font-medium text-gray-900">{visitor.page || '/'}</div>{visitor.title && <div className="mt-1 truncate text-xs text-gray-600">{visitor.title}</div>}</td>
           <td className="px-5 py-3">{visitor.source || 'Direct / none'}</td>
           <td className="px-5 py-3">{visitor.referrerHost || '—'}</td>
           <td className="whitespace-nowrap px-5 py-3 text-gray-600">{visitor.lastSeenAt ? new Date(visitor.lastSeenAt).toLocaleTimeString() : 'Just now'}</td>
@@ -233,7 +237,7 @@ export default function AdminAnalyticsView({ journeyOnly = false }: { journeyOnl
               <div className="flex flex-wrap items-center gap-2 text-xs"><span className="rounded-full bg-gray-100 px-2.5 py-1">{pageCount} pages</span><span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">{clicks} clicks</span><span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">{formatDuration(totalTime)} tracked</span><span className="ml-auto text-sm font-medium text-primary">{'View timeline ↓'}</span></div>
             </summary>
             <div className="border-t bg-gray-50/50 px-4 py-4">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div className="text-xs text-gray-600">IP Address <span className="select-all font-mono text-gray-700">{visitor.ip_address || 'Unavailable'}</span> · Visitor ID <span className="select-all font-mono text-gray-700">{visitor.visitor_id}</span></div><button onClick={() => setVisitorSearch(visitor.ip_address || visitor.visitor_id)} className="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-primary">Filter this visitor</button></div>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div className="text-xs text-gray-600">IP Address <span className="select-all font-mono text-gray-800">{visitor.ip_address || 'Unavailable'}</span> · Approx. location <span className="font-medium text-gray-800">{[visitor.city, visitor.region, visitor.country].filter(Boolean).join(", ") || "Unavailable"}</span> · Visitor ID <span className="select-all font-mono text-gray-700">{visitor.visitor_id}</span></div><button onClick={() => setVisitorSearch(visitor.ip_address || visitor.visitor_id)} className="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-primary">Filter this visitor</button></div>
               <ol className="space-y-3">
                 {sorted.map((event,index) => <li key={event.id} className="relative flex gap-3">
                   <span className="flex flex-col items-center"><span className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${event.event_type === 'click' ? 'bg-blue-100 text-blue-700' : event.event_type === 'page_exit' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{event.event_type === 'click' ? <MousePointerClick className="h-4 w-4" /> : event.event_type === 'page_exit' ? <Clock className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</span>{index < sorted.length - 1 && <span className="mt-1 min-h-4 w-px flex-1 bg-gray-200" />}</span>
@@ -244,7 +248,7 @@ export default function AdminAnalyticsView({ journeyOnly = false }: { journeyOnl
           </details>;
         })}
       </div> : <div className="p-8 text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-600"><UserRoundSearch className="h-6 w-6" /></span><p className="mt-3 font-medium text-gray-900">{journeyLoading ? 'Loading visitor activity…' : 'No visitor activity found'}</p><p className="mt-1 text-sm text-gray-600">এই তারিখে activity পাওয়া যায়নি। তারিখ পরিবর্তন করুন অথবা নতুন ভিজিট/ক্লিক হওয়ার পর Refresh দিন।</p></div>}
-      <div className="border-t bg-gray-50 px-5 py-3 text-xs leading-5 text-gray-600">IP address দিয়ে visitor deduplicate করা হয়; একই Wi‑Fi/mobile network-এর একাধিক মানুষ একই IP ব্যবহার করতে পারে, আর VPN/dynamic IP-তে একজনের IP বদলাতে পারে। শুধু link/button-এর মতো interactive element-এর click রেকর্ড হয়। পেজে থাকার সময় আনুমানিক; browser হঠাৎ বন্ধ হলে কিছু সময় রেকর্ড নাও হতে পারে।</div>
+      <div className="border-t bg-gray-50 px-5 py-3 text-xs leading-5 text-gray-600">IP address দিয়ে visitor deduplicate করা হয়; location IP থেকে আনুমানিকভাবে নির্ণয় করা হয় এবং ভুল হতে পারে; একই Wi‑Fi/mobile network-এর একাধিক মানুষ একই IP ব্যবহার করতে পারে, আর VPN/dynamic IP-তে একজনের IP বদলাতে পারে। শুধু link/button-এর মতো interactive element-এর click রেকর্ড হয়। পেজে থাকার সময় আনুমানিক; browser হঠাৎ বন্ধ হলে কিছু সময় রেকর্ড নাও হতে পারে।</div>
     </section>}
 
     {!journeyOnly && <>

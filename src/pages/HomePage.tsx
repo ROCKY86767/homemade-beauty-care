@@ -93,7 +93,6 @@ export default function HomePage() { // centralized storefront settings
     const container = reviewMarqueeRef.current;
     if (!container) return;
     reviewDragRef.current = { pointerId: event.pointerId, startX: event.clientX, startScrollLeft: container.scrollLeft, moved: false };
-    setReviewManualMode(true);
     if (event.pointerType === 'mouse') {
       container.setPointerCapture(event.pointerId);
       container.style.cursor = 'grabbing';
@@ -105,7 +104,10 @@ export default function HomePage() { // centralized storefront settings
     const container = reviewMarqueeRef.current;
     if (!drag || !container || drag.pointerId !== event.pointerId) return;
     const distance = event.clientX - drag.startX;
-    if (Math.abs(distance) > 4) drag.moved = true;
+    if (Math.abs(distance) > 4 && !drag.moved) {
+      drag.moved = true;
+      setReviewManualMode(true);
+    }
     if (drag.moved) {
       container.scrollLeft = drag.startScrollLeft - distance;
       if (event.pointerType === 'mouse') event.preventDefault();
@@ -121,6 +123,7 @@ export default function HomePage() { // centralized storefront settings
     // Keep the drag flag until click-capture suppresses the accidental
     // click that browsers may fire immediately after a swipe.
     if (!reviewDragRef.current?.moved) reviewDragRef.current = null;
+    setReviewManualMode(false);
   };
 
   // Use a lightweight history entry for the review viewer so the phone's

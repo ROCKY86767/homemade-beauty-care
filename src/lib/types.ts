@@ -70,6 +70,10 @@ export interface Banner {
   button_text_bn: string | null;
   button_link: string | null;
   image_url: string | null;
+  desktop_image_url?: string | null;
+  mobile_image_url?: string | null;
+  start_at?: string | null;
+  end_at?: string | null;
   sort_order: number;
   is_active: boolean;
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -84,6 +84,42 @@ export default function HomePage() { // centralized storefront settings
   const [reviews, setReviews] = useState<Review[]>([]);
   const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
   const [fullscreenReviewMedia, setFullscreenReviewMedia] = useState<{ url: string; isVideo: boolean } | null>(null);
+  const reviewMarqueeRef = useRef<HTMLDivElement>(null);
+  const reviewDragRef = useRef<{ pointerId: number; startX: number; startScrollLeft: number; moved: boolean } | null>(null);
+  const [reviewManualMode, setReviewManualMode] = useState(false);
+
+  const handleReviewPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    const container = reviewMarqueeRef.current;
+    if (!container) return;
+    reviewDragRef.current = { pointerId: event.pointerId, startX: event.clientX, startScrollLeft: container.scrollLeft, moved: false };
+    setReviewManualMode(true);
+    if (event.pointerType === 'mouse') {
+      container.setPointerCapture(event.pointerId);
+      container.style.cursor = 'grabbing';
+    }
+  };
+
+  const handleReviewPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = reviewDragRef.current;
+    const container = reviewMarqueeRef.current;
+    if (!drag || !container || drag.pointerId !== event.pointerId) return;
+    const distance = event.clientX - drag.startX;
+    if (Math.abs(distance) > 4) drag.moved = true;
+    if (drag.moved) {
+      container.scrollLeft = drag.startScrollLeft - distance;
+      if (event.pointerType === 'mouse') event.preventDefault();
+    }
+  };
+
+  const handleReviewPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const container = reviewMarqueeRef.current;
+    if (container && event.pointerType === 'mouse') {
+      if (container.hasPointerCapture(event.pointerId)) container.releasePointerCapture(event.pointerId);
+      container.style.cursor = 'grab';
+    }
+    reviewDragRef.current = null;
+  };
 
   // Use a lightweight history entry for the review viewer so the phone's
   // Back button closes the image and keeps the page at the reviews section.

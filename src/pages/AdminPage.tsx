@@ -721,14 +721,11 @@ function StatCard({
   );
 }
 
-function EmptyState({
-  text,
-}: {
-  text: string;
-}) {
+function EmptyState({ text, title, description }: { text?: string; title?: string; description?: string }) {
   return (
     <div className="p-10 text-center text-sm text-gray-500">
-      {text}
+      {title && <p className="font-semibold text-gray-700">{title}</p>}
+      {(description || text) && <p className={title ? "mt-1" : ""}>{description || text}</p>}
     </div>
   );
 }
@@ -3027,11 +3024,12 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
       });
       if (error) throw error;
 
+      const { data: authData } = await supabase.auth.getUser();
       const nextNotes = Array.isArray(data) ? data : [...internalOrderNotes, {
         text: noteText,
         created_at: new Date().toISOString(),
-        author: staffAccess?.display_name || session?.user?.email || (staffAccess?.role === 'admin' ? 'Admin' : 'Moderator'),
-        role: staffAccess?.role === 'admin' ? 'Admin' : 'Moderator',
+        author: authData.user?.email || 'Staff',
+        role: 'Staff',
       }];
       const updated = { ...viewOrder, internal_order_notes: nextNotes };
       setInternalOrderNotes(nextNotes);
@@ -7025,6 +7023,7 @@ function Input({
   onChange,
   type = 'text',
   required = false,
+  placeholder,
 }: {
   label: string;
   value: string;
@@ -7033,6 +7032,7 @@ function Input({
   ) => void;
   type?: string;
   required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -7048,6 +7048,7 @@ function Input({
 
       <input
         type={type}
+        placeholder={placeholder}
         value={value}
         onChange={(e) =>
           onChange(

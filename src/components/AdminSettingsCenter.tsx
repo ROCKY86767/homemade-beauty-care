@@ -220,7 +220,7 @@ export default function AdminSettingsCenter({ initialSection = 'general', standa
               ['homepage_show_all_products','Our Products'],
               ['homepage_show_best_sellers','Best Sellers'],
               ['homepage_show_new_arrivals','New Arrivals'],
-              ['homepage_show_sale','On Sale'],
+              ['homepage_show_sale','Offer Products Section'],
               ['homepage_show_hair_care','Hair Care'],
               ['homepage_show_skin_care','Skin Care'],
               ['homepage_show_reviews','Customer Reviews'],

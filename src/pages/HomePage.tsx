@@ -647,7 +647,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* ⭐ ALL ACTIVE PRODUCTS */}
       {settings?.homepage_show_all_products !== false && allProducts.length > 0 && (
-        <section className="py-10 sm:py-16 bg-cream compact-reviews-section">
+        <section className="py-10 sm:py-16 bg-cream compact-products-section">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
@@ -982,7 +982,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Customer Reviews */}
       {settings?.homepage_show_reviews !== false && (
-      <section className="py-10 sm:py-16 bg-cream">
+      <section className="py-10 sm:py-16 bg-cream compact-reviews-section">
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">

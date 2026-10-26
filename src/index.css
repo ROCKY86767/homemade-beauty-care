@@ -225,6 +225,21 @@ img {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+/* On phones, use native horizontal scrolling so touch swipes feel natural.
+   Keep the animated marquee on larger screens only. */
+@media (max-width: 639px) {
+  .homepage-review-track {
+    animation: none !important;
+    transform: none !important;
+  }
+  .homepage-review-marquee {
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+  }
+  .homepage-review-group article {
+    scroll-snap-align: start;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .homepage-review-track { animation: none !important; }
 }

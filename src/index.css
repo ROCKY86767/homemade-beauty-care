@@ -192,8 +192,21 @@ img {
 
 /* Seamless homepage review marquee: matching groups loop with no visible reset */
 .homepage-review-marquee {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  touch-action: pan-x;
+  user-select: none;
+  -webkit-overflow-scrolling: touch;
+}
+.homepage-review-marquee::-webkit-scrollbar {
+  display: none;
+}
+.homepage-review-marquee:active {
+  cursor: grabbing;
 }
 .homepage-review-track {
   width: max-content;
@@ -204,7 +217,8 @@ img {
   width: max-content;
 }
 .homepage-review-marquee:hover .homepage-review-track,
-.homepage-review-marquee:focus-within .homepage-review-track {
+.homepage-review-marquee:focus-within .homepage-review-track,
+.homepage-review-manual .homepage-review-track {
   animation-play-state: paused;
 }
 @keyframes homepageReviewsLoop {

@@ -289,28 +289,46 @@ export default function HomePage() { // centralized storefront settings
     if (!scroller || editorialReviews.length < 2) return;
 
     let paused = false;
+    let frame = 0;
+    let previousTime = 0;
+    const pixelsPerSecond = 32;
     const pause = () => { paused = true; };
-    const resume = () => { paused = false; };
+    const resume = () => { paused = false; previousTime = 0; };
+
+    const step = (time: number) => {
+      if (previousTime === 0) previousTime = time;
+      const elapsed = Math.min(time - previousTime, 40);
+      previousTime = time;
+
+      if (!paused) {
+        const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+        if (maxScroll > 1) {
+          // Increasing scrollLeft moves the review cards from right to left.
+          if (scroller.scrollLeft >= maxScroll - 1) {
+            scroller.scrollLeft = 0;
+          } else {
+            scroller.scrollLeft += (pixelsPerSecond * elapsed) / 1000;
+          }
+        }
+      }
+      frame = window.requestAnimationFrame(step);
+    };
+
+    scroller.scrollLeft = 0;
     scroller.addEventListener('mouseenter', pause);
     scroller.addEventListener('mouseleave', resume);
+    scroller.addEventListener('focusin', pause);
+    scroller.addEventListener('focusout', resume);
     scroller.addEventListener('touchstart', pause, { passive: true });
     scroller.addEventListener('touchend', resume, { passive: true });
-
-    const timer = window.setInterval(() => {
-      if (paused) return;
-      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-      if (maxScroll <= 0) return;
-      if (scroller.scrollLeft >= maxScroll - 2) {
-        scroller.scrollTo({ left: 0, behavior: 'auto' });
-      } else {
-        scroller.scrollLeft += 1;
-      }
-    }, 24);
+    frame = window.requestAnimationFrame(step);
 
     return () => {
-      window.clearInterval(timer);
+      window.cancelAnimationFrame(frame);
       scroller.removeEventListener('mouseenter', pause);
       scroller.removeEventListener('mouseleave', resume);
+      scroller.removeEventListener('focusin', pause);
+      scroller.removeEventListener('focusout', resume);
       scroller.removeEventListener('touchstart', pause);
       scroller.removeEventListener('touchend', resume);
     };

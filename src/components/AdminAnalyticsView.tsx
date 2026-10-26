@@ -197,7 +197,7 @@ export default function AdminAnalyticsView({ journeyOnly = false }: { journeyOnl
       <span className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">{showJourneyDetails ? 'Close details' : 'Open details'} <span aria-hidden="true">{showJourneyDetails ? '−' : '+'}</span></span>
     </button>
 
-    {showJourneyDetails && <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    {(showJourneyDetails || journeyOnly) && <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
       <div className="border-b bg-gray-50/70 px-5 py-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>{journeyOnly && <button onClick={() => navigate('/admin?tab=analytics')} className="mb-3 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">← Back to Website Analytics</button>}<h2 className="text-lg font-semibold text-gray-900">Visitor Journey</h2><p className="mt-1 text-sm text-gray-500">প্রতিটি visitor/session খুলে তার activity timeline দেখুন। সময়: {periodLabel}</p></div>

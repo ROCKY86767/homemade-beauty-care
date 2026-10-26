@@ -86,7 +86,7 @@ export async function getSettings(): Promise<SiteSettings> {
     .eq('id', 1)
     .maybeSingle();
   cachedSettings = data || DEFAULT_SETTINGS;
-  return cachedSettings;
+  return cachedSettings ?? DEFAULT_SETTINGS;
 }
 
 export async function updateSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {

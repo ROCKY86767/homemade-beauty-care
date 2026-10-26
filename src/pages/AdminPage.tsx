@@ -44,6 +44,7 @@ import {
 
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
+import HomepageEditorialReviewsView from './HomepageEditorialReviewsView';
 import ModeratorView from './ModeratorView';
 import { ChatAdminView } from '../components/LiveChat';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';

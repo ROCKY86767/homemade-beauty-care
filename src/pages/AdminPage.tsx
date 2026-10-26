@@ -3864,25 +3864,20 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
           <h3 className="text-sm font-bold text-gray-800">{statusFilter === '__failed__' ? 'Failed Orders · Checkout not completed' : 'All Orders · Sorted by creation time (newest first)'}</h3>
           <span className="ml-auto rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">{statusFilter === '__failed__' ? filteredFailedCheckouts.length : filtered.length} {statusFilter === '__failed__' ? 'failed checkouts' : 'orders'}</span>
         </div>}
-        {statusFilter === '__failed__' ? filteredFailedCheckouts.map((lead) => {
-          const cartItems = Array.isArray(lead.cart_items) ? lead.cart_items : [];
-          const expanded = expandedFailedCheckout === lead.session_id;
-          return <div key={lead.session_id} className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm">
-            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Failed checkout</span><span className="text-xs text-gray-500">Last activity: {dateTime(lead.last_seen_at || lead.created_at)}</span></div>
+        {statusFilter === '__failed__' ? filteredFailedCheckouts.map((lead) => (
+          <div key={lead.session_id || lead.mobile || lead.created_at} className="rounded-lg border border-amber-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Failed checkout</span>
                 <h4 className="mt-2 font-semibold text-gray-900">{lead.customer_name || 'Name not provided'}</h4>
                 <p className="text-sm text-gray-600">{lead.mobile || 'Phone not provided'}{lead.email ? ` · ${lead.email}` : ''}</p>
                 <p className="mt-1 text-xs text-gray-500">{[lead.area, lead.district].filter(Boolean).join(', ') || 'Location not provided'}</p>
-                {expanded && <div className="mt-3 space-y-3 border-t pt-3">
-                  {lead.address && <p className="text-sm text-gray-700"><strong>Address:</strong> {lead.address}</p>}
-                  <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Products in cart</p>{cartItems.length ? <div className="space-y-2">{cartItems.map((item: any, index: number) => <div key={`${lead.session_id}-${item.product_id || index}`} className="flex items-center gap-3 rounded-lg bg-gray-50 p-2">{item.image_url && <img src={item.image_url} alt="" className="h-10 w-10 rounded object-cover" />}<div className="min-w-0 flex-1"><p className="text-sm font-medium text-gray-800">{item.product_name || item.name || 'Product'}</p><p className="text-xs text-gray-500">Qty: {Number(item.quantity || 1)} · ৳{Number(item.price || 0).toLocaleString()}</p></div></div>)}</div> : <p className="text-sm text-gray-500">No product details were captured for this checkout.</p>}</div>
-                </div>}
+                {lead.address && <p className="mt-2 text-sm text-gray-700"><strong>Address:</strong> {lead.address}</p>}
+                <p className="mt-2 text-xs text-gray-500">Last activity: {dateTime(lead.last_seen_at || lead.created_at)}</p>
               </div>
-              <button type="button" onClick={() => setExpandedFailedCheckout(expanded ? null : lead.session_id)} className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">{expanded ? 'Hide details' : 'View details'}</button>
             </div>
-          </div>;
-        }) : filtered.map((order) => {
+          </div>
+        )) : 
           const orderItems = itemsForOrder(order.id);
           const normalizedStatus = normalizeOrderStatus(order.status);
           const knownStatuses = ORDER_STATUSES;

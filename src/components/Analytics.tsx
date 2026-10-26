@@ -40,6 +40,45 @@ export default function Analytics() {
   const shouldTrack = !isAdminArea && !isAuthUtilityPage;
 
   useEffect(() => {
+    if (!shouldTrack) return;
+
+    const visitorKey = 'hbc-visitor-presence-id';
+    let visitorId = '';
+    try {
+      visitorId = window.localStorage.getItem(visitorKey) || '';
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(visitorId)) {
+        visitorId = crypto.randomUUID();
+        window.localStorage.setItem(visitorKey, visitorId);
+      }
+    } catch {
+      visitorId = crypto.randomUUID();
+    }
+
+    let disposed = false;
+    let busy = false;
+    const heartbeat = async () => {
+      if (disposed || busy || document.visibilityState !== 'visible') return;
+      busy = true;
+      try {
+        await supabase.functions.invoke('visitor-presence', {
+          body: { mode: 'heartbeat', visitorId },
+        });
+      } finally {
+        busy = false;
+      }
+    };
+
+    void heartbeat();
+    const timer = window.setInterval(() => void heartbeat(), 25000);
+    document.addEventListener('visibilitychange', heartbeat);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', heartbeat);
+    };
+  }, [shouldTrack]);
+
+  useEffect(() => {
     let active = true;
 
     if (!shouldTrack) {

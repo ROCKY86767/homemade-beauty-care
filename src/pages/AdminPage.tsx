@@ -3877,7 +3877,7 @@ function OrdersView({ isAdmin }: { isAdmin: boolean }) {
               </div>
             </div>
           </div>
-        )) : 
+        )) : filtered.map((order) => {
           const orderItems = itemsForOrder(order.id);
           const normalizedStatus = normalizeOrderStatus(order.status);
           const knownStatuses = ORDER_STATUSES;

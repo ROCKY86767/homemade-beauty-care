@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS", "Content-Type": "application/json" };
 function json(data: unknown, status = 200) { return new Response(JSON.stringify(data), { status, headers: cors }); }
 function getClientIp(req: Request): string | null {
-  const candidates = [req.headers.get("cf-connecting-ip"), req.headers.get("x-real-ip"), req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()];
+  const candidates = [req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(), req.headers.get("x-real-ip"), req.headers.get("cf-connecting-ip")];
   for (const candidate of candidates) {
     const value = candidate?.trim();
     if (value && value.length <= 64 && /^[0-9a-fA-F:.]+$/.test(value)) return value;

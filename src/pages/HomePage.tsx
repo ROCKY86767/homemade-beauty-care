@@ -372,7 +372,7 @@ export default function HomePage() { // centralized storefront settings
   }
 
   return (
-    <div>
+    <div className="homepage-compact">
       <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
       {/* Hero Slider */}
       {banners.length > 0 ? (

@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, Eye, Users, Globe, RefreshCw, ExternalLink, AlertCircle, CalendarDays, Filter } from 'lucide-react';
+import { Activity, Eye, Users, Globe, RefreshCw, ExternalLink, AlertCircle, CalendarDays, Filter, MousePointerClick, Clock, UserRoundSearch } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+
+type JourneyEvent = {
+  id: number;
+  visitor_id: string;
+  session_id: string;
+  event_type: 'page_view' | 'click' | 'page_exit';
+  page_path: string;
+  page_title: string;
+  traffic_source: string;
+  referrer_host: string;
+  element_text: string;
+  element_tag: string;
+  element_href: string;
+  duration_seconds: number;
+  created_at: string;
+};
 
 type Report = {
   activeUsers: number;
@@ -26,6 +42,9 @@ export default function AdminAnalyticsView() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [journeyEvents, setJourneyEvents] = useState<JourneyEvent[]>([]);
+  const [journeyLoading, setJourneyLoading] = useState(false);
+  const [visitorSearch, setVisitorSearch] = useState('');
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [appliedStartDate, setAppliedStartDate] = useState(today);
@@ -55,6 +74,24 @@ export default function AdminAnalyticsView() {
     return () => window.clearInterval(t);
   }, [load]);
 
+  const loadJourney = useCallback(async (from = appliedStartDate, to = appliedEndDate) => {
+    setJourneyLoading(true);
+    try {
+      const { data, error: requestError } = await supabase.functions.invoke('visitor-presence', {
+        body: { mode: 'journey-report', startDate: from, endDate: to },
+      });
+      if (requestError) throw requestError;
+      if (data?.error) throw new Error(data.error);
+      setJourneyEvents(Array.isArray(data?.events) ? data.events : []);
+    } catch (e: any) {
+      setError(e?.message || 'Visitor journey data could not be loaded.');
+    } finally {
+      setJourneyLoading(false);
+    }
+  }, [appliedStartDate, appliedEndDate]);
+
+  useEffect(() => { void loadJourney(); }, [loadJourney]);
+
   useEffect(() => {
     let disposed = false;
     const loadLiveVisitors = async () => {
@@ -82,7 +119,18 @@ export default function AdminAnalyticsView() {
     setAppliedStartDate(startDate);
     setAppliedEndDate(endDate);
     void load(false, startDate, endDate);
+    void loadJourney(startDate, endDate);
   };
+
+  const visibleJourneyEvents = journeyEvents.filter((event) => {
+    const query = visitorSearch.trim().toLowerCase();
+    if (!query) return true;
+    return [event.visitor_id, event.session_id, event.page_path, event.page_title, event.traffic_source, event.element_text, event.element_href].some(value => String(value || '').toLowerCase().includes(query));
+  });
+  const uniqueJourneyVisitors = new Set(journeyEvents.map(event => event.visitor_id)).size;
+  const journeyClicks = journeyEvents.filter(event => event.event_type === 'click').length;
+  const journeySeconds = journeyEvents.filter(event => event.event_type === 'page_exit').reduce((sum, event) => sum + Number(event.duration_seconds || 0), 0);
+  const formatDuration = (seconds: number) => seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 
   const periodLabel = appliedStartDate === appliedEndDate
     ? appliedStartDate
@@ -92,7 +140,7 @@ export default function AdminAnalyticsView() {
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div><h1 className="text-2xl font-bold text-gray-900">Website Analytics</h1><p className="mt-1 text-sm text-gray-500">Google Analytics 4 traffic for Homemade Beauty Care.</p></div>
       <div className="flex flex-wrap gap-2">
-        <button onClick={() => void load(true)} disabled={refreshing || loading} className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Refresh</button>
+        <button onClick={() => { void load(true); void loadJourney(); }} disabled={refreshing || loading} className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Refresh</button>
         <a href="https://analytics.google.com/analytics/web/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">Open Google Analytics <ExternalLink className="h-4 w-4" /></a>
       </div>
     </div>
@@ -133,6 +181,36 @@ export default function AdminAnalyticsView() {
           <td className="whitespace-nowrap px-5 py-3 text-gray-500">{visitor.lastSeenAt ? new Date(visitor.lastSeenAt).toLocaleTimeString() : 'Just now'}</td>
         </tr>)}</tbody>
       </table></div> : <div className="p-5 text-sm text-gray-500">No active visitor details yet. Keep a public website page open for a few seconds; visitor page/source details update on the next heartbeat.</div>}
+    </section>
+
+    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="border-b px-5 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div><h2 className="font-semibold text-gray-900">Visitor Journey / User Activity</h2><p className="mt-1 text-xs text-gray-500">Per-browser visit history, page sequence, source, clicks and approximate time on page · {periodLabel}</p></div>
+          <button onClick={() => void loadJourney()} disabled={journeyLoading} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${journeyLoading ? 'animate-spin' : ''}`} /> Refresh activity</button>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg bg-gray-50 p-3"><div className="flex items-center gap-2 text-xs text-gray-500"><Users className="h-4 w-4" /> Unique browsers</div><div className="mt-1 text-xl font-bold">{number(uniqueJourneyVisitors)}</div></div>
+          <div className="rounded-lg bg-gray-50 p-3"><div className="flex items-center gap-2 text-xs text-gray-500"><MousePointerClick className="h-4 w-4" /> Tracked clicks</div><div className="mt-1 text-xl font-bold">{number(journeyClicks)}</div></div>
+          <div className="rounded-lg bg-gray-50 p-3"><div className="flex items-center gap-2 text-xs text-gray-500"><Clock className="h-4 w-4" /> Measured page time</div><div className="mt-1 text-xl font-bold">{formatDuration(journeySeconds)}</div></div>
+        </div>
+        <label className="mt-4 block text-sm text-gray-600">Search visitor, page or activity
+          <div className="relative mt-1"><UserRoundSearch className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" /><input value={visitorSearch} onChange={e => setVisitorSearch(e.target.value)} placeholder="Paste visitor ID, page name, button text or source" className="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" /></div>
+        </label>
+      </div>
+      {visibleJourneyEvents.length ? <div className="overflow-x-auto"><table className="w-full min-w-[1050px] text-left text-sm">
+        <thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr><th className="px-4 py-3 font-medium">Date / time</th><th className="px-4 py-3 font-medium">Visitor / session</th><th className="px-4 py-3 font-medium">Event</th><th className="px-4 py-3 font-medium">Page</th><th className="px-4 py-3 font-medium">Click / element</th><th className="px-4 py-3 font-medium">Source</th><th className="px-4 py-3 font-medium">Time on page</th></tr></thead>
+        <tbody className="divide-y">{visibleJourneyEvents.map(event => <tr key={event.id} className="align-top hover:bg-gray-50">
+          <td className="whitespace-nowrap px-4 py-3 text-gray-600">{new Date(event.created_at).toLocaleString()}</td>
+          <td className="px-4 py-3"><div className="font-medium text-gray-900">{event.visitor_id.slice(0, 8)}…</div><div className="mt-1 text-xs text-gray-500">Session {event.session_id.slice(0, 8)}…</div><button onClick={() => setVisitorSearch(event.visitor_id)} className="mt-1 text-xs text-primary underline">Show this visitor</button></td>
+          <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${event.event_type === 'click' ? 'bg-blue-50 text-blue-700' : event.event_type === 'page_exit' ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>{event.event_type === 'page_view' ? 'Page viewed' : event.event_type === 'page_exit' ? 'Page left' : 'Click'}</span></td>
+          <td className="max-w-[260px] px-4 py-3"><div className="break-all font-medium">{event.page_path || '/'}</div>{event.page_title && <div className="mt-1 text-xs text-gray-500">{event.page_title}</div>}</td>
+          <td className="max-w-[260px] px-4 py-3"><div className="break-words">{event.element_text || '—'}</div>{event.element_tag && <div className="mt-1 text-xs text-gray-500">&lt;{event.element_tag}&gt;</div>}{event.element_href && <a href={event.element_href} target="_blank" rel="noreferrer" className="mt-1 block break-all text-xs text-primary underline">{event.element_href}</a>}</td>
+          <td className="max-w-[180px] break-words px-4 py-3">{event.traffic_source || 'Direct / none'}{event.referrer_host && <div className="mt-1 text-xs text-gray-500">Referrer: {event.referrer_host}</div>}</td>
+          <td className="whitespace-nowrap px-4 py-3">{event.event_type === 'page_exit' ? formatDuration(Number(event.duration_seconds || 0)) : '—'}</td>
+        </tr>)}</tbody>
+      </table></div> : <div className="p-5 text-sm text-gray-500">{journeyLoading ? 'Loading visitor activity…' : 'No visitor activity found for this date range. New page views, clicks and page time will appear after tracking starts.'}</div>}
+      <div className="border-t bg-gray-50 px-5 py-3 text-xs text-gray-500">Visitor IDs are anonymous browser IDs, not real names. Click tracking records interactive elements (links/buttons), not every mouse click. Time on page is approximate and may not be recorded if a browser closes abruptly.</div>
     </section>
 
     <div className="rounded-xl border border-primary/15 bg-primary/5 p-5">

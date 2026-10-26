@@ -67,6 +67,7 @@ type Tab =
   | 'chat'
   | 'quick-responses'
   | 'reviews'
+  | 'homepage-reviews'
   | 'coupons'
   | 'banners'
   | 'inventory'
@@ -277,6 +278,7 @@ export default function AdminPage() {
       'chat',
       'quick-responses',
       'reviews',
+      'homepage-reviews',
       'coupons',
       'banners',
       'inventory',
@@ -387,7 +389,8 @@ export default function AdminPage() {
     { id: 'customers' as Tab, label: 'Customers', icon: Users },
     { id: 'chat' as Tab, label: 'Live Chat', icon: MessageCircle },
     { id: 'quick-responses' as Tab, label: 'Quick Responses', icon: MessageCircle },
-    { id: 'reviews' as Tab, label: 'Reviews', icon: Star },
+    { id: 'reviews' as Tab, label: 'Customer Reviews', icon: Star },
+    { id: 'homepage-reviews' as Tab, label: 'Homepage Reviews', icon: ImageIcon },
     { id: 'coupons' as Tab, label: 'Coupons', icon: Tag },
     { id: 'banners' as Tab, label: 'Banners', icon: ImageIcon },
     { id: 'inventory' as Tab, label: 'Inventory', icon: Package },
@@ -568,6 +571,10 @@ export default function AdminPage() {
 
             {activeTab === 'reviews' && (
               <ReviewsView />
+            )}
+
+            {activeTab === 'homepage-reviews' && (
+              <HomepageEditorialReviewsView />
             )}
 
             {activeTab === 'coupons' && (

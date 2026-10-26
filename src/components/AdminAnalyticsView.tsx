@@ -21,6 +21,7 @@ const localDate = (date = new Date()) => {
 export default function AdminAnalyticsView() {
   const today = localDate();
   const [report, setReport] = useState<Report | null>(null);
+  const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +53,24 @@ export default function AdminAnalyticsView() {
     const t = window.setInterval(() => void load(true), 60000);
     return () => window.clearInterval(t);
   }, [load]);
+
+  useEffect(() => {
+    let disposed = false;
+    const loadLiveVisitors = async () => {
+      const { data, error: liveError } = await supabase.functions.invoke('visitor-presence', {
+        body: { mode: 'count' },
+      });
+      if (!disposed && !liveError && typeof data?.activeVisitors === 'number') {
+        setLiveVisitors(data.activeVisitors);
+      }
+    };
+    void loadLiveVisitors();
+    const timer = window.setInterval(() => void loadLiveVisitors(), 20000);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const applyDateFilter = () => {
     if (!startDate || !endDate || startDate > endDate) {
@@ -87,13 +106,13 @@ export default function AdminAnalyticsView() {
         </label>
         <button onClick={applyDateFilter} disabled={loading || refreshing} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"><Filter className="h-4 w-4" /> Apply Filter</button>
       </div>
-      <p className="mt-2 text-xs text-gray-500">Selected period: {periodLabel}. Live Visitors always shows current real-time visitors.</p>
+      <p className="mt-2 text-xs text-gray-500">Selected period: {periodLabel}. Online count includes public-site sessions active within the last 75 seconds. GA4 reports may take time to process new visits.</p>
     </section>
 
     {error && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><div className="flex items-center gap-2 font-semibold"><AlertCircle className="h-4 w-4" /> Analytics connection needs attention</div><p className="mt-2 break-words">{error}</p></div>}
 
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[
-      ['Live Visitors', report?.activeUsers, Activity], ['Visitors in Selected Period', report?.todayUsers, Users], ['Page Views in Selected Period', report?.pageViews, Eye]
+      ['Visitors Online Now', liveVisitors ?? 0, Activity], ['Visitors in Selected Period', report?.todayUsers, Users], ['Page Views in Selected Period', report?.pageViews, Eye]
     ].map(([title, value, Icon]: any) => <div key={title} className="rounded-xl border border-gray-200 bg-white p-5"><div className="flex items-center justify-between"><span className="text-sm font-medium text-gray-500">{title}</span><span className="rounded-lg bg-primary/10 p-2 text-primary"><Icon className="h-5 w-5" /></span></div><div className="mt-4 text-3xl font-bold text-gray-900">{loading ? '—' : number(value)}</div></div>)}</div>
 
     <div className="rounded-xl border border-primary/15 bg-primary/5 p-5">
@@ -104,11 +123,11 @@ export default function AdminAnalyticsView() {
     <div className="grid gap-6 xl:grid-cols-2">
       <section className="overflow-hidden rounded-xl border bg-white">
         <div className="border-b px-5 py-4"><h2 className="font-semibold">Top Pages</h2><p className="mt-1 text-xs text-gray-500">{periodLabel}</p></div>
-        {report?.topPages?.length ? <div className="divide-y">{report.topPages.map(x => <div key={x.page} className="flex items-start justify-between gap-4 px-5 py-3 text-sm"><span className="min-w-0 break-all">{x.page || '/'}</span><b className="shrink-0">{number(x.views)} views</b></div>)}</div> : <div className="p-5 text-sm text-gray-500">{loading ? 'Loading page data…' : 'No page-view data for this period. Check that GA4 page_view events are being recorded.'}</div>}
+        {report?.topPages?.length ? <div className="divide-y">{report.topPages.map(x => <div key={x.page} className="flex items-start justify-between gap-4 px-5 py-3 text-sm"><span className="min-w-0 break-all">{x.page || '/'}</span><b className="shrink-0">{number(x.views)} views</b></div>)}</div> : <div className="p-5 text-sm text-gray-500">{loading ? 'Loading page data…' : 'No page-view data returned for this period. Confirm events in GA4 Realtime/DebugView; standard reports may take 24–48 hours to populate.'}</div>}
       </section>
       <section className="overflow-hidden rounded-xl border bg-white">
         <div className="border-b px-5 py-4"><h2 className="font-semibold">Traffic Sources</h2><p className="mt-1 text-xs text-gray-500">{periodLabel}</p></div>
-        {report?.sources?.length ? <div className="divide-y">{report.sources.map(x => <div key={x.source} className="flex items-start justify-between gap-4 px-5 py-3 text-sm"><span className="min-w-0 break-words flex items-center gap-2"><Globe className="h-4 w-4 shrink-0 text-gray-400" />{x.source || '(direct) / (none)'}</span><b className="shrink-0">{number(x.sessions)} sessions</b></div>)}</div> : <div className="p-5 text-sm text-gray-500">{loading ? 'Loading traffic sources…' : 'No traffic-source data for this period. GA4 may need time to process new visits.'}</div>}
+        {report?.sources?.length ? <div className="divide-y">{report.sources.map(x => <div key={x.source} className="flex items-start justify-between gap-4 px-5 py-3 text-sm"><span className="min-w-0 break-words flex items-center gap-2"><Globe className="h-4 w-4 shrink-0 text-gray-400" />{x.source || '(direct) / (none)'}</span><b className="shrink-0">{number(x.sessions)} sessions</b></div>)}</div> : <div className="p-5 text-sm text-gray-500">{loading ? 'Loading traffic sources…' : 'No traffic-source rows returned for this period. Check GA4 Realtime and allow time for standard reports to populate.'}</div>}
       </section>
     </div>
     <p className="text-xs text-gray-400">Automatically refreshes every minute using the selected date range.</p>

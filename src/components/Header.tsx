@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -29,11 +29,27 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [search, setSearch] = useState('');
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const navigate = useNavigate();
   const { cartCount, wishlist } = useCart();
 
   useEffect(() => {
     getSettings().then(setSettings);
+  }, []);
+
+  useEffect(() => {
+    const element = headerRef.current;
+    if (!element) return;
+    const updateHeight = () => setHeaderHeight(element.getBoundingClientRect().height);
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(element);
+    window.addEventListener('resize', updateHeight);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateHeight);
+    };
   }, []);
 
   useEffect(() => {
@@ -72,8 +88,10 @@ export default function Header() {
       </div>}
 
       {/* Main Header */}
+      <div aria-hidden="true" style={{ height: headerHeight }} />
       <header
-        className={`sticky top-0 z-[100] isolate overflow-visible bg-white/95 backdrop-blur-md transition-all duration-300 ${
+        ref={headerRef}
+        className={`fixed inset-x-0 top-0 z-[100] isolate overflow-visible bg-white/95 backdrop-blur-md transition-all duration-300 ${
           scrolled ? 'shadow-lg shadow-dark/5' : 'shadow-sm'
         }`}
       >

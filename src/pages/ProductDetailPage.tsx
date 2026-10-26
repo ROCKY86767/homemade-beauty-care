@@ -396,7 +396,7 @@ export default function ProductDetailPage() {
                             </div>
                             <span className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('bn-BD')}</span>
                           </div>
-                          <p className="mt-3 text-sm leading-7 text-gray-600">{review.review_bn || review.review_text}</p>
+                          <p className="mt-3 text-sm leading-7 text-gray-600">{review.review_bn}</p>
                         </div>
                       ))}
                     </div>

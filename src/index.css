@@ -521,8 +521,11 @@ img {
   .homepage-compact > section:not(.hero-premium) .section-padding > div[class*="text-center mb-"] {
     margin-bottom: .6rem !important;
   }
+  /* Restore the original portrait mobile banner proportions (4:5) instead of the overly short 245px crop. */
   .homepage-compact > .hero-premium {
-    height: 245px !important;
+    height: auto !important;
+    aspect-ratio: 4 / 5 !important;
+    min-height: 0 !important;
     margin: .45rem .5rem !important;
     border-radius: .8rem !important;
   }

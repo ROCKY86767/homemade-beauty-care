@@ -845,20 +845,38 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Separately managed Homepage Reviews; not customer-submitted reviews */}
       {editorialReviews.length > 0 && (
-        <section className="bg-[#F7F4EA] py-12 sm:py-20">
+        <section className="overflow-hidden bg-[#F7F4EA] py-8 sm:py-12">
           <div className="section-padding">
-            <div className="mx-auto mb-10 max-w-2xl text-center">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[.22em] text-[#8A9A70]">Featured stories</p>
-              <h2 className="font-display text-2xl font-bold text-[#263A2D] sm:text-3xl lg:text-4xl">সৌন্দর্যচর্চার গল্প ও অভিজ্ঞতা</h2>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-gray-500">Homemade Beauty Care-এর বেছে নেওয়া কিছু অভিজ্ঞতা ও গল্প</p>
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-[.2em] text-[#8A9A70]">Featured stories</p>
+                <h2 className="font-display text-2xl font-bold text-[#263A2D] sm:text-3xl">রিভিউ ও অভিজ্ঞতা</h2>
+                <p className="mt-2 text-sm text-gray-500">আমাদের বেছে নেওয়া অভিজ্ঞতার ঝলক</p>
+              </div>
+              <span className="hidden text-xs font-medium text-[#8A9A70] sm:block">Swipe to explore →</span>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {editorialReviews.map((item) => (
-                <article key={item.id} className="overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 transition hover:-translate-y-1 hover:shadow-xl">
-                  {item.media_urls?.length > 0 && <div className="grid grid-cols-2 gap-1 bg-[#F4F1E8]">{item.media_urls.slice(0,4).map((url: string) => (/\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={url} src={url} controls preload="metadata" playsInline className="max-h-80 w-full object-cover" /> : <a key={url} href={url} target="_blank" rel="noreferrer"><img src={url} alt={item.title || 'Homepage review'} loading="lazy" className="max-h-80 w-full object-cover" /></a>))}</div>}
-                  <div className="p-6"><div className="mb-3 text-[#B77A4B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>{item.title && <h3 className="mb-2 font-semibold text-[#263A2D]">{item.title}</h3>}{item.review_text && <p className="whitespace-pre-line text-sm leading-7 text-gray-600">{item.review_text}</p>}<div className="mt-5 border-t border-gray-100 pt-4"><p className="text-sm font-semibold text-[#263A2D]">{item.customer_name}</p>{item.location && <p className="mt-1 text-xs text-gray-400">{item.location}</p>}</div></div>
-                </article>
-              ))}
+            <div className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
+              <div className="homepage-review-track flex w-max gap-4 py-3 sm:gap-5">
+                {[...editorialReviews, ...editorialReviews].map((item, index) => (
+                  <article key={item.id + '-' + index} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
+                    <div className="relative aspect-[9/13] overflow-hidden bg-[#E9E8DD]">
+                      {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
+                        ? <video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-cover" />
+                        : <img src={item.media_urls[0]} alt={item.title || 'Homepage review'} loading="lazy" className="h-full w-full object-cover" />)}
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                        <div className="mb-1 text-sm text-[#F3C98B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>
+                        <p className="font-semibold">{item.customer_name}</p>
+                        {item.location && <p className="mt-0.5 text-xs text-white/80">{item.location}</p>}
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      {item.title && <h3 className="mb-1 font-semibold text-[#263A2D]">{item.title}</h3>}
+                      {item.review_text && <p className="text-sm leading-6 text-gray-600" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.review_text}</p>}
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </section>

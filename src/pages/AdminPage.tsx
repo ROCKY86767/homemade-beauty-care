@@ -72,6 +72,7 @@ type Tab =
   | 'inventory'
   | 'reports'
   | 'analytics'
+  | 'visitor-activity'
   | 'settings'
   | 'settings-general'
   | 'settings-store'
@@ -281,6 +282,7 @@ export default function AdminPage() {
       'inventory',
       'reports',
       'analytics',
+      'visitor-activity',
       'settings',
       'settings-general',
       'settings-store',
@@ -586,6 +588,10 @@ export default function AdminPage() {
 
             {activeTab === 'analytics' && isAdmin && (
               <AdminAnalyticsView />
+            )}
+
+            {activeTab === 'visitor-activity' && isAdmin && (
+              <AdminAnalyticsView journeyOnly />
             )}
 
             {activeTab === 'combo' && (

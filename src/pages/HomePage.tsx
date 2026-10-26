@@ -82,6 +82,7 @@ export default function HomePage() { // centralized storefront settings
   const [onSale, setOnSale] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -253,6 +254,9 @@ export default function HomePage() { // centralized storefront settings
         setOnSale(loadedProducts.filter(product => product.is_on_sale).slice(0, 4));
         setCategories(loadedCategories);
         setReviews(reviewsResult.data || []);
+        const editorialResult = await supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false });
+        if (editorialResult.error) console.error('Homepage editorial reviews load error:', editorialResult.error);
+        setEditorialReviews(editorialResult.data || []);
       } catch (error) {
         console.error('Homepage data loading error:', error);
       } finally {
@@ -836,6 +840,28 @@ export default function HomePage() { // centralized storefront settings
           </div>
         </div>
       </section>
+      )}
+
+
+      {/* Separately managed Homepage Reviews; not customer-submitted reviews */}
+      {editorialReviews.length > 0 && (
+        <section className="bg-[#F7F4EA] py-12 sm:py-20">
+          <div className="section-padding">
+            <div className="mx-auto mb-10 max-w-2xl text-center">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[.22em] text-[#8A9A70]">Featured stories</p>
+              <h2 className="font-display text-2xl font-bold text-[#263A2D] sm:text-3xl lg:text-4xl">সৌন্দর্যচর্চার গল্প ও অভিজ্ঞতা</h2>
+              <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-gray-500">Homemade Beauty Care-এর বেছে নেওয়া কিছু অভিজ্ঞতা ও গল্প</p>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {editorialReviews.map((item) => (
+                <article key={item.id} className="overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 transition hover:-translate-y-1 hover:shadow-xl">
+                  {item.media_urls?.length > 0 && <div className="grid grid-cols-2 gap-1 bg-[#F4F1E8]">{item.media_urls.slice(0,4).map((url: string) => (/\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={url} src={url} controls preload="metadata" playsInline className="max-h-80 w-full object-cover" /> : <a key={url} href={url} target="_blank" rel="noreferrer"><img src={url} alt={item.title || 'Homepage review'} loading="lazy" className="max-h-80 w-full object-cover" /></a>))}</div>}
+                  <div className="p-6"><div className="mb-3 text-[#B77A4B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>{item.title && <h3 className="mb-2 font-semibold text-[#263A2D]">{item.title}</h3>}{item.review_text && <p className="whitespace-pre-line text-sm leading-7 text-gray-600">{item.review_text}</p>}<div className="mt-5 border-t border-gray-100 pt-4"><p className="text-sm font-semibold text-[#263A2D]">{item.customer_name}</p>{item.location && <p className="mt-1 text-xs text-gray-400">{item.location}</p>}</div></div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Customer Reviews */}

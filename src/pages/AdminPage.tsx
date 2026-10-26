@@ -4714,6 +4714,51 @@ function ReviewsView() {
     }
   };
 
+  const addReviewMedia = async (review: Review, fileList: FileList | null) => {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    const current = Array.isArray(review.media_urls) ? review.media_urls : [];
+    if (current.length + files.length > 6) {
+      setError('একটি রিভিউতে সর্বোচ্চ ৬টি ছবি/ভিডিও রাখা যাবে।');
+      return;
+    }
+    const allowed = ['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','video/quicktime'];
+    if (files.some(file => !allowed.includes(file.type) || file.size > 30 * 1024 * 1024)) {
+      setError('JPG, PNG, WEBP, GIF, MP4, WEBM বা MOV দিন; প্রতিটি ফাইল ৩০ MB-এর মধ্যে হতে হবে।');
+      return;
+    }
+    setUploadingMediaReview(review.id);
+    setError('');
+    try {
+      const urls = [...current];
+      for (const file of files) {
+        const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').slice(-90) || 'review-media';
+        const path = `admin/${review.id}/${crypto.randomUUID()}-${safeName}`;
+        const { error: uploadError } = await supabase.storage.from('review-media').upload(path, file, { contentType: file.type, upsert: false });
+        if (uploadError) throw uploadError;
+        urls.push(supabase.storage.from('review-media').getPublicUrl(path).data.publicUrl);
+      }
+      const { error: updateError } = await supabase.from('reviews').update({ media_urls: urls }).eq('id', review.id);
+      if (updateError) throw updateError;
+      setReviews(prev => prev.map(item => item.id === review.id ? { ...item, media_urls: urls } : item));
+    } catch (err: any) {
+      setError(err.message || 'ছবি/ভিডিও আপলোড করা যায়নি।');
+    } finally {
+      setUploadingMediaReview(null);
+    }
+  };
+
+  const removeReviewMedia = async (review: Review, url: string) => {
+    const urls = (Array.isArray(review.media_urls) ? review.media_urls : []).filter((item: string) => item !== url);
+    try {
+      const { error: updateError } = await supabase.from('reviews').update({ media_urls: urls }).eq('id', review.id);
+      if (updateError) throw updateError;
+      setReviews(prev => prev.map(item => item.id === review.id ? { ...item, media_urls: urls } : item));
+    } catch (err: any) {
+      setError(err.message || 'মিডিয়া সরানো যায়নি।');
+    }
+  };
+
   if (loading) return <LoadingBox />;
 
   return (
@@ -4801,6 +4846,20 @@ function ReviewsView() {
                     review.review ||
                     '-'}
                 </p>
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {(Array.isArray(review.media_urls) ? review.media_urls : []).map((url: string, mediaIndex: number) => (
+                    <div key={url} className="relative overflow-hidden rounded-xl border bg-gray-50">
+                      {/\\.(mp4|webm|mov)(\\?|$)/i.test(url) ? <video src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full bg-black object-cover" /> : <a href={url} target="_blank" rel="noreferrer"><img src={url} alt={`Review media ${mediaIndex + 1}`} loading="lazy" className="aspect-[4/5] w-full object-cover" /></a>}
+                      <button type="button" onClick={() => removeReviewMedia(review, url)} className="absolute right-2 top-2 rounded-full bg-white/95 p-2 text-red-600 shadow" aria-label="Remove media"><Trash2 className="h-4 w-4" /></button>
+                    </div>
+                  ))}
+                </div>
+                <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10">
+                  <Upload className="h-4 w-4" />
+                  {uploadingMediaReview === review.id ? 'Uploading…' : 'ছবি/ভিডিও আপলোড'}
+                  <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" disabled={uploadingMediaReview === review.id} className="sr-only" onChange={event => { void addReviewMedia(review, event.currentTarget.files); event.currentTarget.value = ''; }} />
+                </label>
+                <p className="mt-1 text-xs text-gray-500">সর্বোচ্চ ৬টি মিডিয়া · প্রতিটি ৩০ MB পর্যন্ত</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"

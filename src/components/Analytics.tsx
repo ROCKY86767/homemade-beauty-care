@@ -61,7 +61,33 @@ export default function Analytics() {
       busy = true;
       try {
         await supabase.functions.invoke('visitor-presence', {
-          body: { mode: 'heartbeat', visitorId },
+          body: {
+            mode: 'heartbeat',
+            visitorId,
+            currentPath: window.location.pathname + window.location.search + window.location.hash,
+            pageTitle: document.title,
+            trafficSource: (() => {
+              const params = new URLSearchParams(window.location.search);
+              const utmSource = params.get('utm_source');
+              const utmMedium = params.get('utm_medium');
+              const referrer = document.referrer;
+              if (utmSource) return `${utmSource} / ${utmMedium || 'unknown'}`;
+              if (referrer) {
+                try {
+                  const host = new URL(referrer).hostname.replace(/^www\\./, '');
+                  if (host === window.location.hostname.replace(/^www\\./, '')) return 'Internal navigation';
+                  return `${host} / referral`;
+                } catch {
+                  return 'Referral';
+                }
+              }
+              return 'Direct / none';
+            })(),
+            referrerHost: (() => {
+              try { return document.referrer ? new URL(document.referrer).hostname : ''; }
+              catch { return ''; }
+            })(),
+          },
         });
       } finally {
         busy = false;

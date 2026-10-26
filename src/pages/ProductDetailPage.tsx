@@ -174,8 +174,17 @@ export default function ProductDetailPage() {
         return;
       }
 
-      const privatePhone = normalizedPhone.replace(/\D/g, '').replace(/^88/, '');
+      const privatePhone = normalizedPhone.replace(/\\D/g, '').replace(/^88/, '');
       const reviewId = crypto.randomUUID();
+      setReviewMediaUploading(true);
+      const uploadedMedia: string[] = [];
+      for (const file of reviewMedia) {
+        const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').slice(-90) || 'review-media';
+        const path = `${product.id}/${reviewId}/${crypto.randomUUID()}-${safeName}`;
+        const { error: uploadError } = await supabase.storage.from('review-media').upload(path, file, { contentType: file.type, upsert: false });
+        if (uploadError) throw uploadError;
+        uploadedMedia.push(supabase.storage.from('review-media').getPublicUrl(path).data.publicUrl);
+      }
       const { error } = await supabase.from('reviews').insert({
         id: reviewId,
         product_id: product.id,

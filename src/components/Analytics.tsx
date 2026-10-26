@@ -105,6 +105,50 @@ export default function Analytics() {
   }, [shouldTrack]);
 
   useEffect(() => {
+    if (!shouldTrack) return;
+    let visitorId = '';
+    try {
+      visitorId = window.localStorage.getItem('hbc-visitor-presence-id') || '';
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(visitorId)) {
+        visitorId = crypto.randomUUID();
+        window.localStorage.setItem('hbc-visitor-presence-id', visitorId);
+      }
+    } catch {
+      visitorId = crypto.randomUUID();
+    }
+    const params = new URLSearchParams(window.location.search);
+    const utmSource = params.get('utm_source');
+    const utmMedium = params.get('utm_medium');
+    const referrer = document.referrer;
+    let trafficSource = 'Direct / none';
+    let referrerHost = '';
+    if (utmSource) {
+      trafficSource = `${utmSource} / ${utmMedium || 'unknown'}`;
+    } else if (referrer) {
+      try {
+        referrerHost = new URL(referrer).hostname.replace(/^www\./, '');
+        trafficSource = referrerHost === window.location.hostname.replace(/^www\./, '')
+          ? 'Internal navigation'
+          : `${referrerHost} / referral`;
+      } catch {
+        trafficSource = 'Referral';
+      }
+    }
+    void supabase.functions.invoke('visitor-presence', {
+      body: {
+        mode: 'pageview',
+        visitorId,
+        currentPath: window.location.pathname + window.location.search + window.location.hash,
+        pageTitle: document.title,
+        trafficSource,
+        referrerHost,
+      },
+    }).then(({ error }) => {
+      if (error) console.error('Page-view analytics could not be saved:', error.message);
+    });
+  }, [shouldTrack, location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
     let active = true;
 
     if (!shouldTrack) {

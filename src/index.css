@@ -190,11 +190,7 @@ img {
 }
 
 
-/* Smooth auto-scrolling homepage reviews; keep manual touch scrolling available */
-@keyframes homepageReviewAutoScroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
+/* Homepage reviews auto-scroll via the component so cards are never duplicated */
 .homepage-review-marquee {
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -202,14 +198,10 @@ img {
   -webkit-overflow-scrolling: touch;
 }
 .homepage-review-track {
-  animation: homepageReviewAutoScroll 32s linear infinite;
+  animation: none !important;
   width: max-content;
-  will-change: transform;
-}
-.homepage-review-marquee:hover .homepage-review-track,
-.homepage-review-marquee:focus-within .homepage-review-track {
-  animation-play-state: paused;
+  will-change: auto;
 }
 @media (prefers-reduced-motion: reduce) {
-  .homepage-review-track { animation: none; }
+  .homepage-review-track { animation: none !important; }
 }

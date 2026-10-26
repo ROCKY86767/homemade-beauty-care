@@ -198,7 +198,8 @@ img {
   scrollbar-width: none;
   -ms-overflow-style: none;
   cursor: grab;
-  touch-action: pan-x;
+  /* Allow both horizontal review swipes and vertical page scrolling on phones */
+  touch-action: pan-x pan-y;
   user-select: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -229,10 +230,10 @@ img {
    Keep the animated marquee on larger screens only. */
 @media (max-width: 639px) {
   .homepage-review-track {
-    animation: none !important;
-    transform: none !important;
+    animation-duration: 48s;
   }
   .homepage-review-marquee {
+    touch-action: pan-x pan-y;
     scroll-snap-type: x proximity;
     overscroll-behavior-x: contain;
   }

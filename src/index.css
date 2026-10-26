@@ -190,17 +190,26 @@ img {
 }
 
 
-/* Homepage reviews auto-scroll via the component so cards are never duplicated */
+/* Seamless homepage review marquee: matching groups loop with no visible reset */
 .homepage-review-marquee {
-  overflow-x: auto;
+  overflow: hidden;
   overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
 }
 .homepage-review-track {
-  animation: none !important;
   width: max-content;
-  will-change: auto;
+  will-change: transform;
+  animation: homepageReviewsLoop 48s linear infinite;
+}
+.homepage-review-group {
+  width: max-content;
+}
+.homepage-review-marquee:hover .homepage-review-track,
+.homepage-review-marquee:focus-within .homepage-review-track {
+  animation-play-state: paused;
+}
+@keyframes homepageReviewsLoop {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 @media (prefers-reduced-motion: reduce) {
   .homepage-review-track { animation: none !important; }

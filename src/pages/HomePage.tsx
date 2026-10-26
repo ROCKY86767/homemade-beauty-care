@@ -786,9 +786,9 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Special Combo Banner */}
       {settings?.combo_offer_enabled !== false && (
-      <section className="py-10 sm:py-16">
+      <section className="compact-combo-section py-6 sm:py-8">
         <div className="section-padding">
-          <div className="relative overflow-hidden rounded-3xl bg-dark">
+          <div className="compact-combo-card relative overflow-hidden rounded-2xl bg-dark">
             <div className="grid md:grid-cols-2 items-center">
               <div className="p-8 lg:p-12 text-white">
                 <span className="inline-block rounded-full bg-accent px-4 py-1 text-xs font-semibold uppercase tracking-wider mb-4">

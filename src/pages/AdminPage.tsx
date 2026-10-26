@@ -4718,8 +4718,8 @@ function ReviewsView() {
     const files = Array.from(fileList || []);
     if (!files.length) return;
     const current = Array.isArray(review.media_urls) ? review.media_urls : [];
-    if (current.length + files.length > 6) {
-      setError('একটি রিভিউতে সর্বোচ্চ ৬টি ছবি/ভিডিও রাখা যাবে।');
+    if (current.length + files.length > 50) {
+      setError('একটি রিভিউতে সর্বোচ্চ ৫০টি ছবি/ভিডিও রাখা যাবে।');
       return;
     }
     const allowed = ['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','video/quicktime'];
@@ -4859,7 +4859,7 @@ function ReviewsView() {
                   {uploadingMediaReview === review.id ? 'Uploading…' : 'ছবি/ভিডিও আপলোড'}
                   <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" disabled={uploadingMediaReview === review.id} className="sr-only" onChange={event => { void addReviewMedia(review, event.currentTarget.files); event.currentTarget.value = ''; }} />
                 </label>
-                <p className="mt-1 text-xs text-gray-500">সর্বোচ্চ ৬টি মিডিয়া · প্রতিটি ৩০ MB পর্যন্ত</p>
+                <p className="mt-1 text-xs text-gray-500">সর্বোচ্চ ৫০টি মিডিয়া · একাধিকবারে আপলোড করতে পারবেন · প্রতিটি ৩০ MB পর্যন্ত</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"

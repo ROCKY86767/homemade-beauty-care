@@ -376,7 +376,7 @@ export default function HomePage() { // centralized storefront settings
       <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
       {/* Hero Slider */}
       {banners.length > 0 ? (
-        <section className="relative hero-premium mx-3 my-3 h-[360px] overflow-hidden rounded-xl shadow-[0_12px_35px_rgba(38,58,45,.12)] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]">
+        <section className="relative hero-premium mx-3 my-3 h-[520px] overflow-hidden rounded-[1.5rem] shadow-[0_24px_70px_rgba(38,58,45,.16)] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]">
           {banners.map((banner, idx) => (
             <div
               key={banner.id}
@@ -405,7 +405,7 @@ export default function HomePage() { // centralized storefront settings
                 <div className="absolute inset-0 bg-gradient-to-t from-[#17291f]/35 via-transparent to-white/5" />
               </div>
 
-              <div className="relative z-10 flex h-full items-center px-4 py-4 sm:px-10 sm:py-8 lg:px-16">
+              <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 lg:px-16">
                 <div className="max-w-xl text-white">
                   {banner.small_text_bn && (
                     <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[.18em] text-white backdrop-blur-md animate-fade-in-up">
@@ -413,12 +413,12 @@ export default function HomePage() { // centralized storefront settings
                     </p>
                   )}
 
-                  <h1 className="mb-3 max-w-[620px] font-display text-2xl font-bold leading-tight tracking-tight drop-shadow-sm sm:mb-5 sm:text-5xl sm:leading-[1.15] lg:text-6xl xl:text-7xl animate-fade-in-up">
+                  <h1 className="mb-5 max-w-[620px] font-display text-3xl font-bold leading-[1.15] tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl xl:text-7xl animate-fade-in-up">
                     {banner.title_bn}
                   </h1>
 
                   {banner.description_bn && (
-                    <p className="mb-4 max-w-lg text-xs leading-5 text-white/90 sm:mb-7 sm:text-lg sm:leading-8 animate-fade-in-up">
+                    <p className="mb-7 max-w-lg text-sm leading-7 text-white/90 sm:text-lg sm:leading-8 animate-fade-in-up">
                       {banner.description_bn}
                     </p>
                   )}
@@ -427,7 +427,7 @@ export default function HomePage() { // centralized storefront settings
                     {banner.button_text_bn && (
                       <Link
                         to={banner.button_link || '/shop'}
-                        className="inline-flex min-h-9 items-center gap-2 rounded-full bg-[#F7F4EA] px-4 py-2 text-xs font-semibold text-[#263A2D] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl active:scale-95 click-feedback-soft sm:min-h-12 sm:px-7 sm:py-3.5 sm:text-base"
+                        className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#F7F4EA] px-7 py-3.5 font-semibold text-[#263A2D] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl active:scale-95 click-feedback-soft"
                       >
                         {banner.button_text_bn}
                       </Link>
@@ -436,7 +436,7 @@ export default function HomePage() { // centralized storefront settings
                     {idx === 0 && (
                       <Link
                         to="/shop"
-                        className="inline-flex min-h-9 items-center gap-2 rounded-full border border-white/60 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 active:scale-95 click-feedback-soft sm:min-h-12 sm:px-7 sm:py-3.5 sm:text-base"
+                        className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/60 bg-white/10 px-7 py-3.5 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 active:scale-95 click-feedback-soft"
                       >
                         View Collection
                       </Link>

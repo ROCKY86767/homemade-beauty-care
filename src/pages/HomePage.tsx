@@ -118,7 +118,9 @@ export default function HomePage() { // centralized storefront settings
       if (container.hasPointerCapture(event.pointerId)) container.releasePointerCapture(event.pointerId);
       container.style.cursor = 'grab';
     }
-    reviewDragRef.current = null;
+    // Keep the drag flag until click-capture suppresses the accidental
+    // click that browsers may fire immediately after a swipe.
+    if (!reviewDragRef.current?.moved) reviewDragRef.current = null;
   };
 
   // Use a lightweight history entry for the review viewer so the phone's
@@ -606,6 +608,7 @@ export default function HomePage() { // centralized storefront settings
                 if (reviewDragRef.current?.moved) {
                   event.preventDefault();
                   event.stopPropagation();
+                  reviewDragRef.current = null;
                 }
               }}
               aria-label="রিভিউ দেখতে ডানে বা বামে টানুন"

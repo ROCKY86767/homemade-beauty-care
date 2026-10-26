@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Activity, Eye, Users, Globe, RefreshCw, ExternalLink, AlertCircle, CalendarDays, Filter, MousePointerClick, Clock, UserRoundSearch } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -34,7 +35,8 @@ const localDate = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function AdminAnalyticsView() {
+export default function AdminAnalyticsView({ journeyOnly = false }: { journeyOnly?: boolean }) {
+  const navigate = useNavigate();
   const today = localDate();
   const [report, setReport] = useState<Report | null>(null);
   const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
@@ -138,6 +140,7 @@ export default function AdminAnalyticsView() {
     : `${appliedStartDate} – ${appliedEndDate}`;
 
   return <div className="space-y-6">
+    {!journeyOnly && <>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div><h1 className="text-2xl font-bold text-gray-900">Website Analytics</h1><p className="mt-1 text-sm text-gray-500">Google Analytics 4 traffic for Homemade Beauty Care.</p></div>
       <div className="flex flex-wrap gap-2">
@@ -184,7 +187,9 @@ export default function AdminAnalyticsView() {
       </table></div> : <div className="p-5 text-sm text-gray-500">No active visitor details yet. Keep a public website page open for a few seconds; visitor page/source details update on the next heartbeat.</div>}
     </section>
 
-    <button type="button" onClick={() => setShowJourneyDetails(value => !value)} className="group flex w-full items-center justify-between gap-4 rounded-xl border border-primary/20 bg-white p-5 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md">
+    </>}
+
+    {!journeyOnly && <button type="button" onClick={() => navigate('/admin?tab=visitor-activity')} className="group flex w-full items-center justify-between gap-4 rounded-xl border border-primary/20 bg-white p-5 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md">
       <div className="flex min-w-0 items-center gap-4">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><UserRoundSearch className="h-6 w-6" /></span>
         <span className="min-w-0"><span className="block font-semibold text-gray-900">Visitor Activity & Journey</span><span className="mt-1 block text-sm text-gray-500">প্রতিটি ভিজিটরের পেজ, ক্লিক, সোর্স ও সময়ের বিস্তারিত দেখুন · {periodLabel}</span><span className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600"><span className="rounded-full bg-gray-100 px-2 py-1">{number(uniqueJourneyVisitors)} visitors</span><span className="rounded-full bg-gray-100 px-2 py-1">{number(journeyClicks)} clicks</span></span></span>
@@ -195,7 +200,7 @@ export default function AdminAnalyticsView() {
     {showJourneyDetails && <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
       <div className="border-b bg-gray-50/70 px-5 py-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div><h2 className="text-lg font-semibold text-gray-900">Visitor Journey</h2><p className="mt-1 text-sm text-gray-500">প্রতিটি visitor/session খুলে তার activity timeline দেখুন। সময়: {periodLabel}</p></div>
+          <div>{journeyOnly && <button onClick={() => navigate('/admin?tab=analytics')} className="mb-3 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">← Back to Website Analytics</button>}<h2 className="text-lg font-semibold text-gray-900">Visitor Journey</h2><p className="mt-1 text-sm text-gray-500">প্রতিটি visitor/session খুলে তার activity timeline দেখুন। সময়: {periodLabel}</p></div>
           <button onClick={() => void loadJourney()} disabled={journeyLoading} className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${journeyLoading ? 'animate-spin' : ''}`} /> Refresh</button>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -241,6 +246,7 @@ export default function AdminAnalyticsView() {
       <div className="border-t bg-gray-50 px-5 py-3 text-xs leading-5 text-gray-500">Visitor ID anonymized browser ID, real name নয়। শুধু link/button-এর মতো interactive element-এর click রেকর্ড হয়। পেজে থাকার সময় আনুমানিক; browser হঠাৎ বন্ধ হলে কিছু সময় রেকর্ড নাও হতে পারে।</div>
     </section>}
 
+    {!journeyOnly && <>
     <div className="rounded-xl border border-primary/15 bg-primary/5 p-5">
       <h2 className="font-semibold text-gray-900">Failed Orders</h2>
       <p className="mt-1 text-sm text-gray-600">Failed checkout leads are now managed directly from the Orders section, with the same View, Edit, Status, Invoice and Delete controls as other orders.</p>
@@ -257,5 +263,6 @@ export default function AdminAnalyticsView() {
       </section>
     </div>
     <p className="text-xs text-gray-400">Automatically refreshes every minute using the selected date range.</p>
+    </>}
   </div>;
 }

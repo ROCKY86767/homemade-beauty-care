@@ -94,7 +94,6 @@ export default function HomePage() { // centralized storefront settings
     if (!container) return;
     reviewDragRef.current = { pointerId: event.pointerId, startX: event.clientX, startScrollLeft: container.scrollLeft, moved: false };
     if (event.pointerType === 'mouse') {
-      container.setPointerCapture(event.pointerId);
       container.style.cursor = 'grabbing';
     }
   };
@@ -117,7 +116,6 @@ export default function HomePage() { // centralized storefront settings
   const handleReviewPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
     const container = reviewMarqueeRef.current;
     if (container && event.pointerType === 'mouse') {
-      if (container.hasPointerCapture(event.pointerId)) container.releasePointerCapture(event.pointerId);
       container.style.cursor = 'grab';
     }
     // Keep the drag flag until click-capture suppresses the accidental

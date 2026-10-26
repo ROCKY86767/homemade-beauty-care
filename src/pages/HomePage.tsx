@@ -257,7 +257,22 @@ export default function HomePage() { // centralized storefront settings
         setReviews(reviewsResult.data || []);
         const editorialResult = await supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false });
         if (editorialResult.error) console.error('Homepage editorial reviews load error:', editorialResult.error);
-        setEditorialReviews(editorialResult.data || []);
+        const editorialRows = editorialResult.data || [];
+        const seenEditorialReviews = new Set<string>();
+        const uniqueEditorialReviews = editorialRows.filter((item: any) => {
+          const signature = [
+            item.customer_name || '',
+            item.location || '',
+            item.title || '',
+            item.review_text || '',
+            Number(item.rating || 5),
+            ...(Array.isArray(item.media_urls) ? item.media_urls : []),
+          ].map(value => String(value).trim().toLowerCase()).join('|');
+          if (seenEditorialReviews.has(signature)) return false;
+          seenEditorialReviews.add(signature);
+          return true;
+        });
+        setEditorialReviews(uniqueEditorialReviews);
       } catch (error) {
         console.error('Homepage data loading error:', error);
       } finally {
@@ -526,7 +541,7 @@ export default function HomePage() { // centralized storefront settings
             <div className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
               <div className="homepage-review-track flex w-max gap-4 py-3 sm:gap-5">
                 {editorialReviews.map((item) => (
-                  <article key={item.id + '-' + index} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
+                  <article key={item.id} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
                     <div className="relative aspect-[9/13] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
                         ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-contain" /><button type="button" onClick={() => setFullscreenReviewMedia({ url: item.media_urls[0], isVideo: true })} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>

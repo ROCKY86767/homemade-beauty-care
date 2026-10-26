@@ -33,8 +33,6 @@ export default function ProductDetailPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [cartMessage, setCartMessage] = useState('');
   const [reviewForm, setReviewForm] = useState({ name: '', phone: '', rating: 5, text: '' });
-  const [reviewMedia, setReviewMedia] = useState<File[]>([]);
-  const [reviewMediaUploading, setReviewMediaUploading] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
@@ -143,19 +141,6 @@ export default function ProductDetailPage() {
     e.preventDefault();
     setReviewError('');
 
-    if (reviewMedia.length > 4) {
-      setReviewError('সর্বোচ্চ ৪টি ছবি বা ভিডিও যোগ করতে পারবেন।');
-      return;
-    }
-    if (reviewMedia.some(file => file.size > 30 * 1024 * 1024)) {
-      setReviewError('প্রতিটি ছবি বা ভিডিও ৩০ MB-এর মধ্যে হতে হবে।');
-      return;
-    }
-    if (reviewMedia.some(file => !['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','video/quicktime'].includes(file.type))) {
-      setReviewError('JPG, PNG, WEBP, GIF, MP4, WEBM বা MOV ফাইল দিন।');
-      return;
-    }
-
     if (!reviewForm.name.trim() || !reviewForm.phone.trim() || !reviewForm.text.trim()) {
       setReviewError('নাম, অর্ডারের মোবাইল নম্বর ও রিভিউ লিখুন।');
       return;
@@ -176,22 +161,12 @@ export default function ProductDetailPage() {
 
       const privatePhone = normalizedPhone.replace(/\\D/g, '').replace(/^88/, '');
       const reviewId = crypto.randomUUID();
-      setReviewMediaUploading(true);
-      const uploadedMedia: string[] = [];
-      for (const file of reviewMedia) {
-        const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').slice(-90) || 'review-media';
-        const path = `${product.id}/${reviewId}/${crypto.randomUUID()}-${safeName}`;
-        const { error: uploadError } = await supabase.storage.from('review-media').upload(path, file, { contentType: file.type, upsert: false });
-        if (uploadError) throw uploadError;
-        uploadedMedia.push(supabase.storage.from('review-media').getPublicUrl(path).data.publicUrl);
-      }
       const { error } = await supabase.from('reviews').insert({
         id: reviewId,
         product_id: product.id,
         customer_name: reviewForm.name.trim(),
         rating: reviewForm.rating,
         review_bn: reviewForm.text.trim(),
-        media_urls: uploadedMedia,
         is_approved: false,
         is_verified: true,
       });
@@ -206,13 +181,11 @@ export default function ProductDetailPage() {
 
       setReviewSubmitted(true);
       setReviewForm({ name: '', phone: '', rating: 5, text: '' });
-      setReviewMedia([]);
       setTimeout(() => setReviewSubmitted(false), 5000);
     } catch (error: any) {
       console.error('Review submission error:', error);
       setReviewError(error?.message || 'Reviews জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {
-      setReviewMediaUploading(false);
     }
   };
 
@@ -444,11 +417,11 @@ export default function ProductDetailPage() {
                       <select value={reviewForm.rating} onChange={e => setReviewForm(f => ({ ...f, rating: Number(e.target.value) }))} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm"><option value={5}>5 Stars</option><option value={4}>4 Stars</option><option value={3}>3 Stars</option><option value={2}>2 Stars</option><option value={1}>1 Star</option></select>
                       <textarea value={reviewForm.text} onChange={e => setReviewForm(f => ({ ...f, text: e.target.value }))} placeholder="আপনার অভিজ্ঞতা লিখুন" rows={5} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm" />
                       <div className="rounded-xl border border-dashed border-primary/30 bg-white p-4">
-                        <label className="flex cursor-pointer flex-col items-center gap-2 text-center"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><Plus size={20} /></span><span className="text-sm font-semibold text-ink">ছবি বা ভিডিও যোগ করুন</span><span className="text-xs text-gray-500">সর্বোচ্চ ৪টি ফাইল · প্রতিটি ৩০ MB পর্যন্ত</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" multiple className="sr-only" onChange={e => { const files = Array.from(e.target.files || []); setReviewMedia(files.slice(0, 4)); if (files.length > 4) setReviewError('সর্বোচ্চ ৪টি ফাইল নেওয়া হবে।'); e.currentTarget.value = ''; }} /></label>
-                        {reviewMedia.length > 0 && <div className="mt-3 space-y-2">{reviewMedia.map((file, index) => <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-lg bg-cream px-3 py-2 text-xs"><span className="min-w-0 truncate">{file.type.startsWith('video/') ? '🎬' : '🖼️'} {file.name}</span><button type="button" onClick={() => setReviewMedia(prev => prev.filter((_, i) => i !== index))} className="shrink-0 font-semibold text-red-600">Remove</button></div>)}</div>}
+                        
+
                       </div>
                       {reviewError && <p className="text-xs text-red-600">{reviewError}</p>}
-                      <button type="submit" disabled={reviewMediaUploading} className="btn-primary w-full justify-center disabled:cursor-wait disabled:opacity-60">{reviewMediaUploading ? 'Uploading…' : 'Submit Review'}</button>
+                      <button type="submit" className="btn-primary w-full justify-center">Submit Review</button>
                     </form>
                   )}
                 </div>

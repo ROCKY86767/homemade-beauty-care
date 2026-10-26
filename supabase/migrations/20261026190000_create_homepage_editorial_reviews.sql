@@ -1,0 +1,7 @@
+create table if not exists public.homepage_editorial_reviews (id uuid primary key default gen_random_uuid(), customer_name text not null default '', title text, review_text text not null default '', location text, rating integer not null default 5 check (rating between 1 and 5), media_urls text[] not null default '{}', sort_order integer not null default 0, is_active boolean not null default true, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+alter table public.homepage_editorial_reviews enable row level security;
+drop policy if exists "Public can view active homepage editorial reviews" on public.homepage_editorial_reviews;
+create policy "Public can view active homepage editorial reviews" on public.homepage_editorial_reviews for select to anon, authenticated using (is_active = true);
+drop policy if exists "Authenticated users manage homepage editorial reviews" on public.homepage_editorial_reviews;
+create policy "Authenticated users manage homepage editorial reviews" on public.homepage_editorial_reviews for all to authenticated using (true) with check (true);
+create index if not exists homepage_editorial_reviews_active_sort_idx on public.homepage_editorial_reviews (is_active, sort_order, created_at desc);

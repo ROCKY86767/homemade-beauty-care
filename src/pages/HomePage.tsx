@@ -571,7 +571,7 @@ export default function HomePage() { // centralized storefront settings
               </div>
               <span className="hidden text-xs font-medium text-[#8A9A70] sm:block">Swipe to explore →</span>
             </div>
-            <div ref={reviewScrollerRef} className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
+            <div ref={reviewScrollerRef} className="homepage-review-marquee relative -mx-4 overflow-x-auto overflow-y-hidden px-4 sm:-mx-6 sm:px-6">
               <div className="homepage-review-track flex w-max gap-4 py-3 sm:gap-5">
                 {editorialReviews.map((item) => (
                   <article key={item.id} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">

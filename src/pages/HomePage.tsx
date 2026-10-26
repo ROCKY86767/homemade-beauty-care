@@ -525,7 +525,7 @@ export default function HomePage() { // centralized storefront settings
             </div>
             <div className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
               <div className="homepage-review-track flex w-max gap-4 py-3 sm:gap-5">
-                {[...editorialReviews, ...editorialReviews].map((item, index) => (
+                {editorialReviews.map((item) => (
                   <article key={item.id + '-' + index} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
                     <div className="relative aspect-[9/13] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])

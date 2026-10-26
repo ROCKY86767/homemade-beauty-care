@@ -669,7 +669,7 @@ export default function HomePage() { // centralized storefront settings
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {allProducts.slice(0, 8).map(product => (
                 <ProductCard
                   key={product.id}
@@ -711,7 +711,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Hair Care Section */}
       {settings?.homepage_show_hair_care !== false && hairCare.length > 0 && (
-        <section className="py-10 sm:py-16">
+        <section className="py-10 sm:py-16 compact-product-grid-section">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>

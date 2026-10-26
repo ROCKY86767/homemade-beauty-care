@@ -1555,7 +1555,6 @@ export default function CheckoutPage() {
                 {t('By placing this order, you agree to our terms and conditions.', 'অর্ডার করার মাধ্যমে আপনি আমাদের শর্তাবলিতে সম্মতি দিচ্ছেন।')}
               </p>
 
-              {false && <OrderJourneyAnimation />}
 
             </div>
 

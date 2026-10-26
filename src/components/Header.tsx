@@ -129,7 +129,7 @@ export default function Header() {
             {/* Search bar */}
             <form
               onSubmit={handleSearch}
-              className="hidden md:flex flex-1 max-w-xl mx-auto"
+              className={`hidden md:flex flex-1 max-w-xl mx-auto transition-all duration-200 ${scrolled ? 'lg:hidden' : ''}`}
             >
               <div className="relative w-full">
                 <input
@@ -149,6 +149,24 @@ export default function Header() {
                 </button>
               </div>
             </form>
+
+            {/* Desktop menu takes the search bar's place after scrolling */}
+            {scrolled && (
+              <nav className="hidden lg:flex flex-1 min-w-0 items-center justify-center">
+                <ul className="flex items-center justify-center gap-0.5 xl:gap-1">
+                  {NAV_LINKS.map((link) => (
+                    <li key={link.path}>
+                      <Link
+                        to={link.path}
+                        className="block whitespace-nowrap rounded-lg px-2 xl:px-3 py-2 text-xs xl:text-sm font-medium text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
 
             {/* Icons */}
             <div className="flex items-center gap-0 sm:gap-2 ml-auto shrink-0">
@@ -197,7 +215,7 @@ export default function Header() {
           </div>
 
           {/* Mobile search */}
-          <form onSubmit={handleSearch} className="md:hidden pb-3">
+          <form onSubmit={handleSearch} className={`md:hidden pb-3 transition-all duration-200 ${scrolled ? 'hidden' : ''}`}>
             <div className="relative w-full">
               <input
                 type="text"
@@ -219,7 +237,7 @@ export default function Header() {
         </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden border-t border-gray-100 bg-white/95 lg:block">
+        <nav className={`hidden border-t border-gray-100 bg-white/95 lg:block ${scrolled ? 'lg:hidden' : ''}`}>
           <div className="section-padding">
             <ul className="flex items-center gap-1 py-2">
               {NAV_LINKS.map((link) => (

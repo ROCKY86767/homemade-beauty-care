@@ -107,15 +107,15 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <a href="/" className={`flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0 ${scrolled ? "max-w-[145px] sm:max-w-none" : "max-w-[190px] sm:max-w-none"} transition-all duration-300`}>
+            <a href="/" className={`flex items-center gap-1 sm:gap-2 shrink-0 min-w-0 ${scrolled ? "max-w-[150px] sm:max-w-none" : "max-w-[170px] sm:max-w-none"} transition-all duration-300`}>
               <img
                 src={settings?.logo_url || '/new-homemade-logo.png'}
                 alt={settings?.brand_name || 'Homemade Beauty Care'}
-                className={`object-contain transition-all duration-300 ${scrolled ? "h-10 w-10 sm:h-16 sm:w-16" : "h-12 w-12 sm:h-20 sm:w-20"}`}
+                className={`object-contain shrink-0 transition-all duration-300 ${scrolled ? "h-9 w-9 sm:h-16 sm:w-16" : "h-10 w-10 sm:h-20 sm:w-20"}`}
               />
 
-              <div className="block sm:block min-w-0">
-                <h1 className={`font-display font-bold leading-tight text-dark truncate transition-all duration-300 ${scrolled ? "text-[13px] sm:text-lg" : "text-sm sm:text-2xl"}`}>
+              <div className="block min-w-0 flex-1">
+                <h1 className={`font-display font-bold leading-tight text-dark whitespace-normal break-words transition-all duration-300 ${scrolled ? "text-[11px] sm:text-lg" : "text-xs sm:text-2xl"}`}>
                   {settings?.brand_name || 'Homemade Beauty Care'}
                 </h1>
 
@@ -173,7 +173,7 @@ export default function Header() {
               {/* My Account */}
               <Link
                 to="/account"
-                className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
+                className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
                 aria-label="My Account"
                 title="My Account"
               >
@@ -183,7 +183,7 @@ export default function Header() {
               {/* Wishlist */}
               <Link
                 to="/wishlist"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
+                className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream hover:text-primary click-feedback-soft"
                 aria-label="Wishlist"
                 title="Wishlist"
               >

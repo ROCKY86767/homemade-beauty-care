@@ -885,6 +885,8 @@ export default function HomePage() { // centralized storefront settings
                   "{review.review_bn}"
                 </p>
 
+                {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mb-4 grid grid-cols-2 gap-2">{review.media_urls.slice(0, 4).map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={url} src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full rounded-xl bg-black object-cover" /> : <a key={url} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl bg-white"><img src={url} alt="Customer review" loading="lazy" className="aspect-[4/5] w-full object-cover transition duration-300 hover:scale-[1.03]" /></a>)}</div>}
+
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
                   <svg
                     width="14"

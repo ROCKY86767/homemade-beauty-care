@@ -4849,7 +4849,7 @@ function ReviewsView() {
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {(Array.isArray(review.media_urls) ? review.media_urls : []).map((url: string, mediaIndex: number) => (
                     <div key={url} className="relative overflow-hidden rounded-xl border bg-gray-50">
-                      {/\\.(mp4|webm|mov)(\\?|$)/i.test(url) ? <video src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full bg-black object-cover" /> : <a href={url} target="_blank" rel="noreferrer"><img src={url} alt={`Review media ${mediaIndex + 1}`} loading="lazy" className="aspect-[4/5] w-full object-cover" /></a>}
+                      {/\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full bg-black object-cover" /> : <a href={url} target="_blank" rel="noreferrer"><img src={url} alt={`Review media ${mediaIndex + 1}`} loading="lazy" className="aspect-[4/5] w-full object-cover" /></a>}
                       <button type="button" onClick={() => removeReviewMedia(review, url)} className="absolute right-2 top-2 rounded-full bg-white/95 p-2 text-red-600 shadow" aria-label="Remove media"><Trash2 className="h-4 w-4" /></button>
                     </div>
                   ))}

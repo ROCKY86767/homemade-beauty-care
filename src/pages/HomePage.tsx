@@ -516,7 +516,7 @@ export default function HomePage() { // centralized storefront settings
       {/* Trust Strip */}
       <section className="relative z-10 -mt-1 border-y border-[#DDE3D7] bg-[#F7F4EA] py-5 sm:py-7">
         <div className="section-padding">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {TRUST_FEATURES.map((feature, idx) => (
               <div
                 key={idx}
@@ -647,7 +647,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* ⭐ ALL ACTIVE PRODUCTS */}
       {settings?.homepage_show_all_products !== false && allProducts.length > 0 && (
-        <section className="py-10 sm:py-16 bg-cream compact-products-section">
+        <section className="py-10 sm:py-16 bg-cream compact-products-section compact-product-grid-section">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
@@ -684,7 +684,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Best Sellers */}
       {settings?.homepage_show_best_sellers !== false && bestSellers.length > 0 && (
-        <section className="py-10 sm:py-16">
+        <section className="py-10 sm:py-16 compact-product-grid-section">
           <div className="section-padding">
             <div className="text-center mb-10">
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">
@@ -749,7 +749,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Skin Care Section */}
       {settings?.homepage_show_skin_care !== false && skinCare.length > 0 && (
-        <section className="py-10 sm:py-16 bg-light-green/40">
+        <section className="py-10 sm:py-16 bg-light-green/40 compact-product-grid-section">
           <div className="section-padding">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>

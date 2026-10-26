@@ -300,3 +300,86 @@ img {
     margin-top: .5rem;
   }
 }
+
+
+/* Extra-compact sizing for the three requested homepage sections only. */
+.homepage-compact .compact-why-section,
+.homepage-compact .compact-reviews-section,
+.homepage-compact .compact-social-section {
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+.homepage-compact .compact-why-section .section-padding > .text-center,
+.homepage-compact .compact-reviews-section .section-padding > .text-center,
+.homepage-compact .compact-social-section .section-padding > .text-center {
+  margin-bottom: 1rem !important;
+}
+.homepage-compact .compact-why-section h2,
+.homepage-compact .compact-reviews-section h2,
+.homepage-compact .compact-social-section h2 {
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+.homepage-compact .compact-why-section .grid { gap: .75rem !important; }
+.homepage-compact .compact-why-section .grid > div {
+  padding: .85rem !important;
+  border-radius: .85rem !important;
+}
+.homepage-compact .compact-why-section .grid > div > div:first-child {
+  width: 2rem !important;
+  height: 2rem !important;
+  margin-bottom: .5rem !important;
+}
+.homepage-compact .compact-why-section .grid > div > div:first-child svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.homepage-compact .compact-why-section h3 {
+  margin-bottom: .25rem !important;
+  font-size: .95rem;
+  line-height: 1.35;
+}
+.homepage-compact .compact-why-section p { font-size: .8rem; line-height: 1.45; }
+.homepage-compact .compact-reviews-section .grid { gap: .75rem !important; }
+.homepage-compact .compact-reviews-section .card {
+  padding: .9rem !important;
+  border-radius: .85rem !important;
+}
+.homepage-compact .compact-reviews-section .card img {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+.homepage-compact .compact-social-section .grid { gap: .65rem !important; }
+.homepage-compact .compact-social-section .grid > a {
+  gap: .45rem !important;
+  padding: 1rem !important;
+  border-radius: .85rem !important;
+}
+.homepage-compact .compact-social-section .grid > a svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.homepage-compact .compact-social-section .grid > a span:nth-of-type(1) {
+  font-size: .95rem;
+}
+.homepage-compact .compact-social-section .grid > a span:nth-of-type(2) {
+  font-size: .75rem;
+}
+@media (max-width: 639px) {
+  .homepage-compact .compact-why-section,
+  .homepage-compact .compact-reviews-section,
+  .homepage-compact .compact-social-section {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  .homepage-compact .compact-why-section h2,
+  .homepage-compact .compact-reviews-section h2,
+  .homepage-compact .compact-social-section h2 {
+    font-size: 1.15rem;
+  }
+  .homepage-compact .compact-why-section .grid > div { padding: .7rem !important; }
+  .homepage-compact .compact-why-section h3 { font-size: .85rem; }
+  .homepage-compact .compact-why-section p { font-size: .75rem; }
+  .homepage-compact .compact-reviews-section .card { padding: .75rem !important; }
+  .homepage-compact .compact-social-section .grid > a { padding: .75rem !important; }
+}

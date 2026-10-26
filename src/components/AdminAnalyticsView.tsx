@@ -22,6 +22,7 @@ export default function AdminAnalyticsView() {
   const today = localDate();
   const [report, setReport] = useState<Report | null>(null);
   const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
+  const [liveVisitorDetails, setLiveVisitorDetails] = useState<{ page: string; title: string; source: string; referrerHost: string; lastSeenAt: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -62,6 +63,7 @@ export default function AdminAnalyticsView() {
       });
       if (!disposed && !liveError && typeof data?.activeVisitors === 'number') {
         setLiveVisitors(data.activeVisitors);
+        setLiveVisitorDetails(Array.isArray(data.visitors) ? data.visitors : []);
       }
     };
     void loadLiveVisitors();
@@ -114,6 +116,24 @@ export default function AdminAnalyticsView() {
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[
       ['Visitors Online Now', liveVisitors ?? 0, Activity], ['Visitors in Selected Period', report?.todayUsers, Users], ['Page Views in Selected Period', report?.pageViews, Eye]
     ].map(([title, value, Icon]: any) => <div key={title} className="rounded-xl border border-gray-200 bg-white p-5"><div className="flex items-center justify-between"><span className="text-sm font-medium text-gray-500">{title}</span><span className="rounded-lg bg-primary/10 p-2 text-primary"><Icon className="h-5 w-5" /></span></div><div className="mt-4 text-3xl font-bold text-gray-900">{loading ? '—' : number(value)}</div></div>)}</div>
+
+    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="border-b px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div><h2 className="font-semibold text-gray-900">Live Visitors</h2><p className="mt-1 text-xs text-gray-500">Pages and traffic sources for visitors active in the last 75 seconds. Refreshes every 20 seconds.</p></div>
+          <span className="rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700">{number(liveVisitors ?? 0)} online</span>
+        </div>
+      </div>
+      {liveVisitorDetails.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm">
+        <thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr><th className="px-5 py-3 font-medium">Current page</th><th className="px-5 py-3 font-medium">Traffic source</th><th className="px-5 py-3 font-medium">Referrer</th><th className="px-5 py-3 font-medium">Last active</th></tr></thead>
+        <tbody className="divide-y">{liveVisitorDetails.map((visitor, index) => <tr key={index}>
+          <td className="max-w-[280px] px-5 py-3"><div className="break-all font-medium text-gray-900">{visitor.page || '/'}</div>{visitor.title && <div className="mt-1 truncate text-xs text-gray-500">{visitor.title}</div>}</td>
+          <td className="px-5 py-3">{visitor.source || 'Direct / none'}</td>
+          <td className="px-5 py-3">{visitor.referrerHost || '—'}</td>
+          <td className="whitespace-nowrap px-5 py-3 text-gray-500">{visitor.lastSeenAt ? new Date(visitor.lastSeenAt).toLocaleTimeString() : 'Just now'}</td>
+        </tr>)}</tbody>
+      </table></div> : <div className="p-5 text-sm text-gray-500">No active visitor details yet. Keep a public website page open for a few seconds; visitor page/source details update on the next heartbeat.</div>}
+    </section>
 
     <div className="rounded-xl border border-primary/15 bg-primary/5 p-5">
       <h2 className="font-semibold text-gray-900">Failed Orders</h2>

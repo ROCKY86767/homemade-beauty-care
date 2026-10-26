@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -84,6 +84,7 @@ export default function HomePage() { // centralized storefront settings
   const [reviews, setReviews] = useState<Review[]>([]);
   const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
   const [fullscreenReviewMedia, setFullscreenReviewMedia] = useState<{ url: string; isVideo: boolean } | null>(null);
+  const reviewScrollerRef = useRef<HTMLDivElement | null>(null);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -282,6 +283,38 @@ export default function HomePage() { // centralized storefront settings
 
     loadHomePageData();
   }, []);
+
+  useEffect(() => {
+    const scroller = reviewScrollerRef.current;
+    if (!scroller || editorialReviews.length < 2) return;
+
+    let paused = false;
+    const pause = () => { paused = true; };
+    const resume = () => { paused = false; };
+    scroller.addEventListener('mouseenter', pause);
+    scroller.addEventListener('mouseleave', resume);
+    scroller.addEventListener('touchstart', pause, { passive: true });
+    scroller.addEventListener('touchend', resume, { passive: true });
+
+    const timer = window.setInterval(() => {
+      if (paused) return;
+      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      if (maxScroll <= 0) return;
+      if (scroller.scrollLeft >= maxScroll - 2) {
+        scroller.scrollTo({ left: 0, behavior: 'auto' });
+      } else {
+        scroller.scrollLeft += 1;
+      }
+    }, 24);
+
+    return () => {
+      window.clearInterval(timer);
+      scroller.removeEventListener('mouseenter', pause);
+      scroller.removeEventListener('mouseleave', resume);
+      scroller.removeEventListener('touchstart', pause);
+      scroller.removeEventListener('touchend', resume);
+    };
+  }, [editorialReviews]);
 
   useEffect(() => {
     if (banners.length <= 1 || settings?.homepage_banner_autoplay === false) return;
@@ -538,7 +571,7 @@ export default function HomePage() { // centralized storefront settings
               </div>
               <span className="hidden text-xs font-medium text-[#8A9A70] sm:block">Swipe to explore →</span>
             </div>
-            <div className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
+            <div ref={reviewScrollerRef} className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
               <div className="homepage-review-track flex w-max gap-4 py-3 sm:gap-5">
                 {editorialReviews.map((item) => (
                   <article key={item.id} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">

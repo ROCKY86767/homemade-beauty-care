@@ -543,20 +543,20 @@ export default function HomePage() { // centralized storefront settings
                 {[0, 1].map((copy) => (
                   <div key={copy} className="homepage-review-group flex shrink-0 gap-4 pr-4 sm:gap-5 sm:pr-5" aria-hidden={copy === 1 ? true : undefined} inert={copy === 1}>
                     {editorialReviews.map((item) => (
-                  <article key={`${copy}-${item.id}`} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
-                    <div className="relative aspect-[9/13] overflow-hidden bg-[#E9E8DD]">
+                  <article key={`${copy}-${item.id}`} className="w-[58vw] max-w-[220px] shrink-0 overflow-hidden rounded-2xl border border-[#E3E5D9] bg-white shadow-md shadow-[#263A2D]/5 sm:w-[220px]">
+                    <div className="relative aspect-[4/5] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
                         ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-contain" /><button type="button" onClick={() => setFullscreenReviewMedia({ url: item.media_urls[0], isVideo: true })} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
                         : <button type="button" onClick={() => setFullscreenReviewMedia({ url: item.media_urls[0], isVideo: false })} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={item.media_urls[0]} alt={item.title || 'Homepage review'} loading="lazy" className="h-full w-full object-contain" /></button>)}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                      <div className="absolute inset-x-0 bottom-0 p-3 text-white">
                         <div className="mb-1 text-sm text-[#F3C98B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>
                         <p className="font-semibold">{item.customer_name}</p>
                         {item.location && <p className="mt-0.5 text-xs text-white/80">{item.location}</p>}
                       </div>
                     </div>
-                    <div className="p-4">
-                      {item.title && <h3 className="mb-1 font-semibold text-[#263A2D]">{item.title}</h3>}
+                    <div className="p-3">
+                      {item.title && <h3 className="mb-1 text-sm font-semibold text-[#263A2D]">{item.title}</h3>}
                       {item.review_text && <p className="text-sm leading-6 text-gray-600" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.review_text}</p>}
                     </div>
                   </article>

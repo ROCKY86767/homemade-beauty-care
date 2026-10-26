@@ -83,6 +83,7 @@ export default function HomePage() { // centralized storefront settings
   const [categories, setCategories] = useState<Category[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
+  const [fullscreenReviewMedia, setFullscreenReviewMedia] = useState<{ url: string; isVideo: boolean } | null>(null);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -528,8 +529,8 @@ export default function HomePage() { // centralized storefront settings
                   <article key={item.id + '-' + index} className="w-[76vw] max-w-[300px] shrink-0 overflow-hidden rounded-3xl border border-[#E3E5D9] bg-white shadow-lg shadow-[#263A2D]/5 sm:w-[280px]">
                     <div className="relative aspect-[9/13] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
-                        ? <video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-cover" />
-                        : <img src={item.media_urls[0]} alt={item.title || 'Homepage review'} loading="lazy" className="h-full w-full object-cover" />)}
+                        ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-contain" /><button type="button" onClick={() => setFullscreenReviewMedia({ url: item.media_urls[0], isVideo: true })} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
+                        : <button type="button" onClick={() => setFullscreenReviewMedia({ url: item.media_urls[0], isVideo: false })} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={item.media_urls[0]} alt={item.title || 'Homepage review'} loading="lazy" className="h-full w-full object-contain" /></button>)}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                         <div className="mb-1 text-sm text-[#F3C98B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>
@@ -964,6 +965,16 @@ export default function HomePage() { // centralized storefront settings
         </div>
       </section>
       )}
+
+      {fullscreenReviewMedia && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Review media full screen" onClick={() => setFullscreenReviewMedia(null)}>
+          <button type="button" onClick={() => setFullscreenReviewMedia(null)} className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-3xl text-white hover:bg-white/25" aria-label="বন্ধ করুন">×</button>
+          {fullscreenReviewMedia.isVideo
+            ? <video src={fullscreenReviewMedia.url} controls autoPlay playsInline className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
+            : <img src={fullscreenReviewMedia.url} alt="Review full screen" className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />}
+        </div>
+      )}
+
 
       {/* Social Section */}
       {[

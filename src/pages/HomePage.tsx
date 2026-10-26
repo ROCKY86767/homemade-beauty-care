@@ -595,7 +595,21 @@ export default function HomePage() { // centralized storefront settings
               </div>
               <span className="hidden text-xs font-medium text-[#8A9A70] sm:block">Swipe to explore →</span>
             </div>
-            <div className="homepage-review-marquee relative -mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6">
+            <div
+              ref={reviewMarqueeRef}
+              className={`homepage-review-marquee relative -mx-4 px-4 sm:-mx-6 sm:px-6 ${reviewManualMode ? 'homepage-review-manual' : ''}`}
+              onPointerDown={handleReviewPointerDown}
+              onPointerMove={handleReviewPointerMove}
+              onPointerUp={handleReviewPointerEnd}
+              onPointerCancel={handleReviewPointerEnd}
+              onClickCapture={(event) => {
+                if (reviewDragRef.current?.moved) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }
+              }}
+              aria-label="রিভিউ দেখতে ডানে বা বামে টানুন"
+            >
               <div className="homepage-review-track flex w-max py-3">
                 {[0, 1].map((copy) => (
                   <div key={copy} className="homepage-review-group flex shrink-0 gap-4 pr-4 sm:gap-5 sm:pr-5" aria-hidden={copy === 1 ? true : undefined} inert={copy === 1}>

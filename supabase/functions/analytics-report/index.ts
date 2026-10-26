@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
     } catch {
       // Use today's report if the request body is empty or invalid JSON.
     }
-    const datePattern = /^\\d{4}-\\d{2}-\\d{2}$/;
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
     const startDate = requestedRange.startDate || "today";
     const endDate = requestedRange.endDate || "today";
     const isRelativeToday = startDate === "today" && endDate === "today";

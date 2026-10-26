@@ -172,6 +172,8 @@ export default function Analytics() {
       } catch { return crypto.randomUUID(); }
     })();
     const sessionId = getJourneySessionId();
+    const pagePath = window.location.pathname + window.location.search + window.location.hash;
+    const pageTitle = document.title;
     const enteredAt = Date.now();
     let finished = false;
     const sourceDetails = () => {
@@ -190,9 +192,10 @@ export default function Analytics() {
       }
       return { trafficSource, referrerHost };
     };
+    const journeySource = sourceDetails();
     const sendEvent = (payload: Record<string, unknown>) => {
       void supabase.functions.invoke('visitor-presence', {
-        body: { mode: 'journey-event', visitorId, sessionId, currentPath: window.location.pathname + window.location.search + window.location.hash, pageTitle: document.title, ...sourceDetails(), ...payload },
+        body: { mode: 'journey-event', visitorId, sessionId, currentPath: pagePath, pageTitle, ...journeySource, ...payload },
       });
     };
     const finishPage = () => {

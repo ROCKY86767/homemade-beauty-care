@@ -383,3 +383,30 @@ img {
   .homepage-compact .compact-reviews-section .card { padding: .75rem !important; }
   .homepage-compact .compact-social-section .grid > a { padding: .75rem !important; }
 }
+
+
+/* Keep product packshots fully visible and consistently sized in Our Products. */
+.homepage-compact .compact-products-section .card > div:first-child {
+  aspect-ratio: 1 / 1;
+  background: #fff;
+}
+.homepage-compact .compact-products-section .card > div:first-child > a {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 7%;
+}
+.homepage-compact .compact-products-section .card > div:first-child > a img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center;
+}
+@media (max-width: 639px) {
+  .homepage-compact .compact-products-section .card > div:first-child > a {
+    padding: 6%;
+  }
+}

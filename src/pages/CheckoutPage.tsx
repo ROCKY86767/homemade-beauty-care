@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   MapPin,
   Plus,
+  Minus,
 } from 'lucide-react';
 
 import { useCart } from '@/lib/cart-context';
@@ -49,6 +50,7 @@ export default function CheckoutPage() {
     items,
     subtotal,
     clearCart,
+    updateQuantity,
   } = useCart();
 
   const navigate = useNavigate();
@@ -1339,9 +1341,29 @@ export default function CheckoutPage() {
                         }
                       </p>
 
-                      <p className="text-xs text-gray-400">
-                        {t('Qty', 'পরিমাণ')}: {item.quantity}
-                      </p>
+                      <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-gray-200 px-1.5 py-1">
+                        <button
+                          type="button"
+                          aria-label={t('Decrease quantity', 'পরিমাণ কমান')}
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          disabled={item.quantity <= 1}
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-ink transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="min-w-5 text-center text-sm font-semibold tabular-nums">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={t('Increase quantity', 'পরিমাণ বাড়ান')}
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          disabled={item.quantity >= item.product.stock}
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-ink transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
 
                     </div>
 

@@ -192,18 +192,13 @@ img {
 
 /* Continuous, reels-style auto-scrolling strip for curated homepage reviews */
 .homepage-review-track {
-  animation: homepage-review-scroll 42s linear infinite;
-  will-change: transform;
+  animation: none;
 }
-.homepage-review-marquee:hover .homepage-review-track,
-.homepage-review-marquee:focus-within .homepage-review-track {
-  animation-play-state: paused;
+.homepage-review-marquee {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
-@keyframes homepage-review-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .homepage-review-track { animation: none; }
-  .homepage-review-marquee { overflow-x: auto; }
+.homepage-review-track {
+  will-change: auto;
 }

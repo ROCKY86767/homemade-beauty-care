@@ -816,3 +816,51 @@ footer img {
     max-height: 2.75rem;
   }
 }
+
+
+/* Keep Visitor Activity & Journey text sharp immediately; scroll-reveal transforms and opacity transitions made it look blurred until scrolling. */
+.visitor-activity-page,
+.visitor-activity-page * {
+  animation: none !important;
+  animation-timeline: auto !important;
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  text-shadow: none !important;
+  clip-path: none !important;
+}
+.visitor-activity-page {
+  color: #1f2937;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.visitor-activity-page h1,
+.visitor-activity-page h2,
+.visitor-activity-page h3,
+.visitor-activity-page th,
+.visitor-activity-page label {
+  color: #111827 !important;
+  font-weight: 650 !important;
+}
+.visitor-activity-page p,
+.visitor-activity-page span,
+.visitor-activity-page td,
+.visitor-activity-page label,
+.visitor-activity-page input,
+.visitor-activity-page button,
+.visitor-activity-page a {
+  text-shadow: none !important;
+}
+.visitor-activity-page .text-gray-400,
+.visitor-activity-page .text-gray-500,
+.visitor-activity-page .text-gray-600 {
+  color: #4b5563 !important;
+}
+.visitor-activity-page .text-gray-700,
+.visitor-activity-page .text-gray-800,
+.visitor-activity-page .text-gray-900 {
+  color: #1f2937 !important;
+}
+.visitor-activity-page * {
+  transform: none !important;
+}

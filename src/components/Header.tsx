@@ -73,7 +73,7 @@ export default function Header() {
 
       {/* Main Header */}
       <header
-        className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-300 ${
+        className={`sticky top-0 z-[100] isolate overflow-visible bg-white/95 backdrop-blur-md transition-all duration-300 ${
           scrolled ? 'shadow-lg shadow-dark/5' : 'shadow-sm'
         }`}
       >
@@ -201,7 +201,7 @@ export default function Header() {
         </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:block border-t border-gray-100">
+        <nav className="sticky top-0 hidden border-t border-gray-100 bg-white/95 lg:block">
           <div className="section-padding">
             <ul className="flex items-center gap-1 py-2">
               {NAV_LINKS.map((link) => (

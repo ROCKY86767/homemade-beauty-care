@@ -58,6 +58,7 @@ export interface Review {
   is_verified: boolean;
   is_approved: boolean;
   image_url: string | null;
+  media_urls?: string[];
   sort_order: number;
   created_at: string;
 }

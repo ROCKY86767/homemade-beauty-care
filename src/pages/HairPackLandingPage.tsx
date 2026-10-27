@@ -29,7 +29,7 @@ export default function HairPackLandingPage() {
     Promise.all([
       supabase.from('products').select('*, category:categories(*)').eq('slug', 'ghorowa-hairpack').maybeSingle(),
       getSettings(),
-    ]).then(([{ data }, siteSettings]) => {
+    ]).then(async ([{ data }, siteSettings]) => {
       if (!active) return;
       if (data) {
         setProduct(data as Product);

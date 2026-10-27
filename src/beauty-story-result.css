@@ -1,6 +1,13 @@
+/* Scroll-linked before/after treatment for the portrait canvas.
+   Keep the early state visibly muted; restore a healthy, polished look as zoom advances. */
 .hbc-story .hbc-story-canvas{
-  filter:blur(calc((1 - clamp(0, (var(--story-progress) - .03) / .48, 1)) * .8px)) saturate(calc(.72 + clamp(0, (var(--story-progress) - .03) / .48, 1) * .28)) contrast(calc(.90 + clamp(0, (var(--story-progress) - .03) / .48, 1) * .10)) brightness(calc(.94 + clamp(0, (var(--story-progress) - .03) / .48, 1) * .06)) !important;
-  transition:filter .12s linear !important;
+  filter:
+    blur(calc((1 - clamp(0, (var(--story-progress) - .03) / .48, 1)) * 1.25px))
+    saturate(calc(.52 + clamp(0, (var(--story-progress) - .03) / .48, 1) * .66))
+    contrast(calc(.82 + clamp(0, (var(--story-progress) - .03) / .48, 1) * .24))
+    brightness(calc(.82 + clamp(0, (var(--story-progress) - .03) / .48, 1) * .24))
+    sepia(calc((1 - clamp(0, (var(--story-progress) - .03) / .48, 1)) * .10)) !important;
+  transition:filter .08s linear !important;
 }
 
 .hbc-story .hbc-story-stage::before{
@@ -9,8 +16,10 @@
   inset:0;
   pointer-events:none;
   z-index:2;
-  opacity:calc(clamp(0, (var(--story-progress) - .08) / .42, 1) * .55);
-  background:radial-gradient(ellipse 22% 30% at 50% 47%,rgba(255,235,218,.14),transparent 72%),radial-gradient(ellipse 32% 22% at 50% 28%,rgba(255,226,194,.10),transparent 74%);
+  opacity:calc(clamp(0, (var(--story-progress) - .08) / .42, 1) * .72);
+  background:
+    radial-gradient(ellipse 24% 32% at 50% 47%,rgba(255,224,202,.28),transparent 72%),
+    radial-gradient(ellipse 34% 24% at 50% 28%,rgba(255,224,194,.18),transparent 74%);
   mix-blend-mode:screen;
 }
 
@@ -22,12 +31,12 @@
   width:min(74px,16vw);
   height:min(30px,7vw);
   transform:translate(-50%,135%);
-  border-bottom:2px solid rgba(255,245,235,.62);
+  border-bottom:2px solid rgba(255,245,235,.72);
   border-radius:0 0 50% 50%;
   pointer-events:none;
   z-index:3;
-  opacity:calc(clamp(0, (var(--story-progress) - .43) / .20, 1) * .32);
-  filter:blur(.55px);
+  opacity:calc(clamp(0, (var(--story-progress) - .43) / .20, 1) * .45);
+  filter:blur(.35px);
 }
 
 .hbc-story .hbc-story-wash{z-index:4}

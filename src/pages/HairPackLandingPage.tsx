@@ -103,8 +103,14 @@ export default function HairPackLandingPage() {
         @media (prefers-reduced-motion: reduce) { .hbc-ritual-page *, .hbc-ritual-page *::before, .hbc-ritual-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
       `}</style>
 
-      <div className="bg-[#203b2b] px-4 py-2 text-center text-[11px] font-medium tracking-wide text-[#f7edda] sm:text-xs">
-        <span className="inline-flex items-center justify-center gap-2"><Leaf size={13} /> ঘরোয়া রূপচর্চা · নিজের যত্নের জন্য একটু সময়</span>
+      <div className="border-b border-[#e7e0d2] bg-[#fffdf7] px-4 py-2.5 sm:py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 sm:justify-start sm:px-3">
+          <img src="/new-homemade-logo.png" alt="Homemade Beauty Care logo" className="h-11 w-11 shrink-0 rounded-xl object-contain sm:h-14 sm:w-14" />
+          <div className="min-w-0">
+            <p className="text-xs font-extrabold tracking-[.12em] text-[#294b37] sm:text-sm sm:tracking-[.16em]">HOMEMADE BEAUTY CARE</p>
+            <p className="mt-0.5 text-[10px] leading-4 text-[#73796c] sm:text-xs">প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</p>
+          </div>
+        </div>
       </div>
 
       <div className="sticky top-0 z-30 border-b border-[#e7e0d2] bg-[#fffdf7]/95 px-3 py-2 shadow-[0_4px_16px_rgba(30,50,34,.07)] backdrop-blur-lg">

@@ -148,6 +148,15 @@ export default function HomePage() { // centralized storefront settings
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
+  // If a visitor arrives from another page with the reviews hash, wait for homepage data and scroll to the review section.
+  useEffect(() => {
+    if (loading || window.location.hash !== '#customer-reviews') return;
+    const timer = window.setTimeout(() => {
+      document.getElementById('customer-reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
+
   // Scroll reveal: wait for homepage data so the target sections are mounted.
   // IntersectionObserver works even without CSS scroll-driven animation support.
   useEffect(() => {
@@ -984,7 +993,7 @@ export default function HomePage() { // centralized storefront settings
 
       {/* Customer Reviews */}
       {settings?.homepage_show_reviews !== false && (
-      <section className="py-10 sm:py-16 bg-cream compact-reviews-section">
+      <section id="customer-reviews" className="scroll-mt-24 py-10 sm:py-16 bg-cream compact-reviews-section">
         <div className="section-padding">
           <div className="text-center mb-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-dark">

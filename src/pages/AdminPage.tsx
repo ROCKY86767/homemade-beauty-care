@@ -583,6 +583,10 @@ export default function AdminPage() {
               <HomepageEditorialReviewsView />
             )}
 
+            {activeTab === 'hairpack-landing' && (
+              <HairPackLandingSettingsView />
+            )}
+
             {activeTab === 'coupons' && (
   <CouponsView />
 )}

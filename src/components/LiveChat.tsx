@@ -141,6 +141,12 @@ export default function LiveChat() {
   };
 
   useEffect(() => {
+    const openLiveChat = () => setOpen(true);
+    window.addEventListener('hbc:open-live-chat', openLiveChat);
+    return () => window.removeEventListener('hbc:open-live-chat', openLiveChat);
+  }, []);
+
+  useEffect(() => {
     if (open) {
       enableBrowserNotifications();
       loadConversation();

@@ -204,7 +204,7 @@ export default function HairPackLandingPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-8">
-        <Link to="/#customer-reviews" className="group flex items-center justify-between gap-4 rounded-2xl border border-[#e2d9c8] bg-[#fffdf7] p-4 shadow-sm transition hover:border-[#bdcdb5] sm:rounded-3xl sm:p-6">
+        <Link to="/" onClick={() => { sessionStorage.setItem("hbc-scroll-to-home-reviews", "1"); }} className="group flex items-center justify-between gap-4 rounded-2xl border border-[#e2d9c8] bg-[#fffdf7] p-4 shadow-sm transition hover:border-[#bdcdb5] sm:rounded-3xl sm:p-6">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e9eee3] text-[#31553c]"><Heart size={20} /></span><div><h2 className="text-sm font-bold text-[#304a35] sm:text-base">রিভিউ ও অভিজ্ঞতা দেখুন</h2><p className="mt-1 text-xs leading-5 text-[#7a8072] sm:text-sm">ক্রেতাদের রিভিউ ও অভিজ্ঞতা দেখতে এখানে চাপ দিন</p></div></div><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#294b37] text-white transition group-hover:translate-x-1"><ArrowRight size={17} /></span>
         </Link>
       </section>

@@ -21,6 +21,7 @@ export default function HairPackLandingPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState('');
+  const [footerOpen, setFooterOpen] = useState(false);
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -199,7 +200,7 @@ export default function HairPackLandingPage() {
 
       <section className="mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-8">
         <Link to={`/product/${product.slug}#reviews`} className="group flex items-center justify-between gap-4 rounded-2xl border border-[#e2d9c8] bg-[#fffdf7] p-4 shadow-sm transition hover:border-[#bdcdb5] sm:rounded-3xl sm:p-6">
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e9eee3] text-[#31553c]"><Heart size={20} /></span><div><h2 className="text-sm font-bold text-[#304a35] sm:text-base">ক্রেতাদের অভিজ্ঞতা দেখুন</h2><p className="mt-1 text-xs leading-5 text-[#7a8072] sm:text-sm">পণ্যের বিস্তারিত পাতায় থাকা রিভিউগুলো পড়ুন</p></div></div><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#294b37] text-white transition group-hover:translate-x-1"><ArrowRight size={17} /></span>
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e9eee3] text-[#31553c]"><Heart size={20} /></span><div><h2 className="text-sm font-bold text-[#304a35] sm:text-base">রিভিউ ও অভিজ্ঞতা দেখুন</h2><p className="mt-1 text-xs leading-5 text-[#7a8072] sm:text-sm">ক্রেতাদের রিভিউ ও অভিজ্ঞতা দেখতে এখানে চাপ দিন</p></div></div><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#294b37] text-white transition group-hover:translate-x-1"><ArrowRight size={17} /></span>
         </Link>
       </section>
 
@@ -237,11 +238,16 @@ export default function HairPackLandingPage() {
         </div>
       </section>
 
-      <footer className="bg-[#182e21] px-4 py-5 text-center text-[#e5e7d9]">
+      <div className="flex justify-center bg-[#f7f4eb] py-1.5">
+        <button type="button" aria-expanded={footerOpen} onClick={() => setFooterOpen(open => !open)} className="inline-flex items-center gap-1 rounded-full border border-[#d9dfd1] bg-white/80 px-2.5 py-1 text-[9px] font-medium text-[#6c786a] hover:bg-[#e9eee3]">
+          Footer <ChevronDown size={10} className={`transition-transform ${footerOpen ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+      {footerOpen && <footer className="bg-[#182e21] px-4 py-4 text-center text-[#e5e7d9]">
         <p className="text-[10px] font-bold tracking-[.2em] text-[#d9b78e]">HOMEMADE BEAUTY CARE</p>
-        <p className="ritual-serif mt-1 text-lg">প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</p>
-        <p className="mt-2 text-[11px] text-white/55">নিজের যত্নের অভ্যাস হোক সহজ, সুন্দর ও নিয়মিত।</p>
-      </footer>
+        <p className="ritual-serif mt-1 text-base">প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</p>
+        <p className="mt-1.5 text-[10px] text-white/55">নিজের যত্নের অভ্যাস হোক সহজ, সুন্দর ও নিয়মিত।</p>
+      </footer>}
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#ded8c9] bg-[#fffdf7]/95 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_rgba(25,45,30,.12)] backdrop-blur-xl sm:hidden">
         <div className="mx-auto flex max-w-xl items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-[10px] font-medium text-[#73796c]">{productName}</p><p className="text-lg font-extrabold leading-6 text-[#294b37]">{formatPrice(product.price)}</p></div><button type="button" onClick={buyNow} disabled={outOfStock} className="ritual-cta inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#294b37] px-5 text-sm font-bold text-white shadow-lg disabled:opacity-50"><ShoppingBag size={16} />{outOfStock ? 'স্টকে নেই' : 'অর্ডার করুন'}</button></div>

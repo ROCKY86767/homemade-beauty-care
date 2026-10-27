@@ -7,6 +7,7 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 const staticPages = [
   ['', 'daily', '1.0'],
   ['/shop', 'daily', '0.9'],
+  ['/hairpack', 'weekly', '0.9'],
   ['/category/hair-care', 'weekly', '0.8'],
   ['/category/hair-oil', 'weekly', '0.8'],
   ['/category/hair-pack', 'weekly', '0.8'],

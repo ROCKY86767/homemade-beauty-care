@@ -13,6 +13,7 @@ import WhatsAppButton from '@/components/WhatsAppButton';
 import Analytics from '@/components/Analytics';
 import { getSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
+import './beauty-story-result.css';
 
 const HomePage = lazy(() => import('@/pages/HomePage'));
 const ShopPage = lazy(() => import('@/pages/ShopPage'));

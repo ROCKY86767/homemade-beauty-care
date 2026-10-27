@@ -17,6 +17,7 @@ import type { SiteSettings } from '@/lib/types';
 const HomePage = lazy(() => import('@/pages/HomePage'));
 const ShopPage = lazy(() => import('@/pages/ShopPage'));
 const ProductDetailPage = lazy(() => import('@/pages/ProductDetailPage'));
+const HairPackLandingPage = lazy(() => import('@/pages/HairPackLandingPage'));
 const CartPage = lazy(() => import('@/pages/CartPage'));
 const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'));
 const OrderSuccessPage = lazy(() => import('@/pages/OrderSuccessPage'));
@@ -145,6 +146,8 @@ function AppContent() {
                 <Route path="/offers" element={<ShopPage isOffers />} />
                 <Route path="/new-arrivals" element={<ShopPage isNewArrivals />} />
                 <Route path="/product/:slug" element={<ProductDetailPage />} />
+                <Route path="/hairpack" element={<HairPackLandingPage />} />
+                <Route path="/hair-pack" element={<HairPackLandingPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />

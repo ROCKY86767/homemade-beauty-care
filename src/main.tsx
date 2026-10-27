@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './scroll-animations.css';
-import './beauty-story-result.css';
 import './order-status-dashboard-mount.tsx';
 
 createRoot(document.getElementById('root')!).render(

@@ -30,9 +30,9 @@ export default function WhatsAppButton() {
       rel="noopener noreferrer"
       aria-label="WhatsApp এ যোগাযোগ করুন"
       title="WhatsApp এ যোগাযোগ করুন"
-      className="fixed right-4 bottom-20 sm:right-5 sm:bottom-5 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/20 transition-all duration-200 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#25D366]/30"
+      className="fixed right-4 bottom-20 sm:right-5 sm:bottom-5 z-[60] flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/20 transition-all duration-200 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#25D366]/30"
     >
-      <MessageCircle size={29} strokeWidth={2.2} />
+      <MessageCircle size={22} strokeWidth={2.2} />
       <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-[#25D366]" />
     </a>
   );

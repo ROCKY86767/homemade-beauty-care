@@ -45,7 +45,7 @@ function PageLoader() {
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full min-w-0 min-h-screen flex flex-col overflow-x-hidden">
+    <div className="w-full min-w-0 min-h-screen flex flex-col overflow-x-clip">
       <Header />
       <main className="w-full min-w-0 flex-1 pb-16 lg:pb-0">
         <Suspense fallback={<PageLoader />}>{children}</Suspense>

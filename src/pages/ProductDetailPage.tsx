@@ -44,7 +44,10 @@ export default function ProductDetailPage() {
   }, []);
   
   useEffect(() => {
-    if (location.hash === '#reviews') setActiveTab('reviews');
+    if (location.hash === '#reviews') {
+      setActiveTab('reviews');
+      window.setTimeout(() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    }
   }, [location.hash, slug]);
 
   useEffect(() => {
@@ -377,7 +380,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-gray-100 pt-8">
+        <div id="reviews" className="mt-10 scroll-mt-24 border-t border-gray-100 pt-8">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {TABS.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-primary text-white' : 'bg-cream text-gray-600 hover:text-primary'}`}>

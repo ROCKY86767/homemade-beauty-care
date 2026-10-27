@@ -77,11 +77,11 @@ export default function HairPackLandingPage() {
   const gallery = product.gallery?.filter(Boolean).length ? product.gallery.filter(Boolean) : [product.image_url];
   const outOfStock = product.stock < 1;
   if (landingSettings?.is_enabled === false) return <section className="min-h-[60vh] bg-[#f7f4eb] px-5 py-20 text-center"><h1 className="text-2xl font-bold text-[#294b37]">এই পেজটি আপাতত বন্ধ আছে</h1><p className="mt-3 text-sm text-[#73796c]">অনুগ্রহ করে পরে আবার দেখুন।</p><Link to="/shop" className="mt-6 inline-flex rounded-full bg-[#294b37] px-6 py-3 font-semibold text-white">সব পণ্য দেখুন</Link></section>;
+  const productName = product.name_bn || 'ঘরোয়া হেয়ার প্যাক';
+  const description = product.short_description_bn || 'নিজের চুলের যত্নের রুটিনে যোগ করুন ঘরোয়া রূপচর্চার একটি সুন্দর ধাপ।';
   const landingHeroTitle = landingSettings?.hero_title?.trim() || productName;
   const landingDescription = landingSettings?.hero_description?.trim() || description;
   const discount = calculateDiscountPercent(product.price, product.old_price);
-  const productName = product.name_bn || 'ঘরোয়া হেয়ার প্যাক';
-  const description = product.short_description_bn || 'নিজের চুলের যত্নের রুটিনে যোগ করুন ঘরোয়া রূপচর্চার একটি সুন্দর ধাপ।';
 
   return (
     <main className="hbc-ritual-page overflow-x-clip bg-[#f7f4eb] pb-24 text-[#243b2c] selection:bg-[#dce6d6] sm:pb-0">

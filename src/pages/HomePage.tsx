@@ -148,12 +148,17 @@ export default function HomePage() { // centralized storefront settings
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
-  // If a visitor arrives from another page with the reviews hash, wait for homepage data and scroll to the review section.
+  // When arriving from the hair-pack landing page, wait until homepage data has rendered,
+  // then scroll specifically to the customer review section (not to a browser hash position).
   useEffect(() => {
-    if (loading || window.location.hash !== '#customer-reviews') return;
+    if (loading || sessionStorage.getItem('hbc-scroll-to-home-reviews') !== '1') return;
+    sessionStorage.removeItem('hbc-scroll-to-home-reviews');
     const timer = window.setTimeout(() => {
-      document.getElementById('customer-reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 150);
+      const section = document.getElementById('customer-reviews');
+      if (!section) return;
+      const top = section.getBoundingClientRect().top + window.scrollY - 16;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }, 350);
     return () => window.clearTimeout(timer);
   }, [loading]);
 

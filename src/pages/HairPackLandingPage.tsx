@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowDown, ArrowRight, CheckCircle2, ChevronDown, Leaf, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react';
+import { ArrowDown, ArrowRight, CheckCircle2, Leaf, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';

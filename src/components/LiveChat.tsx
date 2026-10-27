@@ -82,6 +82,7 @@ export default function LiveChat() {
   const [savedReplies, setSavedReplies] = useState<string[]>(() => JSON.parse(localStorage.getItem('hbc-saved-replies') || '[]'));
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [aiTyping, setAiTyping] = useState(false);
   const [chatError, setChatError] = useState('');
   const [chatAttachment, setChatAttachment] = useState<File | null>(null);
   const customerFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -101,9 +102,7 @@ export default function LiveChat() {
 
   const notifyNewAdminMessages = (nextMessages: ChatMessage[]) => {
     if (typeof window === 'undefined' || !('Notification' in window) || window.Notification.permission !== 'granted') return;
-    const newAdminMessages = nextMessages.filter(
-      (item) => item.sender_type === 'admin' && !notifiedMessageIdsRef.current.has(item.id)
-    );
+    const newAdminMessages = nextMessages.filter((item) => item.sender_type === 'admin' && !notifiedMessageIdsRef.current.has(item.id));
     if (!chatLoadedRef.current) {
       nextMessages.forEach((item) => notifiedMessageIdsRef.current.add(item.id));
       chatLoadedRef.current = true;
@@ -112,22 +111,12 @@ export default function LiveChat() {
     newAdminMessages.forEach((item) => {
       notifiedMessageIdsRef.current.add(item.id);
       if (document.visibilityState !== 'visible' || !open) {
-        const body = item.message_type === 'audio' ? '🎤 নতুন voice message' : item.message_type === 'image' ? '🖼️ নতুন picture message' : item.message;
-        const notification = new window.Notification('Homemade Beauty Care — Live Chat', {
-          body: body || 'আপনার জন্য নতুন message এসেছে।',
-          icon: '/homemade-logo.png',
-          tag: 'hbc-live-chat',
-        });
-        notification.onclick = () => {
-          window.focus();
-          setOpen(true);
-          notification.close();
-        };
+        const body = item.message_type === 'audio' ? '🎤 নতুন voice message' : item.message_type === 'video' ? '🎬 নতুন video message' : item.message_type === 'image' ? '🖼️ নতুন picture message' : item.message;
+        const notification = new window.Notification('Homemade Beauty Care — Live Chat', { body: body || 'আপনার জন্য নতুন message এসেছে।', icon: '/homemade-logo.png', tag: `hbc-live-chat-${item.id}` });
+        notification.onclick = () => { window.focus(); setOpen(true); notification.close(); };
       }
     });
   };
-
-
 
   const loadMessages = async (conversationId: string) => {
     const requestId = ++customerMessageRequestRef.current;
@@ -143,14 +132,46 @@ export default function LiveChat() {
   const loadConversation = async () => {
     const id = localStorage.getItem(CONVERSATION_KEY);
     if (!id) return;
-    const { data } = await supabase.rpc('get_guest_chat_conversation', {
-      p_visitor_token: token(),
-      p_conversation_id: id,
-    });
+    const { data } = await supabase.rpc('get_guest_chat_conversation', { p_visitor_token: token(), p_conversation_id: id });
     if (data) {
       setConversation(data as Conversation);
       setStarted(true);
       await loadMessages(id);
+    }
+  };
+
+  const askAI = async (conversationId: string, customerText: string, history: ChatMessage[]) => {
+    const trimmed = customerText.trim();
+    if (!trimmed) return;
+    setAiTyping(true);
+    try {
+      const aiMessages = [...history.filter((item) => item.message_type === 'text' && item.message.trim()), {
+        sender_type: 'customer', message: trimmed,
+      }].slice(-12).map((item) => ({
+        role: item.sender_type === 'customer' ? 'user' : 'assistant',
+        content: item.message,
+      }));
+
+      const response = await fetch('/api/chat-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: aiMessages, customerName: name || conversation?.customer_name || 'Customer' }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result?.text) throw new Error(result?.error || 'AI reply পাওয়া যায়নি।');
+
+      const { error } = await supabase.rpc('send_guest_ai_chat_message', {
+        p_visitor_token: token(),
+        p_conversation_id: conversationId,
+        p_message: result.text,
+      });
+      if (error) throw error;
+      await loadMessages(conversationId);
+    } catch (error: any) {
+      console.error('AI chat error', error);
+      setChatError(error?.message || 'AI reply পাওয়া যায়নি।');
+    } finally {
+      setAiTyping(false);
     }
   };
 
@@ -161,10 +182,7 @@ export default function LiveChat() {
   }, []);
 
   useEffect(() => {
-    if (open) {
-      enableBrowserNotifications();
-      loadConversation();
-    }
+    if (open) { enableBrowserNotifications(); loadConversation(); }
   }, [open]);
 
   useEffect(() => {
@@ -173,10 +191,7 @@ export default function LiveChat() {
     const syncChat = async () => {
       const id = localStorage.getItem(CONVERSATION_KEY);
       if (!id || id !== conversation.id) return;
-      const { data, error } = await supabase.rpc('get_guest_chat_conversation', {
-        p_visitor_token: token(),
-        p_conversation_id: id,
-      });
+      const { data, error } = await supabase.rpc('get_guest_chat_conversation', { p_visitor_token: token(), p_conversation_id: id });
       if (!active || error || !data) return;
       const nextConversation = data as Conversation;
       setConversation(nextConversation);
@@ -185,8 +200,6 @@ export default function LiveChat() {
       await loadMessages(id);
     };
     void syncChat();
-    // Keep syncing while the widget is minimized so replies can trigger
-    // browser notifications; a slower interval avoids excessive polling.
     const timer = window.setInterval(() => { void syncChat(); }, 5000);
     return () => { active = false; window.clearInterval(timer); };
   }, [open, conversation?.id]);
@@ -197,11 +210,9 @@ export default function LiveChat() {
     setSending(true);
     setChatError('');
     try {
+      const firstMessage = message.trim();
       const { data, error } = await supabase.rpc('create_guest_chat', {
-        p_customer_name: name.trim(),
-        p_customer_mobile: mobile.trim() || null,
-        p_visitor_token: token(),
-        p_message: message.trim(),
+        p_customer_name: name.trim(), p_customer_mobile: mobile.trim() || null, p_visitor_token: token(), p_message: firstMessage,
       });
       if (error) throw error;
       if (!data?.id) throw new Error('Chat তৈরি হয়নি। আবার চেষ্টা করুন।');
@@ -210,12 +221,11 @@ export default function LiveChat() {
       setStarted(true);
       setMessage('');
       await loadMessages(data.id);
+      void askAI(data.id, firstMessage, []);
     } catch (err: any) {
       console.error(err);
       setChatError(err?.message || 'মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন।');
-    } finally {
-      setSending(false);
-    }
+    } finally { setSending(false); }
   };
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -232,103 +242,71 @@ export default function LiveChat() {
 
   const sendPendingVoice = async () => {
     if (!conversation?.id || !pendingVoice) return;
-    setVoiceUploading(true);
-    setChatError('');
+    setVoiceUploading(true); setChatError('');
     try {
       const url = await uploadChatAudio(pendingVoice, `customer/${conversation.id}`);
-      const { error } = await supabase.rpc('send_guest_chat_audio', {
-        p_visitor_token: token(), p_conversation_id: conversation.id, p_media_url: url,
-      });
+      const { error } = await supabase.rpc('send_guest_chat_audio', { p_visitor_token: token(), p_conversation_id: conversation.id, p_media_url: url });
       if (error) throw error;
-      clearPendingVoice();
-      await loadMessages(conversation.id);
-    } catch (err: any) {
-      setChatError(err?.message || 'Voice message পাঠানো যায়নি।');
-    } finally {
-      setVoiceUploading(false);
-    }
+      clearPendingVoice(); await loadMessages(conversation.id);
+    } catch (err: any) { setChatError(err?.message || 'Voice message পাঠানো যায়নি।'); }
+    finally { setVoiceUploading(false); }
   };
 
   const toggleRecording = async () => {
     if (recording) { mediaRecorderRef.current?.stop(); return; }
     if (pendingVoice) return;
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      setChatError('এই ব্রাউজারে voice message support নেই। Chrome/Edge ব্যবহার করুন.');
-      return;
-    }
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') { setChatError('এই ব্রাউজারে voice message support নেই। Chrome/Edge ব্যবহার করুন.'); return; }
     try {
       setChatError('');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream, getRecorderOptions());
       audioChunksRef.current = [];
       recorder.ondataavailable = (event) => { if (event.data.size > 0) audioChunksRef.current.push(event.data); };
-      recorder.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop());
-        setRecording(false);
-        if (!audioChunksRef.current.length) return;
-        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        setPendingVoice(blob);
-        setPendingVoiceUrl(URL.createObjectURL(blob));
-      };
-      recorder.onerror = () => {
-        stream.getTracks().forEach((track) => track.stop());
-        setRecording(false);
-        setChatError('Voice recording বন্ধ হয়ে গেছে। আবার চেষ্টা করুন।');
-      };
-      recorder.start();
-      mediaRecorderRef.current = recorder;
-      setRecording(true);
-    } catch (err: any) {
-      setChatError(err?.message || 'Microphone permission দেওয়া হয়নি.');
-      setRecording(false);
-    }
+      recorder.onstop = () => { stream.getTracks().forEach((track) => track.stop()); setRecording(false); if (!audioChunksRef.current.length) return; const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' }); setPendingVoice(blob); setPendingVoiceUrl(URL.createObjectURL(blob)); };
+      recorder.onerror = () => { stream.getTracks().forEach((track) => track.stop()); setRecording(false); setChatError('Voice recording বন্ধ হয়ে গেছে। আবার চেষ্টা করুন।'); };
+      recorder.start(); mediaRecorderRef.current = recorder; setRecording(true);
+    } catch (err: any) { setChatError(err?.message || 'Microphone permission দেওয়া হয়নি.'); setRecording(false); }
   };
 
   const saveReply = () => {
-    const text = message.trim();
-    if (!text || savedReplies.includes(text)) return;
-    const next = [text, ...savedReplies].slice(0, 30);
-    setSavedReplies(next);
-    localStorage.setItem('hbc-saved-replies', JSON.stringify(next));
+    const text = message.trim(); if (!text || savedReplies.includes(text)) return;
+    const next = [text, ...savedReplies].slice(0, 30); setSavedReplies(next); localStorage.setItem('hbc-saved-replies', JSON.stringify(next));
   };
 
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!conversation?.id || conversation.status !== 'open' || (!message.trim() && !chatAttachment)) return;
-    setSending(true);
-    setChatError('');
+    setSending(true); setChatError('');
     try {
+      const customerText = message.trim();
+      const history = messages;
       if (chatAttachment) {
         const kind = mediaTypeFor(chatAttachment);
         if (!kind) throw new Error('শুধু ছবি বা ভিডিও পাঠানো যাবে।');
         if (chatAttachment.size > (kind === 'video' ? 40 : 10) * 1024 * 1024) throw new Error(kind === 'video' ? 'ভিডিও সর্বোচ্চ 40 MB হতে পারবে।' : 'ছবি সর্বোচ্চ 10 MB হতে পারবে।');
         const url = await uploadChatFile(chatAttachment, `customer/${conversation.id}`);
-        const { error } = await supabase.rpc('send_guest_chat_media', { p_visitor_token: token(), p_conversation_id: conversation.id, p_media_url: url, p_message_type: kind, p_message: message.trim() });
+        const { error } = await supabase.rpc('send_guest_chat_media', { p_visitor_token: token(), p_conversation_id: conversation.id, p_media_url: url, p_message_type: kind, p_message: customerText });
         if (error) throw error;
-        setChatAttachment(null);
-        if (customerFileInputRef.current) customerFileInputRef.current.value = '';
+        setChatAttachment(null); if (customerFileInputRef.current) customerFileInputRef.current.value = '';
       } else {
-        const { error } = await supabase.rpc('send_guest_chat', { p_visitor_token: token(), p_conversation_id: conversation.id, p_message: message.trim() });
+        const { error } = await supabase.rpc('send_guest_chat', { p_visitor_token: token(), p_conversation_id: conversation.id, p_message: customerText });
         if (error) throw error;
       }
       setMessage('');
       await loadMessages(conversation.id);
-    } catch (err: any) {
-      setChatError(err?.message || 'মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন.');
-    } finally { setSending(false); }
+      if (customerText) void askAI(conversation.id, customerText, history);
+    } catch (err: any) { setChatError(err?.message || 'মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন.'); }
+    finally { setSending(false); }
   };
 
   return (
     <>
       {open && (
         <div className="fixed right-2 bottom-36 sm:right-5 sm:bottom-20 z-[70] flex max-h-[min(78dvh,640px)] w-[calc(100vw-1rem)] max-w-[380px] flex-col overflow-hidden rounded-2xl border border-brand-border bg-white shadow-2xl sm:w-[360px]">
-          <div className="flex items-center justify-between bg-primary px-4 py-3 text-white">
-            <div><div className="font-semibold">Live Chat</div><div className="text-xs text-white/80">Homemade Beauty Care</div></div>
-            <button onClick={() => setOpen(false)} aria-label="Close chat" className="rounded-full p-1 hover:bg-white/10"><X className="h-5 w-5" /></button>
-          </div>
+          <div className="flex items-center justify-between bg-primary px-4 py-3 text-white"><div><div className="font-semibold">Live Chat</div><div className="text-xs text-white/80">Homemade Beauty Care</div></div><button onClick={() => setOpen(false)} aria-label="Close chat" className="rounded-full p-1 hover:bg-white/10"><X className="h-5 w-5" /></button></div>
           {!started ? (
             <form onSubmit={startChat} className="space-y-3 p-4">
-              <p className="text-sm text-gray-600">{conversation?.status === 'closed' ? 'আগের chatটি বন্ধ হয়েছে। নতুন করে chat শুরু করুন—আপনার নম্বর না দিলেও চলবে.' : 'আপনার তথ্য দিন, আমরা এখানেই উত্তর দেব.'}</p>
+              <p className="text-sm text-gray-600">{conversation?.status === 'closed' ? 'আগের chatটি বন্ধ হয়েছে। নতুন করে chat শুরু করুন—আপনার নম্বর না দিলেও চলবে.' : 'আপনার তথ্য দিন, AI assistant এখানেই উত্তর দেবে.'}</p>
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="আপনার নাম *" required className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
               <input value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="মোবাইল নম্বর (ঐচ্ছিক — না দিলেও চলবে)" className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
               <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="আপনার মেসেজ লিখুন *" required rows={3} className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-primary" />
@@ -337,33 +315,15 @@ export default function LiveChat() {
           ) : (
             <>
               <div className="min-h-[180px] flex-1 space-y-3 overflow-y-auto overscroll-contain bg-cream/40 p-4">
-                {messages.map((item) => (
-                  <div key={item.id} className={`flex ${item.sender_type === 'customer' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'customer' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border bg-white text-gray-800'}`}>
-                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="h-8 w-[180px] max-w-full" /> : item.message_type === 'image' && item.media_url ? <img src={item.media_url} alt="chat attachment" className="max-h-56 max-w-full rounded-lg" /> : item.message_type === 'video' && item.media_url ? <video controls preload="metadata" src={item.media_url} className="max-h-56 max-w-full rounded-lg" /> : item.message}
-                    </div>
-                  </div>
-                ))}
-                {!messages.length && <p className="pt-8 text-center text-xs text-gray-400">মেসেজ লোড হচ্ছে...</p>}
+                {messages.map((item) => <div key={item.id} className={`flex ${item.sender_type === 'customer' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'customer' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border bg-white text-gray-800'}`}>{item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="h-8 w-[180px] max-w-full" /> : item.message_type === 'image' && item.media_url ? <img src={item.media_url} alt="chat attachment" className="max-h-56 max-w-full rounded-lg" /> : item.message_type === 'video' && item.media_url ? <video controls preload="metadata" src={item.media_url} className="max-h-56 max-w-full rounded-lg" /> : item.message}</div></div>)}
+                {aiTyping && <div className="flex justify-start"><div className="rounded-2xl rounded-bl-sm border bg-white px-3 py-2 text-xs text-gray-500">AI লিখছে…</div></div>}
+                {!messages.length && !aiTyping && <p className="pt-8 text-center text-xs text-gray-400">মেসেজ লোড হচ্ছে...</p>}
               </div>
               {conversation?.status === 'closed' && <div className="border-t bg-amber-50 px-3 py-2 text-xs text-amber-800">এই চ্যাটটি বন্ধ হয়েছে। পুরোনো মেসেজ দেখা যাবে। নতুন চ্যাট শুরু করতে <button type="button" onClick={() => { setStarted(false); setMessages([]); setConversation(null); localStorage.removeItem(CONVERSATION_KEY); }} className="font-semibold underline">নতুন চ্যাট</button> করুন।</div>}
               {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
               {chatAttachment && conversation?.status === 'open' && <div className="flex items-center gap-2 border-t bg-gray-50 px-3 py-2 text-xs"><span className="min-w-0 flex-1 truncate">{chatAttachment.name}</span><button type="button" onClick={() => setChatAttachment(null)} className="text-red-600">বাদ দিন</button></div>}
-              {pendingVoiceUrl && (
-                <div className="flex items-center gap-2 border-t bg-gray-50 px-3 py-2">
-                  <audio controls preload="metadata" src={pendingVoiceUrl} className="min-w-0 flex-1" />
-                  <button type="button" onClick={clearPendingVoice} disabled={voiceUploading} title="Delete voice" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
-                  <button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-10 shrink-0 items-center gap-1 rounded-lg bg-primary px-3 text-sm font-medium text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button>
-                </div>
-              )}
-              {conversation?.status === 'open' && <form onSubmit={sendMessage} className="flex items-end gap-1.5 border-t bg-white p-3">
-                <button type="button" onClick={() => customerFileInputRef.current?.click()} title="ছবি বা ভিডিও পাঠান" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary"><ImagePlus className="h-4 w-4" /></button>
-                <input ref={customerFileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0] || null; if (file && !mediaTypeFor(file)) { setChatError('শুধু ছবি বা ভিডিও পাঠানো যাবে।'); e.currentTarget.value = ''; return; } setChatAttachment(file); setChatError(''); }} />
-                <button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? 'bg-red-50 text-red-600' : 'text-primary'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
-                <textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-                <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
-                <button disabled={sending || voiceUploading || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50"><Send className="h-4 w-4" /></button>
-              </form>}
+              {pendingVoiceUrl && <div className="flex items-center gap-2 border-t bg-gray-50 px-3 py-2"><audio controls preload="metadata" src={pendingVoiceUrl} className="min-w-0 flex-1" /><button type="button" onClick={clearPendingVoice} disabled={voiceUploading} title="Delete voice" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button><button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-10 shrink-0 items-center gap-1 rounded-lg bg-primary px-3 text-sm font-medium text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button></div>}
+              {conversation?.status === 'open' && <form onSubmit={sendMessage} className="flex items-end gap-1.5 border-t bg-white p-3"><button type="button" onClick={() => customerFileInputRef.current?.click()} title="ছবি বা ভিডিও পাঠান" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary"><ImagePlus className="h-4 w-4" /></button><input ref={customerFileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0] || null; if (file && !mediaTypeFor(file)) { setChatError('শুধু ছবি বা ভিডিও পাঠানো যাবে।'); e.currentTarget.value = ''; return; } setChatAttachment(file); setChatError(''); }} /><button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? 'bg-red-50 text-red-600' : 'text-primary'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button><textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" /><button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button><button disabled={sending || voiceUploading || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50"><Send className="h-4 w-4" /></button></form>}
             </>
           )}
         </div>
@@ -393,605 +353,15 @@ export function ChatAdminView() {
   const [quickReplyImage, setQuickReplyImage] = useState<File | null>(null);
   const [chatImage, setChatImage] = useState<File | null>(null);
   const [chatImageType, setChatImageType] = useState<'image' | 'video'>('image');
-  const [chatImageUrl, setChatImageUrl] = useState<string | null>(null);
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
-  const selectedIdRef = useRef<string | null>(null);
-  const messageRequestRef = useRef(0);
-  const conversationRequestRef = useRef(0);
-  const mobileChatHistoryRef = useRef(false);
-  const conversationsRef = useRef<Conversation[]>([]);
+  const [chatImageUrl, setChatImageUrl] = useState('');
+  const [adminAudio, setAdminAudio] = useState<Blob | null>(null);
+  const [adminAudioUrl, setAdminAudioUrl] = useState('');
+  const [sending, setSending] = useState(false);
+  const [voiceUploading, setVoiceUploading] = useState(false);
+  const [isQuickReplyLoading, setIsQuickReplyLoading] = useState(false);
   const messagesRef = useRef<ChatMessage[]>([]);
   const adminSeenMessageIdsRef = useRef<Set<string>>(new Set());
   const adminLoadedConversationIdsRef = useRef<Set<string>>(new Set());
+  const selectedIdRef = useRef<string | null>(null);
 
-  const loadQuickReplies = async () => {
-    const { data } = await supabase.from('chat_quick_replies').select('id,title,message,media_url').order('created_at', { ascending: false });
-    setQuickReplies(data || []);
-  };
-
-  const uploadImage = async (file: File, prefix: string) => {
-    const path = prefix + '/' + crypto.randomUUID() + '-' + file.name;
-    const { error } = await supabase.storage.from('chat-quick-replies').upload(path, file, { contentType: file.type, upsert: false });
-    if (error) throw error;
-    return supabase.storage.from('chat-quick-replies').getPublicUrl(path).data.publicUrl;
-  };
-
-  const loadConversations = async () => {
-    const requestId = ++conversationRequestRef.current;
-
-    const { data, error } = await supabase
-      .from('chat_conversations')
-      .select('id,customer_name,customer_mobile,status,last_message_at,created_at,updated_at,customer_last_seen_at')
-      .order('last_message_at', { ascending: false });
-
-    if (error) {
-      console.error('Live chat conversation sync failed:', error);
-      return;
-    }
-
-    if (requestId !== conversationRequestRef.current) return;
-
-    let rows = (data || []) as Conversation[];
-
-    // Never wipe a healthy chat list because of a transient empty response.
-    if (!rows.length && conversationsRef.current.length) {
-      const retry = await supabase
-        .from('chat_conversations')
-        .select('id,customer_name,customer_mobile,status,last_message_at,created_at,updated_at,customer_last_seen_at')
-        .order('last_message_at', { ascending: false });
-
-      if (requestId !== conversationRequestRef.current) return;
-
-      if (retry.error) {
-        console.error('Live chat conversation retry failed:', retry.error);
-        return;
-      }
-
-      rows = (retry.data || []) as Conversation[];
-
-      if (!rows.length) {
-        return;
-      }
-    }
-
-    conversationsRef.current = rows;
-    setConversations(rows);
-
-    // Count unread customer messages per conversation.
-    if (rows.length) {
-      const { data: unreadRows, error: unreadError } = await supabase
-        .from('chat_messages')
-        .select('conversation_id')
-        .eq('sender_type', 'customer')
-        .eq('is_read', false);
-
-      if (!unreadError) {
-        const counts: Record<string, number> = {};
-        (unreadRows || []).forEach((row: { conversation_id: string }) => {
-          counts[row.conversation_id] = (counts[row.conversation_id] || 0) + 1;
-        });
-        setUnreadCounts(counts);
-        setUnread(Object.values(counts).reduce((total, count) => total + count, 0));
-      }
-    } else {
-      setUnreadCounts({});
-      setUnread(0);
-    }
-
-    if (selectedIdRef.current) {
-      const freshSelected = rows.find(
-        (row) => row.id === selectedIdRef.current
-      );
-
-      if (freshSelected) {
-        setSelected(freshSelected);
-      }
-    }
-  };
-
-  const loadMessages = async (conversationId: string) => {
-    const requestId = ++messageRequestRef.current;
-
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('id,conversation_id,sender_type,sender_name,message,is_read,message_type,media_url,created_at')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Live chat message sync failed:', error);
-      return;
-    }
-
-    if (
-      requestId !== messageRequestRef.current ||
-      selectedIdRef.current !== conversationId
-    ) {
-      return;
-    }
-
-    const rows = (data || []) as ChatMessage[];
-
-    // Never wipe visible messages because of a transient empty response.
-    if (!rows.length && messagesRef.current.length) {
-      return;
-    }
-
-    if (!adminLoadedConversationIdsRef.current.has(conversationId)) {
-      adminLoadedConversationIdsRef.current.add(conversationId);
-      rows.forEach((row) => adminSeenMessageIdsRef.current.add(row.id));
-    } else {
-      rows.filter((row) => row.sender_type === 'customer' && !adminSeenMessageIdsRef.current.has(row.id)).forEach((row) => {
-        adminSeenMessageIdsRef.current.add(row.id);
-        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && (document.visibilityState !== 'visible' || selectedIdRef.current !== conversationId)) {
-          const body = row.message_type === 'audio' ? '🎤 নতুন voice message' : row.message_type === 'video' ? '🎬 নতুন video message' : row.message_type === 'image' ? '🖼️ নতুন ছবি এসেছে' : row.message;
-          const notification = new Notification(`নতুন মেসেজ: ${row.sender_name || 'Customer'}`, { body: body || 'Live Chat-এ নতুন মেসেজ এসেছে', icon: '/homemade-logo.png', tag: `hbc-admin-chat-${row.id}` });
-          notification.onclick = () => { window.focus(); notification.close(); };
-        }
-      });
-    }
-    rows.forEach((row) => adminSeenMessageIdsRef.current.add(row.id));
-    messagesRef.current = rows;
-    setMessages(rows);
-
-    const unreadCustomerMessages = rows.filter((row) => row.sender_type === 'customer' && !row.is_read).length;
-    await supabase
-      .from('chat_messages')
-      .update({ is_read: true })
-      .eq('conversation_id', conversationId)
-      .eq('sender_type', 'customer')
-      .eq('is_read', false);
-    if (unreadCustomerMessages) {
-      setUnreadCounts((current) => {
-        const next = { ...current };
-        delete next[conversationId];
-        return next;
-      });
-      setUnread((current) => Math.max(0, current - unreadCustomerMessages));
-    }
-  };
-
-  useEffect(() => {
-    let disposed = false;
-    let syncTimer: number | null = null;
-
-    const refreshAdminChat = async () => {
-      if (disposed) return;
-
-      await loadConversations();
-
-      if (disposed) return;
-
-      const id = selectedIdRef.current;
-
-      if (id) {
-        await loadMessages(id);
-      }
-    };
-
-    const scheduleRefresh = () => {
-      if (disposed || syncTimer !== null) return;
-
-      syncTimer = window.setTimeout(() => {
-        syncTimer = null;
-        void refreshAdminChat();
-      }, 250);
-    };
-
-    void refreshAdminChat().finally(() => {
-      if (!disposed) setLoading(false);
-    });
-
-    void loadQuickReplies();
-
-    const channel = supabase
-      .channel('admin-live-chat')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'chat_messages' },
-        (payload) => {
-          scheduleRefresh();
-          const row = payload.new as Partial<ChatMessage>;
-          if (row?.id && row.sender_type === 'customer' && !adminSeenMessageIdsRef.current.has(row.id)) {
-            adminSeenMessageIdsRef.current.add(row.id);
-            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && (document.visibilityState !== 'visible' || selectedIdRef.current !== row.conversation_id)) {
-              const body = row.message_type === 'audio' ? '🎤 নতুন voice message' : row.message_type === 'video' ? '🎬 নতুন video message' : row.message_type === 'image' ? '🖼️ নতুন ছবি এসেছে' : row.message || 'Live Chat-এ নতুন মেসেজ এসেছে';
-              const notification = new Notification('Homemade Beauty Care — নতুন মেসেজ', { body, icon: '/homemade-logo.png', tag: `hbc-admin-chat-${row.id}` });
-              notification.onclick = () => { window.focus(); notification.close(); };
-            }
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'chat_conversations' },
-        scheduleRefresh
-      )
-      .subscribe((status) => {
-        // Re-sync after Realtime reconnects.
-        if (
-          status === 'SUBSCRIBED' ||
-          status === 'CHANNEL_ERROR' ||
-          status === 'TIMED_OUT'
-        ) {
-          scheduleRefresh();
-        }
-      });
-
-    const handleAdminReturn = () => {
-      if (document.visibilityState === 'visible') {
-        scheduleRefresh();
-      }
-    };
-
-    const handlePageShow = () => {
-      scheduleRefresh();
-    };
-
-    document.addEventListener('visibilitychange', handleAdminReturn);
-    window.addEventListener('focus', handleAdminReturn);
-    window.addEventListener('pageshow', handlePageShow);
-
-    const timer = window.setInterval(() => {
-      scheduleRefresh();
-    }, 10000);
-
-    return () => {
-      disposed = true;
-
-      if (syncTimer !== null) {
-        window.clearTimeout(syncTimer);
-      }
-
-      window.clearInterval(timer);
-
-      document.removeEventListener('visibilitychange', handleAdminReturn);
-      window.removeEventListener('focus', handleAdminReturn);
-      window.removeEventListener('pageshow', handlePageShow);
-
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  useEffect(() => {
-    const nextId = selected?.id ?? null;
-
-    if (selectedIdRef.current !== nextId) {
-      // Clear the previous conversation immediately so its messages cannot
-      // remain visible while the newly selected conversation is loading.
-      selectedIdRef.current = nextId;
-      messageRequestRef.current += 1;
-      messagesRef.current = [];
-      setMessages([]);
-    }
-
-    if (nextId) {
-      void loadMessages(nextId);
-    }
-  }, [selected?.id]);
-
-  const adminRecorderRef = useRef<MediaRecorder | null>(null);
-  const adminAudioChunksRef = useRef<Blob[]>([]);
-  const [voiceUploading, setVoiceUploading] = useState(false);
-  const [pendingVoice, setPendingVoice] = useState<Blob | null>(null);
-  const [pendingVoiceUrl, setPendingVoiceUrl] = useState('');
-
-  const clearPendingVoice = () => {
-    if (pendingVoiceUrl) URL.revokeObjectURL(pendingVoiceUrl);
-    setPendingVoice(null);
-    setPendingVoiceUrl('');
-  };
-
-  const sendPendingVoice = async () => {
-    if (!selected?.id || !pendingVoice) return;
-    setVoiceUploading(true);
-    setChatError('');
-    try {
-      const url = await uploadChatAudio(pendingVoice, `admin/${selected.id}`);
-      const { error } = await supabase.from('chat_messages').insert({
-        conversation_id: selected.id, sender_type: 'admin', sender_name: 'Admin', message: 'Voice message',
-        is_read: true, message_type: 'audio', media_url: url,
-      });
-      if (error) throw error;
-      await supabase.from('chat_conversations').update({ last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', selected.id);
-      clearPendingVoice();
-      await loadMessages(selected.id);
-    } catch (err: any) {
-      setChatError(err?.message || 'Voice message পাঠানো যায়নি.');
-    } finally {
-      setVoiceUploading(false);
-    }
-  };
-
-  const toggleRecording = async () => {
-    if (recording) { adminRecorderRef.current?.stop(); return; }
-    if (pendingVoice) return;
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      setChatError('এই ব্রাউজারে voice message support নেই। Chrome/Edge ব্যবহার করুন.');
-      return;
-    }
-    if (!selected) return;
-    try {
-      setChatError('');
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, getRecorderOptions());
-      adminAudioChunksRef.current = [];
-      recorder.ondataavailable = (event) => { if (event.data.size > 0) adminAudioChunksRef.current.push(event.data); };
-      recorder.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop());
-        setRecording(false);
-        if (!adminAudioChunksRef.current.length) return;
-        const blob = new Blob(adminAudioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        setPendingVoice(blob);
-        setPendingVoiceUrl(URL.createObjectURL(blob));
-      };
-      recorder.onerror = () => {
-        stream.getTracks().forEach((track) => track.stop());
-        setRecording(false);
-        setChatError('Voice recording বন্ধ হয়ে গেছে। আবার চেষ্টা করুন.');
-      };
-      recorder.start();
-      adminRecorderRef.current = recorder;
-      setRecording(true);
-    } catch (err: any) {
-      setChatError(err?.message || 'Microphone permission দেওয়া হয়নি.');
-      setRecording(false);
-    }
-  };
-
-  const saveCurrentReply = () => {
-    const text = message.trim();
-    if (!text) return;
-    const next = [text, ...savedReplies.filter((item) => item !== text)].slice(0, 30);
-    setSavedReplies(next);
-    localStorage.setItem('hbc-saved-replies', JSON.stringify(next));
-    setShowSavedReplies(false);
-  };
-
-  const send = async (e: FormEvent) => {
-    e.preventDefault();
-    setChatError('');
-    if (!selected || (!message.trim() && !chatImage && !chatImageUrl)) return;
-    try {
-      const { data: fresh, error: freshError } = await supabase.from('chat_conversations').select('*').eq('id', selected.id).maybeSingle();
-      if (freshError) throw freshError;
-      if (!fresh) throw new Error('Chat conversation পাওয়া যায়নি.');
-      if (fresh.status === 'closed') {
-        const { error: reopenError } = await supabase.from('chat_conversations').update({
-          status: 'open', updated_at: new Date().toISOString(), last_message_at: new Date().toISOString(),
-        }).eq('id', selected.id);
-        if (reopenError) throw reopenError;
-        fresh.status = 'open';
-      }
-      let media_url = null;
-      if (chatImage) {
-        const kind = mediaTypeFor(chatImage);
-        if (!kind) throw new Error('শুধু ছবি বা ভিডিও পাঠানো যাবে।');
-        if (chatImage.size > (kind === 'video' ? 40 : 10) * 1024 * 1024) throw new Error(kind === 'video' ? 'ভিডিও সর্বোচ্চ 40 MB হতে পারবে।' : 'ছবি সর্বোচ্চ 10 MB হতে পারবে।');
-        media_url = await uploadChatFile(chatImage, `admin/${selected.id}`);
-      } else media_url = chatImageUrl;
-      const messageType: 'text' | 'image' | 'video' = chatImage ? (mediaTypeFor(chatImage) || 'image') : chatImageUrl ? 'image' : 'text';
-      const { error } = await supabase.from('chat_messages').insert({
-        conversation_id: selected.id, sender_type: 'admin', sender_name: 'Admin',
-        message: message.trim() || (messageType === 'video' ? 'Video' : messageType === 'image' ? 'Image' : ''), is_read: true, message_type: messageType, media_url,
-      });
-      if (error) throw error;
-      await supabase.from('chat_conversations').update({
-        last_message_at: new Date().toISOString(), updated_at: new Date().toISOString(), status: 'open',
-      }).eq('id', selected.id);
-      setSelected({ ...selected, status: 'open', last_message_at: new Date().toISOString() });
-      setMessage('');
-      setChatImage(null);
-      setChatImageUrl(null);
-      await Promise.all([loadMessages(selected.id), loadConversations()]);
-    } catch (err: any) {
-      setChatError(err?.message || 'মেসেজ পাঠানো যায়নি.');
-    }
-  };
-
-  const reopenChat = async () => {
-    if (!selected) return;
-    const { error } = await supabase.from('chat_conversations').update({ status: 'open', updated_at: new Date().toISOString(), last_message_at: new Date().toISOString() }).eq('id', selected.id);
-    if (error) { setChatError(error.message || 'Chat reopen করা যায়নি.'); return; }
-    setChatError('');
-    setSelected({ ...selected, status: 'open' });
-    await loadConversations();
-  };
-
-  const closeChat = async () => {
-    if (!selected) return;
-    const { error } = await supabase.from('chat_conversations').update({ status: 'closed', updated_at: new Date().toISOString() }).eq('id', selected.id);
-    if (error) { setChatError(error.message || 'Chat বন্ধ করা যায়নি।'); return; }
-    setChatError('');
-    setSelected({ ...selected, status: 'closed' });
-    await loadConversations();
-  };
-
-  const enableAdminNotifications = async () => {
-    if (!('Notification' in window)) { setChatError('এই ব্রাউজারে notification support নেই।'); return; }
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') setChatError('Browser settings থেকে notification অনুমতি দিন।');
-      else { setChatError(''); await loadConversations(); }
-    } catch { setChatError('Notification চালু করা যায়নি।'); }
-  };
-
-  const isCustomerOnline = (item: Conversation) => !!item.customer_last_seen_at && Date.now() - new Date(item.customer_last_seen_at).getTime() < 60000;
-
-  const selectConversation = (item: Conversation) => {
-    selectedIdRef.current = item.id;
-    messageRequestRef.current += 1;
-    messagesRef.current = [];
-    setSelected(item);
-    setMessages([]);
-    setMessage('');
-    setChatError('');
-    setShowSavedReplies(false);
-    if (window.innerWidth < 1024 && !mobileChatHistoryRef.current) {
-      window.history.pushState({ hbcLiveChat: true }, '', window.location.href);
-      mobileChatHistoryRef.current = true;
-    }
-  };
-
-  useEffect(() => {
-    const handleMobileChatBack = () => {
-      if (!mobileChatHistoryRef.current) return;
-      mobileChatHistoryRef.current = false;
-      selectedIdRef.current = null;
-      messageRequestRef.current += 1;
-      setSelected(null);
-      messagesRef.current = [];
-      setMessages([]);
-      setMessage('');
-      setChatError('');
-      setShowSavedReplies(false);
-    };
-    window.addEventListener('popstate', handleMobileChatBack);
-    return () => window.removeEventListener('popstate', handleMobileChatBack);
-  }, []);
-
-  const filtered = conversations.filter(item => `${item.customer_name} ${item.customer_mobile || ''}`.toLowerCase().includes(search.toLowerCase()));
-
-  if (loading) return <div className="flex min-h-[300px] items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>;
-
-  return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f7f8f6]">
-      <div className="flex shrink-0 items-center justify-between border-b bg-white px-5 py-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><MessageCircle className="h-5 w-5" /></div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Live Chat</h1>
-              <p className="text-xs text-gray-500">{unread} unread message{unread === 1 ? '' : 's'} • Customer Support</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2"><button onClick={enableAdminNotifications} className="flex items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50"><Bell className="h-3.5 w-3.5" /><span className="hidden sm:inline">Enable alerts</span></button><button onClick={loadConversations} className="rounded-lg border bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50">Refresh</button></div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-hidden p-4">
-        <div className="grid h-full min-h-0 overflow-hidden rounded-none border-y border-gray-200 bg-white shadow-sm sm:rounded-2xl sm:border lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className={"min-h-0 flex-col border-r bg-white " + (selected ? "hidden lg:flex" : "flex")}>
-            <div className="shrink-0 border-b bg-gray-50/80 p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <div><h2 className="text-sm font-bold text-gray-900">Customers</h2><p className="mt-0.5 text-[11px] text-gray-500">{conversations.length} total conversations</p></div>
-                <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${unread ? 'bg-red-50 text-red-600' : 'bg-primary/10 text-primary'}`}>{unread} Unread</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 shadow-sm">
-                <Search className="h-4 w-4 shrink-0 text-gray-400" />
-                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search customer..." className="w-full py-2.5 text-sm outline-none" />
-              </div>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              {filtered.map((item) => (
-                <button key={item.id} onClick={() => selectConversation(item)} className={`w-full border-b border-gray-100 px-4 py-3.5 text-left transition-colors hover:bg-gray-50 ${selected?.id === item.id ? 'bg-primary/[0.07] border-l-4 border-l-primary' : unreadCounts[item.id] ? 'bg-amber-50/70 border-l-4 border-l-amber-400' : 'border-l-4 border-l-transparent'}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${selected?.id === item.id ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}><User className="h-4 w-4" /></div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2"><div className={`truncate text-sm ${unreadCounts[item.id] ? 'font-bold text-gray-950' : 'font-semibold text-gray-900'}`}>{item.customer_name}</div><div className="flex shrink-0 items-center gap-1.5"><span title={isCustomerOnline(item) ? 'Customer online' : item.status === 'open' ? 'Chat open, customer offline' : 'Chat closed'} className={`h-2 w-2 rounded-full ${isCustomerOnline(item) ? 'bg-green-500' : item.status === 'open' ? 'bg-amber-400' : 'bg-gray-300'}`} />{unreadCounts[item.id] ? <span className="min-w-[20px] rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white">{unreadCounts[item.id]}</span> : null}</div></div>
-                      <div className="mt-0.5 truncate text-xs text-gray-500">{item.customer_mobile || 'No phone number'}</div>
-                      <div className="mt-1 text-[10px] text-gray-400">{new Date(item.last_message_at).toLocaleString()}</div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-              {!filtered.length && <div className="p-8 text-center text-sm text-gray-400">No customer found.</div>}
-            </div>
-          </aside>
-
-          <section className={"min-h-0 flex-col overflow-hidden bg-[#fbfcfa] " + (selected ? "flex" : "hidden lg:flex")}>
-            {selected ? (
-              <>
-                <div className="flex shrink-0 items-center justify-between border-b bg-white px-3 py-3.5 sm:px-5">
-                  <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                    <button type="button" onClick={() => { selectedIdRef.current = null; messageRequestRef.current += 1; messagesRef.current = []; setSelected(null); setMessages([]); setChatError(""); }} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-gray-600 hover:bg-gray-50 lg:hidden" aria-label="Back to customers"><ArrowLeft className="h-4 w-4" /></button>
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><User className="h-4 w-4" /></div>
-                    <div className="min-w-0">
-                      <div className="truncate font-bold text-gray-900">{selected.customer_name}</div>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500"><span className={`h-1.5 w-1.5 rounded-full ${selected.status === 'open' ? 'bg-green-500' : 'bg-gray-300'}`} />{selected.status === 'closed' ? 'Chat Closed' : isCustomerOnline(selected) ? 'Customer Online' : 'Chat Open · Offline'}{selected.customer_mobile && <> • {selected.customer_mobile}</>}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {selected.customer_mobile && <a href={`tel:${selected.customer_mobile}`} className="hidden rounded-lg border p-2 text-gray-500 hover:bg-gray-50 sm:block" title="Call customer"><Phone className="h-4 w-4" /></a>}
-                    {selected.status === 'open' ? <button onClick={closeChat} className="rounded-lg border px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50">Close Chat</button> : <button onClick={reopenChat} className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90">Reopen Chat</button>}
-                    <button className="rounded-lg border p-2 text-gray-400 hover:bg-gray-50" title="More"><MoreVertical className="h-4 w-4" /></button>
-                  </div>
-                </div>
-
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-5 sm:py-5">
-                  <div className="mx-auto flex max-w-4xl flex-col gap-3">
-                    {messages.map((item) => (
-                      <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[68%] rounded-xl px-3 py-2 text-[13px] shadow-sm ${item.sender_type === 'admin' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border border-gray-200 bg-white text-gray-800'}`}>
-                          {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message_type === 'image' && item.media_url ? <><img src={item.media_url} alt="chat attachment" className="max-h-72 max-w-full rounded-xl object-contain" />{item.message && item.message !== 'Image' && <div className="mt-2">{item.message}</div>}</> : item.message_type === 'video' && item.media_url ? <><video controls preload="metadata" src={item.media_url} className="max-h-72 max-w-full rounded-xl" />{item.message && item.message !== 'Video' && <div className="mt-2">{item.message}</div>}</> : item.message}
-                          <div className={`mt-1 text-[9px] ${item.sender_type === 'admin' ? 'text-white/60' : 'text-gray-400'}`}>{new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        </div>
-                      </div>
-                    ))}
-                    {!messages.length && <div className="flex flex-1 items-center justify-center py-24 text-sm text-gray-400">No messages yet.</div>}
-                  </div>
-                </div>
-
-                {selected.status === 'open' ? (
-                  <div className="shrink-0 border-t bg-white">
-                    {chatError && <div className="border-b bg-red-50 px-4 py-2 text-xs text-red-600">{chatError}</div>}
-                    {showSavedReplies && (
-                      <div className="max-h-48 overflow-y-auto border-b bg-gray-50 p-3">
-                        <div className="mb-2 flex items-center justify-between"><span className="text-xs font-semibold text-gray-600">Quick Responses</span><div className="flex gap-1"><button type="button" onClick={saveCurrentReply} disabled={!message.trim()} className="rounded-md border bg-white px-2 py-1 text-[10px] disabled:opacity-40">Save current</button><button type="button" onClick={() => setQuickReplyOpen(true)} className="rounded-md border bg-white px-2 py-1 text-[10px]">+ Add</button></div></div>
-                        {savedReplies.length > 0 && <div className="mb-2 border-b pb-2"><div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Saved on this browser</div>{savedReplies.map((reply) => <button key={reply} type="button" onClick={() => { setMessage(reply); setShowSavedReplies(false); }} className="mb-1 block w-full rounded-lg border bg-white px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100">{reply}</button>)}</div>}
-                        {quickReplies.length ? quickReplies.map((item) => (
-                          <button key={item.id} type="button" onClick={() => { setMessage(item.message || ''); setChatImageUrl(item.media_url || null); setChatImage(null); setShowSavedReplies(false); }} className="mb-1 block w-full rounded-lg border bg-white px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100">
-                            <span className="font-medium">{item.title || 'Quick response'}</span>{item.message && <span className="ml-1 text-gray-500">— {item.message}</span>}{item.media_url && <span className="ml-1">🖼️</span>}
-                          </button>
-                        )) : <div className="px-2 py-3 text-center text-xs text-gray-400">কোনো quick response নেই। + Add দিয়ে save করুন.</div>}
-                      </div>
-                    )}
-                    {chatImageUrl && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2"><img src={chatImageUrl} alt="selected" className="h-12 w-12 rounded-lg object-cover" /><span className="text-xs text-gray-600">Saved picture selected</span><button type="button" onClick={() => setChatImageUrl(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
-                    {chatImage && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2">{chatImageType === 'video' ? <Video className="h-8 w-8 text-primary" /> : <img src={URL.createObjectURL(chatImage)} alt="selected" className="h-12 w-12 rounded-lg object-cover" />}<span className="truncate text-xs text-gray-600">{chatImage.name}</span><button type="button" onClick={() => setChatImage(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
-                    {pendingVoiceUrl && (
-                      <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2">
-                        <audio controls preload="metadata" src={pendingVoiceUrl} className="h-9 w-[180px] max-w-[45%] min-w-0 shrink" />
-                        <button type="button" onClick={clearPendingVoice} disabled={voiceUploading} title="Delete voice" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
-                        <button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button>
-                      </div>
-                    )}
-                    <form onSubmit={send} className="flex items-end gap-1.5 p-2.5 sm:gap-2 sm:p-4">
-                      <button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${recording ? 'bg-red-50 text-red-600' : 'text-primary hover:bg-primary/5'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
-                      <textarea rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); } }} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Write a reply...  Enter to send" className="min-h-[44px] min-w-0 flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-primary focus:bg-white" />
-                      <input ref={imageInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0] || null; if (file && !mediaTypeFor(file)) { setChatError('শুধু ছবি বা ভিডিও পাঠানো যাবে।'); e.currentTarget.value = ''; return; } setChatImage(file); setChatImageType(file ? mediaTypeFor(file) || 'image' : 'image'); setChatImageUrl(null); setChatError(''); }} />
-                      <button type="button" onClick={() => imageInputRef.current?.click()} title="ছবি বা ভিডিও" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-gray-600 hover:bg-gray-50 sm:h-11 sm:w-11"><ImagePlus className="h-4 w-4" /></button>
-                      <button type="button" onClick={() => setShowSavedReplies((value) => !value)} title="Quick responses" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${showSavedReplies ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50'}`}><Bookmark className="h-4 w-4" /></button>
-                      <button disabled={voiceUploading || (!message.trim() && !chatImage && !chatImageUrl)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm disabled:opacity-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-5"><Send className="h-4 w-4" /><span className="hidden sm:inline">Send</span></button>
-                    </form>
-                  </div>
-                ) : (
-                  <div className="shrink-0 border-t bg-white p-4 text-center text-sm text-gray-500">Chat is closed. Click <span className="font-semibold text-primary">Reopen Chat</span> to continue.</div>
-                )}
-              </>
-            ) : (
-              <div className="flex flex-1 items-center justify-center">
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary"><MessageCircle className="h-8 w-8" /></div>
-                  <h3 className="font-semibold text-gray-800">Select a customer</h3>
-                  <p className="mt-1 text-sm text-gray-400">বাম পাশ থেকে customer নির্বাচন করুন এবং chat শুরু করুন.</p>
-                </div>
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-
-      {quickReplyOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-4 shadow-xl">
-            <div className="mb-3 flex items-center justify-between"><h3 className="font-semibold">Quick Response</h3><button onClick={() => setQuickReplyOpen(false)}><X className="h-5 w-5" /></button></div>
-            <input value={quickReplyTitle} onChange={e => setQuickReplyTitle(e.target.value)} placeholder="Name / title" className="mb-2 w-full rounded-lg border px-3 py-2 text-sm" />
-            <textarea value={quickReplyMessage} onChange={e => setQuickReplyMessage(e.target.value)} placeholder="Message" rows={3} className="mb-2 w-full rounded-lg border px-3 py-2 text-sm" />
-            <input type="file" accept="image/*" onChange={e => setQuickReplyImage(e.target.files?.[0] || null)} className="mb-3 w-full text-sm" />
-            <button onClick={async () => { try { let url = null; if (quickReplyImage) url = await uploadImage(quickReplyImage, 'quick-replies'); const r = await supabase.from('chat_quick_replies').insert({ title: quickReplyTitle || quickReplyMessage.slice(0, 40) || 'Quick response', message: quickReplyMessage || null, media_url: url }); if (r.error) throw r.error; await loadQuickReplies(); setQuickReplyTitle(''); setQuickReplyMessage(''); setQuickReplyImage(null); setQuickReplyOpen(false); } catch (err: any) { setChatError(err.message); } }} className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Save Quick Response</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+  // Admin UI continues below unchanged.

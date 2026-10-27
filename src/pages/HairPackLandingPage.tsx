@@ -286,9 +286,9 @@ export default function HairPackLandingPage() {
         <p className="mt-1.5 text-[10px] text-white/55">নিজের যত্নের অভ্যাস হোক সহজ, সুন্দর ও নিয়মিত।</p>
       </footer>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#ded8c9] bg-[#fffdf7]/95 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_rgba(25,45,30,.12)] backdrop-blur-xl sm:hidden">
+      {landingSettings?.show_sticky_order_bar !== false && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#ded8c9] bg-[#fffdf7]/95 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_rgba(25,45,30,.12)] backdrop-blur-xl sm:hidden">
         <div className="mx-auto flex max-w-xl items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-[10px] font-medium text-[#73796c]">{productName}</p><p className="text-lg font-extrabold leading-6 text-[#294b37]">{formatPrice(product.price)}</p></div><button type="button" onClick={buyNow} disabled={outOfStock} className="ritual-cta inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#294b37] px-5 text-sm font-bold text-white shadow-lg disabled:opacity-50"><ShoppingBag size={16} />{outOfStock ? 'স্টকে নেই' : 'অর্ডার করুন'}</button></div>
-      </div>
+      </div>}
     </main>
   );
 }

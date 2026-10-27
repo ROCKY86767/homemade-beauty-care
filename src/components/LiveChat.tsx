@@ -181,7 +181,7 @@ export default function LiveChat() {
       const nextConversation = data as Conversation;
       setConversation(nextConversation);
       setStarted(true);
-      if (nextConversation.status === 'open') void supabase.rpc('touch_guest_chat', { p_visitor_token: token(), p_conversation_id: id, p_current_path: window.location.pathname });
+      if (nextConversation.status === 'open' && document.visibilityState === 'visible') void supabase.rpc('touch_guest_chat', { p_visitor_token: token(), p_conversation_id: id, p_current_path: window.location.pathname });
       await loadMessages(id);
     };
     void syncChat();
@@ -770,7 +770,7 @@ export function ChatAdminView() {
         if (chatImage.size > (kind === 'video' ? 40 : 10) * 1024 * 1024) throw new Error(kind === 'video' ? 'ভিডিও সর্বোচ্চ 40 MB হতে পারবে।' : 'ছবি সর্বোচ্চ 10 MB হতে পারবে।');
         media_url = await uploadChatFile(chatImage, `admin/${selected.id}`);
       } else media_url = chatImageUrl;
-      const messageType = chatImage ? mediaTypeFor(chatImage) : chatImageUrl ? 'image' : 'text';
+      const messageType: 'text' | 'image' | 'video' = chatImage ? (mediaTypeFor(chatImage) || 'image') : chatImageUrl ? 'image' : 'text';
       const { error } = await supabase.from('chat_messages').insert({
         conversation_id: selected.id, sender_type: 'admin', sender_name: 'Admin',
         message: message.trim() || (messageType === 'video' ? 'Video' : messageType === 'image' ? 'Image' : ''), is_read: true, message_type: messageType, media_url,

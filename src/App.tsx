@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import ScrollToTop from '@/components/ScrollToTop';
 import { CartProvider } from '@/lib/cart-context';
@@ -45,14 +45,16 @@ function PageLoader() {
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const isHairPackLanding = location.pathname === '/hairpack' || location.pathname === '/hair-pack';
   return (
     <div className="w-full min-w-0 min-h-screen flex flex-col overflow-x-clip">
-      <Header />
-      <main className="w-full min-w-0 flex-1 pb-16 lg:pb-0">
+      {!isHairPackLanding && <Header />}
+      <main className={`w-full min-w-0 flex-1 ${isHairPackLanding ? '' : 'pb-16 lg:pb-0'}`}>
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
-      <Footer />
-      <MobileNav />
+      {!isHairPackLanding && <Footer />}
+      {!isHairPackLanding && <MobileNav />}
       <LiveChat />
       <WhatsAppButton />
     </div>

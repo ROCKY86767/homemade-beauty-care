@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowDown, ArrowRight, CheckCircle2, Leaf, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck, Star, PackageCheck, Flower2, HeartHandshake, CircleHelp } from 'lucide-react';
+import { ArrowDown, ArrowRight, CheckCircle2, Leaf, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck, PackageCheck, Flower2, HeartHandshake, CircleHelp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { Product, Review, SiteSettings } from '@/lib/types';
+import type { Product, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
 import { getSettings } from '@/lib/settings';
 import { formatPrice, calculateDiscountPercent } from '@/lib/format';
@@ -17,7 +17,6 @@ const fallbackBenefits = [
 export default function HairPackLandingPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState('');
@@ -33,8 +32,6 @@ export default function HairPackLandingPage() {
       if (!active) return;
       if (data) {
         setProduct(data as Product);
-        const { data: reviewData } = await supabase.from('reviews').select('*').eq('product_id', data.id).eq('is_approved', true).order('sort_order').limit(8);
-        setReviews((reviewData || []) as Review[]);
       }
       setSettings(siteSettings);
       setLoading(false);
@@ -125,25 +122,27 @@ export default function HairPackLandingPage() {
         </div>
       </section>
 
-      <section id="details" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center"><p className="text-xs font-bold tracking-[0.2em] text-[#98734d]">WHY MAKE IT PART OF YOUR ROUTINE?</p><h2 className="mt-3 font-display text-3xl font-bold text-[#243b2c] sm:text-4xl">চুলের যত্ন হোক নিয়মিত ও সহজ</h2><p className="mt-4 leading-7 text-[#657265]">পণ্যের বিবরণ ও ব্যবহারের নির্দেশনা দেখে আপনার রুটিনে মানানসই হলে বেছে নিন।</p></div>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{benefits.map((benefit, i) => <div key={benefit} className="rounded-xl border border-[#dce4d6] bg-white/80 p-4"><div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#e8eee3] text-[#365b3e]"><CheckCircle2 size={20} /></div><p className="text-sm leading-6 text-[#435347]">{benefit}</p></div>)}</div>
-      </section>
-
-
-      {(product.who_is_it_for_bn || product.storage_bn || product.notes_bn || product.ingredients_bn) && <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 sm:pb-10 lg:px-8">
-        <div className="grid gap-4 md:grid-cols-2">
-          {product.who_is_it_for_bn && <article className="rounded-2xl border border-[#dfe6d9] bg-[#f0f2e9] p-4 sm:p-5"><HeartHandshake size={22}/><h3 className="mt-4 font-display text-xl font-bold">কার জন্য উপযোগী?</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#5f6e60]">{product.who_is_it_for_bn}</p></article>}
-          {product.ingredients_bn && <article className="rounded-2xl border border-[#e8dfd1] bg-[#f7f0e5] p-4 sm:p-5"><Flower2 size={22}/><h3 className="mt-4 font-display text-xl font-bold">উপাদান সম্পর্কে</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#756858]">{product.ingredients_bn}</p></article>}
-          {product.storage_bn && <article className="rounded-2xl border border-[#dfe6d9] bg-white p-4 sm:p-5"><PackageCheck size={22}/><h3 className="mt-4 font-display text-xl font-bold">সংরক্ষণের নিয়ম</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#5f6e60]">{product.storage_bn}</p></article>}
-          {product.notes_bn && <article className="rounded-2xl border border-[#e5e3d8] bg-white p-4 sm:p-5"><CircleHelp size={22}/><h3 className="mt-4 font-display text-xl font-bold">বিশেষভাবে মনে রাখুন</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#5f6e60]">{product.notes_bn}</p></article>}
+      <section id="details" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="rounded-2xl border border-[#dce4d6] bg-white/85 p-4 sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div><p className="text-[11px] font-bold tracking-[0.18em] text-[#98734d]">PRODUCT DETAILS</p><h2 className="mt-1 font-display text-2xl font-bold text-[#243b2c]">উপকারিতা ও পণ্যের তথ্য</h2></div>
+            <span className="text-xs text-[#718070]">এক জায়গায় প্রয়োজনীয় তথ্য</span>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {benefits.map((benefit) => <div key={benefit} className="flex items-start gap-2 rounded-xl bg-[#f1f4ec] p-3"><CheckCircle2 className="mt-0.5 shrink-0 text-[#365b3e]" size={17}/><p className="text-sm leading-6 text-[#435347]">{benefit}</p></div>)}
+            {product.who_is_it_for_bn && <div className="flex items-start gap-2 rounded-xl bg-[#f7f0e5] p-3"><HeartHandshake className="mt-0.5 shrink-0 text-[#98734d]" size={18}/><div><h3 className="text-sm font-semibold text-[#294c34]">কার জন্য উপযোগী</h3><p className="mt-1 whitespace-pre-line text-sm leading-6 text-[#756858]">{product.who_is_it_for_bn}</p></div></div>}
+            {product.ingredients_bn && <div className="flex items-start gap-2 rounded-xl bg-[#f7f0e5] p-3"><Flower2 className="mt-0.5 shrink-0 text-[#98734d]" size={18}/><div><h3 className="text-sm font-semibold text-[#294c34]">উপাদান</h3><p className="mt-1 whitespace-pre-line text-sm leading-6 text-[#756858]">{product.ingredients_bn}</p></div></div>}
+            {product.storage_bn && <div className="flex items-start gap-2 rounded-xl bg-[#f1f4ec] p-3"><PackageCheck className="mt-0.5 shrink-0 text-[#365b3e]" size={18}/><div><h3 className="text-sm font-semibold text-[#294c34]">সংরক্ষণের নিয়ম</h3><p className="mt-1 whitespace-pre-line text-sm leading-6 text-[#5f6e60]">{product.storage_bn}</p></div></div>}
+            {product.notes_bn && <div className="flex items-start gap-2 rounded-xl bg-[#f1f4ec] p-3"><CircleHelp className="mt-0.5 shrink-0 text-[#365b3e]" size={18}/><div><h3 className="text-sm font-semibold text-[#294c34]">বিশেষ তথ্য</h3><p className="mt-1 whitespace-pre-line text-sm leading-6 text-[#5f6e60]">{product.notes_bn}</p></div></div>}
+            {(product.description_bn || product.short_description_bn) && <div className="flex items-start gap-2 rounded-xl bg-[#f1f4ec] p-3"><Leaf className="mt-0.5 shrink-0 text-[#365b3e]" size={18}/><div><h3 className="text-sm font-semibold text-[#294c34]">পণ্যের বিবরণ</h3><p className="mt-1 whitespace-pre-line text-sm leading-6 text-[#5f6e60]">{product.description_bn || product.short_description_bn}</p></div></div>}
+          </div>
         </div>
-      </section>}
+      </section>
 
       <section className="bg-[#e9eee3] py-8 sm:py-10">
         <div className="mx-auto grid max-w-7xl items-center gap-5 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
-          <div><p className="text-xs font-bold tracking-[0.2em] text-[#98734d]">HOW TO USE</p><h2 className="mt-3 font-display text-3xl font-bold text-[#243b2c] sm:text-4xl">ব্যবহারের নিয়ম</h2><p className="mt-4 leading-7 text-[#657265]">প্যাকেটের নির্দেশনা এবং পণ্যের বিবরণ অনুসরণ করুন। প্রথমবার ব্যবহারের আগে ত্বকে অল্প পরিমাণে পরীক্ষা করে নেওয়া ভালো।</p></div>
-          <div className="rounded-2xl border border-white bg-white/85 p-4 shadow-sm sm:p-5"><div className="flex items-start gap-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2f5238] font-bold text-white">১</span><div><h3 className="font-semibold text-[#294c34]">প্রস্তুত করুন</h3><p className="mt-1 leading-7 text-[#657265]">{howToUse || 'পণ্যের প্যাকেট ও বিবরণে দেওয়া নির্দেশনা অনুযায়ী ব্যবহার উপযোগী করে নিন।'}</p></div></div><div className="my-5 h-px bg-[#e2e8de]" /><div className="flex items-start gap-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2f5238] font-bold text-white">২</span><div><h3 className="font-semibold text-[#294c34]">নিয়ম মেনে ব্যবহার করুন</h3><p className="mt-1 leading-7 text-[#657265]">নির্দেশিত সময় ও পদ্ধতি অনুসরণ করুন। অস্বস্তি বা জ্বালাপোড়া হলে ব্যবহার বন্ধ করুন।</p></div></div></div>
+          <div><p className="text-xs font-bold tracking-[0.2em] text-[#98734d]">HOW TO USE</p><h2 className="mt-3 font-display text-3xl font-bold text-[#243b2c] sm:text-4xl">ব্যবহারের নিয়ম</h2><p className="mt-4 leading-7 text-[#657265]">চুল ও স্ক্যাল্পের যত্নে পণ্যটি ব্যবহারের আগে প্যাকেটের নির্দেশনা পড়ে নিন। প্রথমবার ব্যবহার করলে অল্প পরিমাণ দিয়ে শুরু করুন।</p></div>
+          <div className="rounded-2xl border border-white bg-white/85 p-4 shadow-sm sm:p-5"><div className="flex items-start gap-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2f5238] font-bold text-white">১</span><div><h3 className="font-semibold text-[#294c34]">প্রস্তুত করুন</h3><p className="mt-1 leading-7 text-[#657265]">{howToUse || 'পণ্যের প্যাকেট ও বিবরণে দেওয়া নির্দেশনা অনুযায়ী ব্যবহার উপযোগী করে নিন।'}</p></div></div><div className="my-5 h-px bg-[#e2e8de]" /><div className="flex items-start gap-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2f5238] font-bold text-white">২</span><div><h3 className="font-semibold text-[#294c34]">নিয়ম মেনে ব্যবহার করুন</h3><p className="mt-1 leading-7 text-[#657265]">চুলে সমানভাবে লাগিয়ে প্যাকেটে উল্লেখ করা সময় পর্যন্ত রাখুন, এরপর নির্দেশনা অনুযায়ী ধুয়ে ফেলুন।</p></div></div></div>
         </div>
       </section>
 
@@ -155,12 +154,11 @@ export default function HairPackLandingPage() {
       </section>
 
 
-      <section id="reviews" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div><p className="text-[11px] font-bold tracking-[0.2em] text-[#98734d]">CUSTOMER FEEDBACK</p><h2 className="mt-1 font-display text-2xl font-bold text-[#243b2c] sm:text-3xl">ক্রেতাদের রিভিউ</h2><p className="mt-1 text-sm text-[#657265]">বাস্তব ক্রেতাদের অনুমোদিত মতামত</p></div>
-          <Link to={`/product/${product.slug}`} className="inline-flex items-center gap-2 rounded-full border border-[#2f5238]/25 bg-white px-4 py-2.5 text-sm font-semibold text-[#2f5238] transition hover:bg-[#edf1e8]">সব রিভিউ দেখুন <ArrowRight size={16}/></Link>
+      <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dce4d6] bg-white p-4 sm:p-5">
+          <div><h2 className="font-display text-xl font-bold text-[#243b2c]">ক্রেতাদের রিভিউ</h2><p className="mt-1 text-sm text-[#657265]">পণ্যের বিস্তারিত পেজে গিয়ে ক্রেতাদের রিভিউ দেখুন।</p></div>
+          <Link to={`/product/${product.slug}#reviews`} className="inline-flex items-center gap-2 rounded-full bg-[#2f5238] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#243f2b]">রিভিউ দেখুন <ArrowRight size={16}/></Link>
         </div>
-        {reviews.length ? <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{reviews.slice(0,6).map(review => <article key={review.id} className="rounded-xl border border-[#dfe5d9] bg-white p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-[#294c34]">{review.customer_name}</p>{review.location && <p className="mt-0.5 text-xs text-[#7a8577]">{review.location}</p>}</div><span className="shrink-0 text-sm font-semibold text-[#98734d]">{'★'.repeat(Math.max(0, Math.min(5, review.rating)))}<span className="text-[#d9ddd4]">{'★'.repeat(5-Math.max(0, Math.min(5, review.rating)))}</span></span></div><p className="mt-2 text-sm leading-6 text-[#657265]">{review.review_bn || 'ক্রেতা এই পণ্যের জন্য রেটিং দিয়েছেন।'}</p>{review.is_verified && <p className="mt-2 text-xs font-medium text-[#426447]">✓ যাচাইকৃত ক্রেতা</p>}</article>)}</div> : <div className="mt-4 rounded-xl border border-dashed border-[#d4ddce] bg-white/70 p-5 text-sm text-[#657265]">এখনও কোনো অনুমোদিত রিভিউ নেই। পণ্য সম্পর্কে আরও তথ্য জানতে বা অর্ডার করতে নিচের বাটন ব্যবহার করুন।</div>}
       </section>
 
       <section className="bg-[#243f2c] px-4 py-8 text-center text-white sm:py-10"><p className="text-sm font-semibold tracking-[0.18em] text-[#d7c4a6]">HOMEMADE BEAUTY CARE</p><h2 className="mx-auto mt-2 max-w-2xl font-display text-2xl font-bold sm:text-3xl">প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</h2><p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">আপনার ঘরোয়া রূপচর্চার যাত্রায় সঠিক যত্নের অভ্যাস গড়ে তুলুন।</p><button type="button" onClick={buyNow} disabled={outOfStock} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#f4e8d3] px-6 py-3 text-sm font-bold text-[#294c34] transition hover:bg-white disabled:opacity-50">অর্ডার করুন <ArrowRight size={18} /></button><p className="mt-4 text-sm text-white/70">প্রশ্ন আছে? ওয়েবসাইটের Live Chat বা WhatsApp-এ যোগাযোগ করুন।</p></section>

@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical, Trash2, ArrowLeft } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical, Trash2, ArrowLeft, Video } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type ChatMessage = {
@@ -9,7 +9,7 @@ type ChatMessage = {
   sender_name: string | null;
   message: string;
   is_read: boolean;
-  message_type: 'text' | 'audio' | 'image';
+  message_type: 'text' | 'audio' | 'image' | 'video';
   media_url: string | null;
   created_at: string;
 };
@@ -21,6 +21,8 @@ type Conversation = {
   status: 'open' | 'closed';
   last_message_at: string;
   created_at: string;
+  updated_at?: string;
+  customer_last_seen_at?: string | null;
 };
 
 const TOKEN_KEY = 'hbc-live-chat-token';
@@ -36,6 +38,20 @@ async function uploadChatAudio(blob: Blob, prefix: string) {
   });
   if (error) throw error;
   return supabase.storage.from('chat-audio').getPublicUrl(path).data.publicUrl;
+}
+
+async function uploadChatFile(file: File, prefix: string) {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'attachment';
+  const path = `${prefix}/${crypto.randomUUID()}-${safeName}`;
+  const { error } = await supabase.storage.from('chat-audio').upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: false });
+  if (error) throw error;
+  return supabase.storage.from('chat-audio').getPublicUrl(path).data.publicUrl;
+}
+
+function mediaTypeFor(file: File): 'image' | 'video' | null {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  return null;
 }
 
 function getRecorderOptions() {
@@ -67,6 +83,9 @@ export default function LiveChat() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState('');
+  const [chatAttachment, setChatAttachment] = useState<File | null>(null);
+  const customerFileInputRef = useRef<HTMLInputElement | null>(null);
+  const customerMessageRequestRef = useRef(0);
 
   const savedConversationId = useMemo(() => localStorage.getItem(CONVERSATION_KEY), []);
   const notifiedMessageIdsRef = useRef<Set<string>>(new Set());
@@ -110,15 +129,13 @@ export default function LiveChat() {
 
 
   const loadMessages = async (conversationId: string) => {
-    const { data, error } = await supabase.rpc('get_guest_chat', {
-      p_visitor_token: token(),
-      p_conversation_id: conversationId,
-    });
-    if (!error) {
-      const nextMessages = (data || []) as ChatMessage[];
-      setMessages(nextMessages);
-      notifyNewAdminMessages(nextMessages);
-    }
+    const requestId = ++customerMessageRequestRef.current;
+    const { data, error } = await supabase.rpc('get_guest_chat', { p_visitor_token: token(), p_conversation_id: conversationId });
+    if (error || requestId !== customerMessageRequestRef.current || localStorage.getItem(CONVERSATION_KEY) !== conversationId) return;
+    const nextMessages = (data || []) as ChatMessage[];
+    if (!nextMessages.length && messages.length) return;
+    setMessages(nextMessages);
+    notifyNewAdminMessages(nextMessages);
   };
 
   const loadConversation = async () => {
@@ -130,13 +147,8 @@ export default function LiveChat() {
     });
     if (data) {
       setConversation(data as Conversation);
-      if ((data as Conversation).status === 'closed') {
-        setStarted(false);
-        setMessage('');
-      } else {
-        setStarted(true);
-        await loadMessages(id);
-      }
+      setStarted(true);
+      await loadMessages(id);
     }
   };
 
@@ -166,14 +178,9 @@ export default function LiveChat() {
       if (!active || error || !data) return;
       const nextConversation = data as Conversation;
       setConversation(nextConversation);
-      if (nextConversation.status === 'open') {
-        setStarted(true);
-        await loadMessages(id);
-      } else {
-        setStarted(false);
-        setMessages([]);
-        setMessage('');
-      }
+      setStarted(true);
+      if (nextConversation.status === 'open') void supabase.rpc('touch_guest_chat', { p_visitor_token: token(), p_conversation_id: id, p_current_path: window.location.pathname });
+      await loadMessages(id);
     };
     void syncChat();
     // Keep syncing while the widget is minimized so replies can trigger
@@ -285,14 +292,23 @@ export default function LiveChat() {
 
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
-    if (!conversation?.id || !message.trim()) return;
+    if (!conversation?.id || conversation.status !== 'open' || (!message.trim() && !chatAttachment)) return;
     setSending(true);
     setChatError('');
     try {
-      const { error } = await supabase.rpc('send_guest_chat', {
-        p_visitor_token: token(), p_conversation_id: conversation.id, p_message: message.trim(),
-      });
-      if (error) throw error;
+      if (chatAttachment) {
+        const kind = mediaTypeFor(chatAttachment);
+        if (!kind) throw new Error('শুধু ছবি বা ভিডিও পাঠানো যাবে।');
+        if (chatAttachment.size > (kind === 'video' ? 40 : 10) * 1024 * 1024) throw new Error(kind === 'video' ? 'ভিডিও সর্বোচ্চ 40 MB হতে পারবে।' : 'ছবি সর্বোচ্চ 10 MB হতে পারবে।');
+        const url = await uploadChatFile(chatAttachment, `customer/${conversation.id}`);
+        const { error } = await supabase.rpc('send_guest_chat_media', { p_visitor_token: token(), p_conversation_id: conversation.id, p_media_url: url, p_message_type: kind, p_message: message.trim() });
+        if (error) throw error;
+        setChatAttachment(null);
+        if (customerFileInputRef.current) customerFileInputRef.current.value = '';
+      } else {
+        const { error } = await supabase.rpc('send_guest_chat', { p_visitor_token: token(), p_conversation_id: conversation.id, p_message: message.trim() });
+        if (error) throw error;
+      }
       setMessage('');
       await loadMessages(conversation.id);
     } catch (err: any) {
@@ -322,13 +338,15 @@ export default function LiveChat() {
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'customer' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'customer' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border bg-white text-gray-800'}`}>
-                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="h-8 w-[180px] max-w-full" /> : item.message_type === 'image' && item.media_url ? <img src={item.media_url} alt="chat attachment" className="max-h-56 max-w-full rounded-lg" /> : item.message}
+                      {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="h-8 w-[180px] max-w-full" /> : item.message_type === 'image' && item.media_url ? <img src={item.media_url} alt="chat attachment" className="max-h-56 max-w-full rounded-lg" /> : item.message_type === 'video' && item.media_url ? <video controls preload="metadata" src={item.media_url} className="max-h-56 max-w-full rounded-lg" /> : item.message}
                     </div>
                   </div>
                 ))}
                 {!messages.length && <p className="pt-8 text-center text-xs text-gray-400">মেসেজ লোড হচ্ছে...</p>}
               </div>
+              {conversation?.status === 'closed' && <div className="border-t bg-amber-50 px-3 py-2 text-xs text-amber-800">এই চ্যাটটি বন্ধ হয়েছে। পুরোনো মেসেজ দেখা যাবে। নতুন চ্যাট শুরু করতে <button type="button" onClick={() => { setStarted(false); setMessages([]); setConversation(null); localStorage.removeItem(CONVERSATION_KEY); }} className="font-semibold underline">নতুন চ্যাট</button> করুন।</div>}
               {chatError && <div className="border-t bg-red-50 px-3 py-2 text-xs text-red-600">{chatError}</div>}
+              {chatAttachment && conversation?.status === 'open' && <div className="flex items-center gap-2 border-t bg-gray-50 px-3 py-2 text-xs"><span className="min-w-0 flex-1 truncate">{chatAttachment.name}</span><button type="button" onClick={() => setChatAttachment(null)} className="text-red-600">বাদ দিন</button></div>}
               {pendingVoiceUrl && (
                 <div className="flex items-center gap-2 border-t bg-gray-50 px-3 py-2">
                   <audio controls preload="metadata" src={pendingVoiceUrl} className="min-w-0 flex-1" />
@@ -336,12 +354,14 @@ export default function LiveChat() {
                   <button type="button" onClick={sendPendingVoice} disabled={voiceUploading} title="Send voice" className="flex h-10 shrink-0 items-center gap-1 rounded-lg bg-primary px-3 text-sm font-medium text-white disabled:opacity-50">{voiceUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send</button>
                 </div>
               )}
-              <form onSubmit={sendMessage} className="flex items-end gap-2 border-t bg-white p-3">
+              {conversation?.status === 'open' && <form onSubmit={sendMessage} className="flex items-end gap-1.5 border-t bg-white p-3">
+                <button type="button" onClick={() => customerFileInputRef.current?.click()} title="ছবি বা ভিডিও পাঠান" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary"><ImagePlus className="h-4 w-4" /></button>
+                <input ref={customerFileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0] || null; if (file && !mediaTypeFor(file)) { setChatError('শুধু ছবি বা ভিডিও পাঠানো যাবে।'); e.currentTarget.value = ''; return; } setChatAttachment(file); setChatError(''); }} />
                 <button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${recording ? 'bg-red-50 text-red-600' : 'text-primary'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
                 <textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="মেসেজ লিখুন..." className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 <button type="button" onClick={saveReply} title="Save reply" disabled={!message.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-primary disabled:opacity-40"><Bookmark className="h-4 w-4" /></button>
                 <button disabled={sending || voiceUploading || !message.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-50"><Send className="h-4 w-4" /></button>
-              </form>
+              </form>}
             </>
           )}
         </div>
@@ -370,6 +390,7 @@ export function ChatAdminView() {
   const [quickReplyMessage, setQuickReplyMessage] = useState('');
   const [quickReplyImage, setQuickReplyImage] = useState<File | null>(null);
   const [chatImage, setChatImage] = useState<File | null>(null);
+  const [chatImageType, setChatImageType] = useState<'image' | 'video'>('image');
   const [chatImageUrl, setChatImageUrl] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const selectedIdRef = useRef<string | null>(null);
@@ -396,7 +417,7 @@ export function ChatAdminView() {
 
     const { data, error } = await supabase
       .from('chat_conversations')
-      .select('id,customer_name,customer_mobile,status,last_message_at,created_at')
+      .select('id,customer_name,customer_mobile,status,last_message_at,created_at,updated_at,customer_last_seen_at')
       .order('last_message_at', { ascending: false });
 
     if (error) {
@@ -412,7 +433,7 @@ export function ChatAdminView() {
     if (!rows.length && conversationsRef.current.length) {
       const retry = await supabase
         .from('chat_conversations')
-        .select('id,customer_name,customer_mobile,status,last_message_at,created_at')
+        .select('id,customer_name,customer_mobile,status,last_message_at,created_at,updated_at,customer_last_seen_at')
         .order('last_message_at', { ascending: false });
 
       if (requestId !== conversationRequestRef.current) return;
@@ -714,12 +735,16 @@ export function ChatAdminView() {
         fresh.status = 'open';
       }
       let media_url = null;
-      if (chatImage) media_url = await uploadImage(chatImage, 'chat/' + selected.id);
-      else media_url = chatImageUrl;
-      const messageType = chatImage || chatImageUrl ? 'image' : 'text';
+      if (chatImage) {
+        const kind = mediaTypeFor(chatImage);
+        if (!kind) throw new Error('শুধু ছবি বা ভিডিও পাঠানো যাবে।');
+        if (chatImage.size > (kind === 'video' ? 40 : 10) * 1024 * 1024) throw new Error(kind === 'video' ? 'ভিডিও সর্বোচ্চ 40 MB হতে পারবে।' : 'ছবি সর্বোচ্চ 10 MB হতে পারবে।');
+        media_url = await uploadChatFile(chatImage, `admin/${selected.id}`);
+      } else media_url = chatImageUrl;
+      const messageType = chatImage ? mediaTypeFor(chatImage) : chatImageUrl ? 'image' : 'text';
       const { error } = await supabase.from('chat_messages').insert({
         conversation_id: selected.id, sender_type: 'admin', sender_name: 'Admin',
-        message: message.trim() || 'Image', is_read: true, message_type: messageType, media_url,
+        message: message.trim() || (messageType === 'video' ? 'Video' : messageType === 'image' ? 'Image' : ''), is_read: true, message_type: messageType, media_url,
       });
       if (error) throw error;
       await supabase.from('chat_conversations').update({
@@ -856,7 +881,7 @@ export function ChatAdminView() {
                     {messages.map((item) => (
                       <div key={item.id} className={`flex ${item.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[68%] rounded-xl px-3 py-2 text-[13px] shadow-sm ${item.sender_type === 'admin' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border border-gray-200 bg-white text-gray-800'}`}>
-                          {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message_type === 'image' && item.media_url ? <><img src={item.media_url} alt="chat attachment" className="max-h-72 max-w-full rounded-xl object-contain" />{item.message && item.message !== 'Image' && <div className="mt-2">{item.message}</div>}</> : item.message}
+                          {item.message_type === 'audio' && item.media_url ? <audio controls preload="metadata" src={item.media_url} className="max-w-full" /> : item.message_type === 'image' && item.media_url ? <><img src={item.media_url} alt="chat attachment" className="max-h-72 max-w-full rounded-xl object-contain" />{item.message && item.message !== 'Image' && <div className="mt-2">{item.message}</div>}</> : item.message_type === 'video' && item.media_url ? <><video controls preload="metadata" src={item.media_url} className="max-h-72 max-w-full rounded-xl" />{item.message && item.message !== 'Video' && <div className="mt-2">{item.message}</div>}</> : item.message}
                           <div className={`mt-1 text-[9px] ${item.sender_type === 'admin' ? 'text-white/60' : 'text-gray-400'}`}>{new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
                       </div>
@@ -879,7 +904,7 @@ export function ChatAdminView() {
                       </div>
                     )}
                     {chatImageUrl && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2"><img src={chatImageUrl} alt="selected" className="h-12 w-12 rounded-lg object-cover" /><span className="text-xs text-gray-600">Saved picture selected</span><button type="button" onClick={() => setChatImageUrl(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
-                    {chatImage && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2"><img src={URL.createObjectURL(chatImage)} alt="selected" className="h-12 w-12 rounded-lg object-cover" /><span className="truncate text-xs text-gray-600">{chatImage.name}</span><button type="button" onClick={() => setChatImage(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
+                    {chatImage && <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2">{chatImageType === 'video' ? <Video className="h-8 w-8 text-primary" /> : <img src={URL.createObjectURL(chatImage)} alt="selected" className="h-12 w-12 rounded-lg object-cover" />}<span className="truncate text-xs text-gray-600">{chatImage.name}</span><button type="button" onClick={() => setChatImage(null)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button></div>}
                     {pendingVoiceUrl && (
                       <div className="flex items-center gap-3 border-b bg-gray-50 px-4 py-2">
                         <audio controls preload="metadata" src={pendingVoiceUrl} className="h-9 w-[180px] max-w-[45%] min-w-0 shrink" />
@@ -890,8 +915,8 @@ export function ChatAdminView() {
                     <form onSubmit={send} className="flex items-end gap-1.5 p-2.5 sm:gap-2 sm:p-4">
                       <button type="button" onClick={toggleRecording} disabled={voiceUploading || !!pendingVoice} title={recording ? 'Stop recording' : 'Record voice message'} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${recording ? 'bg-red-50 text-red-600' : 'text-primary hover:bg-primary/5'}`}>{recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}</button>
                       <textarea rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); } }} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Write a reply...  Enter to send" className="min-h-[44px] min-w-0 flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-primary focus:bg-white" />
-                      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setChatImage(e.target.files?.[0] || null); setChatImageUrl(null); }} />
-                      <button type="button" onClick={() => imageInputRef.current?.click()} title="Picture" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-gray-600 hover:bg-gray-50 sm:h-11 sm:w-11"><ImagePlus className="h-4 w-4" /></button>
+                      <input ref={imageInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0] || null; if (file && !mediaTypeFor(file)) { setChatError('শুধু ছবি বা ভিডিও পাঠানো যাবে।'); e.currentTarget.value = ''; return; } setChatImage(file); setChatImageType(file ? mediaTypeFor(file) || 'image' : 'image'); setChatImageUrl(null); setChatError(''); }} />
+                      <button type="button" onClick={() => imageInputRef.current?.click()} title="ছবি বা ভিডিও" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-gray-600 hover:bg-gray-50 sm:h-11 sm:w-11"><ImagePlus className="h-4 w-4" /></button>
                       <button type="button" onClick={() => setShowSavedReplies((value) => !value)} title="Quick responses" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${showSavedReplies ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50'}`}><Bookmark className="h-4 w-4" /></button>
                       <button disabled={voiceUploading || (!message.trim() && !chatImage && !chatImageUrl)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm disabled:opacity-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-5"><Send className="h-4 w-4" /><span className="hidden sm:inline">Send</span></button>
                     </form>

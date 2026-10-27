@@ -86,7 +86,8 @@ export default function BeautyScrollStory() {
         zoomRef.current.zoom = reduced ? 0 : Math.min(1, Math.max(0, (progress - .04) / .42));
         zoomRef.current.spread = reduced ? 1 : Math.min(1, Math.max(0, (progress - .68) / .23));
         root.style.setProperty('--story-progress', String(progress));
-        root.style.setProperty('--story-wash', String(Math.min(1, Math.max(0, (progress - .40) / .20))));
+        root.dataset.storyStep = progress < .34 ? 'before' : progress < .67 ? 'skin' : 'result';
+        root.style.setProperty('--story-wash', String(Math.min(.16, Math.max(0, (progress - .40) / .20) * .16)));
         root.style.setProperty('--story-scanner', String(reduced ? 0 : Math.min(1, Math.max(0, (progress - .18) / .28)) * (1 - Math.min(1, Math.max(0, (progress - .53) / .12)))));
         root.style.setProperty('--story-lens', String(Math.min(1, Math.max(0, (progress - .48) / .18))));
         root.style.setProperty('--story-spread', String(reduced ? 1 : Math.min(1, Math.max(0, (progress - .50) / .22))));
@@ -155,6 +156,12 @@ export default function BeautyScrollStory() {
       <div className="hbc-story-pin">
         <div className="hbc-story-stage" aria-hidden="true">
           <canvas ref={canvasRef} className="hbc-story-canvas" />
+          <div className="hbc-story-result-status" aria-live="polite">
+            <span className="hbc-story-status-before">শুরুতে · ত্বক ও চুলের অবস্থা</span>
+            <span className="hbc-story-status-skin">ত্বকের যত্ন · স্কিন কেয়ার</span>
+            <span className="hbc-story-status-result">চুলের যত্ন · মসৃণ লুক</span>
+            <i><b /></i>
+          </div>
           <div className="hbc-story-wash" />
           <div className="hbc-story-scan-wrap">
             <svg className="hbc-story-scan" viewBox="-320 -320 640 640" role="presentation">

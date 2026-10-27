@@ -28,7 +28,7 @@ const defaults: LandingSettings = {
 const toggles: [keyof LandingSettings,string][] = [
  ['is_enabled','Landing Page চালু রাখুন'],['show_benefits','Benefits section দেখান'],['show_how_to_use','ব্যবহারের নিয়ম দেখান'],
  ['show_trust_strip','Hero-এর নিচের ৩টি তথ্যের বক্স দেখান'],['show_product_info','পণ্যের বিস্তারিত তথ্যের সেকশন দেখান'],['show_contact_section','WhatsApp / Live Chat সেকশন দেখান'],['show_order_section','নিচের Order CTA সেকশন দেখান'],
- ['show_editorial_reviews','Admin-এর ছবি/ভিডিও রিভিউ দেখান'],['show_faq','FAQ section দেখান'],
+ ['show_editorial_reviews','Admin-এর ছবি/ভিডিও রিভিউ দেখান'],
  ['show_whatsapp','WhatsApp contact button দেখান'],['show_sticky_order_bar','Sticky order bar দেখান']
 ];
 export default function HairPackLandingSettingsView() {

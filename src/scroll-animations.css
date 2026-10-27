@@ -139,3 +139,15 @@
   .homepage-compact section:not(.hero-premium) .card,
   .homepage-compact section:not(.hero-premium) a.group[class*="aspect-"] { transition: none !important; }
 }
+
+/* Cinematic beauty story: keep the hero visually pinned while its portrait,
+   scanner, wash and lens animation consume the scroll progress. The original
+   track was translating from the very beginning, which made the page move to
+   the next screen before the zoom sequence had finished. */
+.hbc-story-track {
+  transform: translate3d(
+    0,
+    calc(clamp(0, (var(--story-progress) - .82) / .12, 0, 1) * -50%),
+    0
+  ) !important;
+}

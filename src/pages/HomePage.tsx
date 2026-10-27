@@ -15,7 +15,6 @@ import { getSettings } from '@/lib/settings';
 import ProductCard from '@/components/ProductCard';
 import StarRating from '@/components/StarRating';
 import SEO from '@/components/SEO';
-import BeautyScrollStory from '@/components/BeautyScrollStory';
 
 const TRUST_FEATURES = [
   {
@@ -515,7 +514,6 @@ export default function HomePage() { // centralized storefront settings
       )}
 
       {/* Cinematic scroll storytelling — additive; existing storefront sections remain intact. */}
-      <BeautyScrollStory />
 
       {/* Trust Strip */}
       <section className="relative z-10 -mt-1 border-y border-[#DDE3D7] bg-[#F7F4EA] py-5 sm:py-7">

@@ -40,11 +40,13 @@ import {
   Bookmark,
   ChevronDown,
   Activity,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
 import HomepageEditorialReviewsView from './HomepageEditorialReviewsView';
+import HairPackLandingSettingsView from './HairPackLandingSettingsView';
 import ModeratorView from './ModeratorView';
 import { ChatAdminView } from '../components/LiveChat';
 import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
@@ -69,6 +71,7 @@ type Tab =
   | 'quick-responses'
   | 'reviews'
   | 'homepage-reviews'
+  | 'hairpack-landing'
   | 'coupons'
   | 'banners'
   | 'inventory'
@@ -280,6 +283,7 @@ export default function AdminPage() {
       'quick-responses',
       'reviews',
       'homepage-reviews',
+      'hairpack-landing',
       'coupons',
       'banners',
       'inventory',
@@ -392,6 +396,7 @@ export default function AdminPage() {
     { id: 'quick-responses' as Tab, label: 'Quick Responses', icon: MessageCircle },
     { id: 'reviews' as Tab, label: 'Customer Reviews', icon: Star },
     { id: 'homepage-reviews' as Tab, label: 'Homepage Reviews', icon: ImageIcon },
+    { id: 'hairpack-landing' as Tab, label: 'Hair Pack Landing Page', icon: SlidersHorizontal },
     { id: 'coupons' as Tab, label: 'Coupons', icon: Tag },
     { id: 'banners' as Tab, label: 'Banners', icon: ImageIcon },
     { id: 'inventory' as Tab, label: 'Inventory', icon: Package },

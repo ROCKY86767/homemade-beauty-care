@@ -321,7 +321,7 @@ export default function LiveChat() {
   return (
     <>
       {open && (
-        <div className="fixed right-4 bottom-36 sm:right-5 sm:bottom-20 z-[70] w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-2xl border border-brand-border bg-white shadow-2xl">
+        <div className="fixed right-2 bottom-36 sm:right-5 sm:bottom-20 z-[70] flex max-h-[min(78dvh,640px)] w-[calc(100vw-1rem)] max-w-[380px] flex-col overflow-hidden rounded-2xl border border-brand-border bg-white shadow-2xl sm:w-[360px]">
           <div className="flex items-center justify-between bg-primary px-4 py-3 text-white">
             <div><div className="font-semibold">Live Chat</div><div className="text-xs text-white/80">Homemade Beauty Care</div></div>
             <button onClick={() => setOpen(false)} aria-label="Close chat" className="rounded-full p-1 hover:bg-white/10"><X className="h-5 w-5" /></button>
@@ -336,7 +336,7 @@ export default function LiveChat() {
             </form>
           ) : (
             <>
-              <div className="h-80 space-y-3 overflow-y-auto bg-cream/40 p-4">
+              <div className="min-h-[180px] flex-1 space-y-3 overflow-y-auto overscroll-contain bg-cream/40 p-4">
                 {messages.map((item) => (
                   <div key={item.id} className={`flex ${item.sender_type === 'customer' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${item.sender_type === 'customer' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border bg-white text-gray-800'}`}>

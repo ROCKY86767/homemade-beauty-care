@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Heart, Minus, Plus, ShoppingCart, Zap, Truck, CreditCard, ShieldCheck, ChevronRight, MessageCircle, ZoomIn, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product, Review, SiteSettings } from '@/lib/types';
@@ -37,10 +37,15 @@ export default function ProductDetailPage() {
   const [reviewError, setReviewError] = useState('');
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     getSettings().then(setSettings);
   }, []);
+  
+  useEffect(() => {
+    if (location.hash === '#reviews') setActiveTab('reviews');
+  }, [location.hash, slug]);
 
   useEffect(() => {
     if (!slug) return;

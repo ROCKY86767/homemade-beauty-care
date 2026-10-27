@@ -194,7 +194,7 @@ export default function BeautyScrollStory() {
           <div className="hbc-story-hero">
             <div className="hbc-story-intro" data-story-reveal>
               <p className="hbc-story-eyebrow">প্রকৃতির ছোঁয়ায় প্রতিদিনের যত্ন</p>
-              <h2 aria-label="নিজের যত্নে নতুন অনুভূতি।"><span className="hbc-story-char-line" aria-hidden="true">{Array.from('নিজের যত্নে').map((char, i) => <span key={i} style={{ '--char-index': i } as React.CSSProperties}>{char === ' ' ? '\\u00a0' : char}</span>)}</span><span className="hbc-story-blue hbc-story-char-line" aria-hidden="true">{Array.from('নতুন অনুভূতি।').map((char, i) => <span key={i} style={{ '--char-index': i } as React.CSSProperties}>{char === ' ' ? '\\u00a0' : char}</span>)}</span></h2>
+              <h2 aria-label="নিজের যত্নে নতুন অনুভূতি।"><span className="hbc-story-char-line" aria-hidden="true">{Array.from('নিজের যত্নে').map((char, i) => <span key={i} style={{ '--char-index': i } as React.CSSProperties}>{char === ' ' ? '\u00a0' : char}</span>)}</span><span className="hbc-story-blue hbc-story-char-line" aria-hidden="true">{Array.from('নতুন অনুভূতি।').map((char, i) => <span key={i} style={{ '--char-index': i } as React.CSSProperties}>{char === ' ' ? '\u00a0' : char}</span>)}</span></h2>
             </div>
             <div className="hbc-story-callout" data-story-reveal>
               <div className="hbc-story-callout-copy"><span>Daily Care</span><strong>প্রতিদিন একটু ভালোবাসা</strong></div>

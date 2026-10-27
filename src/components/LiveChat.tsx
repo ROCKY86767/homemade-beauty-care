@@ -402,7 +402,7 @@ export function ChatAdminView() {
   const conversationsRef = useRef<Conversation[]>([]);
   const messagesRef = useRef<ChatMessage[]>([]);
   const adminSeenMessageIdsRef = useRef<Set<string>>(new Set());
-  const adminMessagesLoadedRef = useRef(false);
+  const adminLoadedConversationIdsRef = useRef<Set<string>>(new Set());
 
   const loadQuickReplies = async () => {
     const { data } = await supabase.from('chat_quick_replies').select('id,title,message,media_url').order('created_at', { ascending: false });
@@ -517,9 +517,9 @@ export function ChatAdminView() {
       return;
     }
 
-    if (!adminMessagesLoadedRef.current) {
+    if (!adminLoadedConversationIdsRef.current.has(conversationId)) {
+      adminLoadedConversationIdsRef.current.add(conversationId);
       rows.forEach((row) => adminSeenMessageIdsRef.current.add(row.id));
-      adminMessagesLoadedRef.current = true;
     } else {
       rows.filter((row) => row.sender_type === 'customer' && !adminSeenMessageIdsRef.current.has(row.id)).forEach((row) => {
         adminSeenMessageIdsRef.current.add(row.id);

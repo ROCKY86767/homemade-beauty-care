@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical, Trash2, ArrowLeft, Video } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User, Mic, Square, Bookmark, Search, ImagePlus, Phone, MoreVertical, Trash2, ArrowLeft, Video, Bell } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type ChatMessage = {
@@ -86,6 +86,7 @@ export default function LiveChat() {
   const [chatAttachment, setChatAttachment] = useState<File | null>(null);
   const customerFileInputRef = useRef<HTMLInputElement | null>(null);
   const customerMessageRequestRef = useRef(0);
+  const customerMessagesRef = useRef<ChatMessage[]>([]);
 
   const savedConversationId = useMemo(() => localStorage.getItem(CONVERSATION_KEY), []);
   const notifiedMessageIdsRef = useRef<Set<string>>(new Set());
@@ -133,7 +134,8 @@ export default function LiveChat() {
     const { data, error } = await supabase.rpc('get_guest_chat', { p_visitor_token: token(), p_conversation_id: conversationId });
     if (error || requestId !== customerMessageRequestRef.current || localStorage.getItem(CONVERSATION_KEY) !== conversationId) return;
     const nextMessages = (data || []) as ChatMessage[];
-    if (!nextMessages.length && messages.length) return;
+    if (!nextMessages.length && customerMessagesRef.current.length) return;
+    customerMessagesRef.current = nextMessages;
     setMessages(nextMessages);
     notifyNewAdminMessages(nextMessages);
   };
@@ -399,6 +401,8 @@ export function ChatAdminView() {
   const mobileChatHistoryRef = useRef(false);
   const conversationsRef = useRef<Conversation[]>([]);
   const messagesRef = useRef<ChatMessage[]>([]);
+  const adminSeenMessageIdsRef = useRef<Set<string>>(new Set());
+  const adminMessagesLoadedRef = useRef(false);
 
   const loadQuickReplies = async () => {
     const { data } = await supabase.from('chat_quick_replies').select('id,title,message,media_url').order('created_at', { ascending: false });
@@ -513,6 +517,20 @@ export function ChatAdminView() {
       return;
     }
 
+    if (!adminMessagesLoadedRef.current) {
+      rows.forEach((row) => adminSeenMessageIdsRef.current.add(row.id));
+      adminMessagesLoadedRef.current = true;
+    } else {
+      rows.filter((row) => row.sender_type === 'customer' && !adminSeenMessageIdsRef.current.has(row.id)).forEach((row) => {
+        adminSeenMessageIdsRef.current.add(row.id);
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && (document.visibilityState !== 'visible' || selectedIdRef.current !== conversationId)) {
+          const body = row.message_type === 'audio' ? '🎤 নতুন voice message' : row.message_type === 'video' ? '🎬 নতুন video message' : row.message_type === 'image' ? '🖼️ নতুন ছবি এসেছে' : row.message;
+          const notification = new Notification(`নতুন মেসেজ: ${row.sender_name || 'Customer'}`, { body: body || 'Live Chat-এ নতুন মেসেজ এসেছে', icon: '/homemade-logo.png', tag: `hbc-admin-chat-${row.id}` });
+          notification.onclick = () => { window.focus(); notification.close(); };
+        }
+      });
+    }
+    rows.forEach((row) => adminSeenMessageIdsRef.current.add(row.id));
     messagesRef.current = rows;
     setMessages(rows);
 
@@ -571,7 +589,18 @@ export function ChatAdminView() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chat_messages' },
-        scheduleRefresh
+        (payload) => {
+          scheduleRefresh();
+          const row = payload.new as Partial<ChatMessage>;
+          if (row?.id && row.sender_type === 'customer' && !adminSeenMessageIdsRef.current.has(row.id)) {
+            adminSeenMessageIdsRef.current.add(row.id);
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && (document.visibilityState !== 'visible' || selectedIdRef.current !== row.conversation_id)) {
+              const body = row.message_type === 'audio' ? '🎤 নতুন voice message' : row.message_type === 'video' ? '🎬 নতুন video message' : row.message_type === 'image' ? '🖼️ নতুন ছবি এসেছে' : row.message || 'Live Chat-এ নতুন মেসেজ এসেছে';
+              const notification = new Notification('Homemade Beauty Care — নতুন মেসেজ', { body, icon: '/homemade-logo.png', tag: `hbc-admin-chat-${row.id}` });
+              notification.onclick = () => { window.focus(); notification.close(); };
+            }
+          }
+        }
       )
       .on(
         'postgres_changes',
@@ -771,10 +800,23 @@ export function ChatAdminView() {
 
   const closeChat = async () => {
     if (!selected) return;
-    await supabase.from('chat_conversations').update({ status: 'closed', updated_at: new Date().toISOString() }).eq('id', selected.id);
+    const { error } = await supabase.from('chat_conversations').update({ status: 'closed', updated_at: new Date().toISOString() }).eq('id', selected.id);
+    if (error) { setChatError(error.message || 'Chat বন্ধ করা যায়নি।'); return; }
+    setChatError('');
     setSelected({ ...selected, status: 'closed' });
     await loadConversations();
   };
+
+  const enableAdminNotifications = async () => {
+    if (!('Notification' in window)) { setChatError('এই ব্রাউজারে notification support নেই।'); return; }
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') setChatError('Browser settings থেকে notification অনুমতি দিন।');
+      else { setChatError(''); await loadConversations(); }
+    } catch { setChatError('Notification চালু করা যায়নি।'); }
+  };
+
+  const isCustomerOnline = (item: Conversation) => !!item.customer_last_seen_at && Date.now() - new Date(item.customer_last_seen_at).getTime() < 60000;
 
   const selectConversation = (item: Conversation) => {
     selectedIdRef.current = item.id;
@@ -824,7 +866,7 @@ export function ChatAdminView() {
             </div>
           </div>
         </div>
-        <button onClick={loadConversations} className="rounded-lg border bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50">Refresh</button>
+        <div className="flex items-center gap-2"><button onClick={enableAdminNotifications} className="flex items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50"><Bell className="h-3.5 w-3.5" /><span className="hidden sm:inline">Enable alerts</span></button><button onClick={loadConversations} className="rounded-lg border bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50">Refresh</button></div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden p-4">
@@ -846,7 +888,7 @@ export function ChatAdminView() {
                   <div className="flex items-center gap-3">
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${selected?.id === item.id ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}><User className="h-4 w-4" /></div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2"><div className={`truncate text-sm ${unreadCounts[item.id] ? 'font-bold text-gray-950' : 'font-semibold text-gray-900'}`}>{item.customer_name}</div><div className="flex shrink-0 items-center gap-1.5"><span className={`h-2 w-2 rounded-full ${item.status === 'open' ? 'bg-green-500' : 'bg-gray-300'}`} />{unreadCounts[item.id] ? <span className="min-w-[20px] rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white">{unreadCounts[item.id]}</span> : null}</div></div>
+                      <div className="flex items-center justify-between gap-2"><div className={`truncate text-sm ${unreadCounts[item.id] ? 'font-bold text-gray-950' : 'font-semibold text-gray-900'}`}>{item.customer_name}</div><div className="flex shrink-0 items-center gap-1.5"><span title={isCustomerOnline(item) ? 'Customer online' : item.status === 'open' ? 'Chat open, customer offline' : 'Chat closed'} className={`h-2 w-2 rounded-full ${isCustomerOnline(item) ? 'bg-green-500' : item.status === 'open' ? 'bg-amber-400' : 'bg-gray-300'}`} />{unreadCounts[item.id] ? <span className="min-w-[20px] rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white">{unreadCounts[item.id]}</span> : null}</div></div>
                       <div className="mt-0.5 truncate text-xs text-gray-500">{item.customer_mobile || 'No phone number'}</div>
                       <div className="mt-1 text-[10px] text-gray-400">{new Date(item.last_message_at).toLocaleString()}</div>
                     </div>
@@ -866,7 +908,7 @@ export function ChatAdminView() {
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><User className="h-4 w-4" /></div>
                     <div className="min-w-0">
                       <div className="truncate font-bold text-gray-900">{selected.customer_name}</div>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500"><span className={`h-1.5 w-1.5 rounded-full ${selected.status === 'open' ? 'bg-green-500' : 'bg-gray-300'}`} />{selected.status === 'open' ? 'Online / Open' : 'Chat Closed'}{selected.customer_mobile && <> • {selected.customer_mobile}</>}</div>
+                      <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500"><span className={`h-1.5 w-1.5 rounded-full ${selected.status === 'open' ? 'bg-green-500' : 'bg-gray-300'}`} />{selected.status === 'closed' ? 'Chat Closed' : isCustomerOnline(selected) ? 'Customer Online' : 'Chat Open · Offline'}{selected.customer_mobile && <> • {selected.customer_mobile}</>}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

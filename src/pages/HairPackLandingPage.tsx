@@ -22,6 +22,7 @@ export default function HairPackLandingPage() {
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState('');
   const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
+  const [landingSettings, setLandingSettings] = useState<any>(null);
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -31,12 +32,14 @@ export default function HairPackLandingPage() {
       supabase.from('products').select('*, category:categories(*)').eq('slug', 'ghorowa-hairpack').maybeSingle(),
       getSettings(),
       supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
-    ]).then(([{ data }, siteSettings, editorialResult]) => {
+      supabase.from('hairpack_landing_page_settings').select('*').eq('id', 1).maybeSingle(),
+    ]).then(([{ data }, siteSettings, editorialResult, landingResult]) => {
       if (!active) return;
       if (data) setProduct(data as Product);
       setSettings(siteSettings);
       if (editorialResult.error) console.error('Landing page editorial reviews load error:', editorialResult.error);
       setEditorialReviews(editorialResult.data || []);
+      setLandingSettings(landingResult.data || {});
       setLoading(false);
     }).catch(() => {
       if (active) setLoading(false);
@@ -73,6 +76,9 @@ export default function HairPackLandingPage() {
 
   const gallery = product.gallery?.filter(Boolean).length ? product.gallery.filter(Boolean) : [product.image_url];
   const outOfStock = product.stock < 1;
+  if (landingSettings?.is_enabled === false) return <section className="min-h-[60vh] bg-[#f7f4eb] px-5 py-20 text-center"><h1 className="text-2xl font-bold text-[#294b37]">এই পেজটি আপাতত বন্ধ আছে</h1><p className="mt-3 text-sm text-[#73796c]">অনুগ্রহ করে পরে আবার দেখুন।</p><Link to="/shop" className="mt-6 inline-flex rounded-full bg-[#294b37] px-6 py-3 font-semibold text-white">সব পণ্য দেখুন</Link></section>;
+  const landingHeroTitle = landingSettings?.hero_title?.trim() || productName;
+  const landingDescription = landingSettings?.hero_description?.trim() || description;
   const discount = calculateDiscountPercent(product.price, product.old_price);
   const productName = product.name_bn || 'ঘরোয়া হেয়ার প্যাক';
   const description = product.short_description_bn || 'নিজের চুলের যত্নের রুটিনে যোগ করুন ঘরোয়া রূপচর্চার একটি সুন্দর ধাপ।';
@@ -117,12 +123,12 @@ export default function HairPackLandingPage() {
         </div>
       </div>
 
-      <div className="sticky top-0 z-30 border-b border-[#e7e0d2] bg-[#fffdf7]/95 px-3 py-2 shadow-[0_4px_16px_rgba(30,50,34,.07)] backdrop-blur-lg">
+      {landingSettings?.show_sticky_order_bar !== false && <div className="sticky top-0 z-30 border-b border-[#e7e0d2] bg-[#fffdf7]/95 px-3 py-2 shadow-[0_4px_16px_rgba(30,50,34,.07)] backdrop-blur-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:px-3">
           <div className="min-w-0"><p className="text-[10px] leading-4 text-[#777d70] sm:text-xs">{productName}</p><p className="text-lg font-extrabold leading-6 text-[#294b37] sm:text-xl">{formatPrice(product.price)}</p></div>
-          <a href="#order-hairpack" className="ritual-cta inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[#294b37] px-4 text-xs font-bold text-white shadow-md sm:px-5 sm:text-sm"><ShoppingBag size={15} /> এখনই অর্ডার করুন</a>
+          <a href="#order-hairpack" className="ritual-cta inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[#294b37] px-4 text-xs font-bold text-white shadow-md sm:px-5 sm:text-sm"><ShoppingBag size={15} /> {landingSettings?.primary_button_text || "এখনই অর্ডার করুন"}</a>
         </div>
-      </div>
+      </div>}
 
       <section className="relative isolate overflow-hidden bg-[#203b2b] text-[#fbf6e9]">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_90%_0%,rgba(187,137,92,.32),transparent_42%),linear-gradient(140deg,#203b2b_0%,#2c4b36_60%,#3c5a40_100%)]" />
@@ -130,17 +136,17 @@ export default function HairPackLandingPage() {
         <div className="mx-auto grid max-w-7xl items-center gap-0 px-4 pb-7 pt-5 sm:px-6 sm:pb-12 sm:pt-9 lg:grid-cols-[.92fr_1.08fr] lg:gap-12 lg:px-8 lg:py-14">
           <div className="order-2 relative z-10 pt-5 lg:order-1 lg:py-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#e8d9bd]/30 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-[#e8d9bd] sm:text-xs"><Sparkles size={14} /> YOUR HAIR CARE RITUAL</div>
-            <p className="mt-4 text-xs font-semibold tracking-[.24em] text-[#d9b78e]">GHOROYA ROOPCHARCHA</p>
-            <h1 className="ritual-serif mt-3 max-w-xl text-[2.45rem] font-semibold leading-[1.17] tracking-tight text-[#fff9ed] sm:text-5xl lg:text-[3.7rem]">{productName}</h1>
-            <p className="mt-4 max-w-lg text-sm leading-7 text-[#e4e8da]/90 sm:text-base sm:leading-8">{description}</p>
+            <p className="mt-4 text-xs font-semibold tracking-[.24em] text-[#d9b78e]">{landingSettings?.hero_eyebrow || "GHOROYA ROOPCHARCHA"}</p>
+            <h1 className="ritual-serif mt-3 max-w-xl text-[2.45rem] font-semibold leading-[1.17] tracking-tight text-[#fff9ed] sm:text-5xl lg:text-[3.7rem]">{landingHeroTitle}</h1>
+            <p className="mt-4 max-w-lg text-sm leading-7 text-[#e4e8da]/90 sm:text-base sm:leading-8">{landingDescription}</p>
 
             <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <span className="text-3xl font-bold tracking-tight text-[#fff5df] sm:text-4xl">{formatPrice(product.price)}</span>
               {product.old_price && product.old_price > product.price && <><span className="text-sm text-white/55 line-through sm:text-base">{formatPrice(product.old_price)}</span><span className="rounded-full bg-[#d5ad7d] px-2.5 py-1 text-[11px] font-extrabold text-[#243b2c]">-{discount}%</span></>}
             </div>
             <div className="mt-5 grid grid-cols-[1fr_auto] gap-2.5 sm:flex sm:flex-wrap">
-              <button type="button" onClick={buyNow} disabled={outOfStock} className="ritual-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f0d9b6] px-5 text-sm font-bold text-[#203b2b] shadow-[0_8px_24px_rgba(0,0,0,.15)] hover:bg-[#fff0d5] disabled:opacity-50 sm:px-6"><ShoppingBag size={17} />{outOfStock ? 'স্টকে নেই' : 'অর্ডার করুন'}<ArrowRight size={17} /></button>
-              <a href="#ritual-benefits" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white/10 sm:px-5">আরও জানুন <ArrowDown size={15} /></a>
+              <button type="button" onClick={buyNow} disabled={outOfStock} className="ritual-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f0d9b6] px-5 text-sm font-bold text-[#203b2b] shadow-[0_8px_24px_rgba(0,0,0,.15)] hover:bg-[#fff0d5] disabled:opacity-50 sm:px-6"><ShoppingBag size={17} />{outOfStock ? 'স্টকে নেই' : (landingSettings?.primary_button_text || 'অর্ডার করুন')}<ArrowRight size={17} /></button>
+              <a href="#ritual-benefits" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white/10 sm:px-5">{landingSettings?.secondary_button_text || "আরও জানুন"} <ArrowDown size={15} /></a>
             </div>
             <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-white/75 sm:text-xs"><span className="inline-flex items-center gap-1.5"><Truck size={14} className="text-[#d9b78e]" /> সারা বাংলাদেশে ডেলিভারি</span><span className="inline-flex items-center gap-1.5"><ShieldCheck size={14} className="text-[#d9b78e]" /> সহজ অর্ডার প্রক্রিয়া</span></div>
           </div>
@@ -149,7 +155,7 @@ export default function HairPackLandingPage() {
             <div className="relative mx-auto max-w-[570px]">
               <div className="absolute -inset-2 rotate-2 rounded-[2rem] border border-[#d8c5a7]/25 sm:-inset-3 sm:rounded-[2.5rem]" />
               <div className="relative overflow-hidden rounded-[1.65rem] bg-[#e9e1cf] shadow-[0_24px_65px_rgba(0,0,0,.22)] sm:rounded-[2.2rem]">
-                <img src={gallery[0]} alt={productName} fetchPriority="high" className="ritual-image aspect-[1/1.02] w-full object-cover sm:aspect-[1.15/1]" />
+                <img src={landingSettings?.hero_image_url?.trim() || gallery[0]} alt={landingHeroTitle} fetchPriority="high" className="ritual-image aspect-[1/1.02] w-full object-cover sm:aspect-[1.15/1]" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#17291d]/85 via-[#17291d]/25 to-transparent px-4 pb-4 pt-16 sm:px-6 sm:pb-6">
                   <div className="flex items-end justify-between gap-3">
                     <div><p className="text-[10px] font-semibold tracking-[.2em] text-[#e6c69c]">A MOMENT FOR YOU</p><p className="ritual-serif mt-1 text-xl font-semibold text-white sm:text-2xl">যত্ন হোক নিজের মতো</p></div>
@@ -172,10 +178,10 @@ export default function HairPackLandingPage() {
         </div>
       </section>
 
-      <section id="ritual-benefits" className="mx-auto max-w-7xl px-4 pb-6 pt-8 sm:px-6 sm:pb-9 sm:pt-10 lg:px-8">
+      {landingSettings?.show_benefits !== false && <section id="ritual-benefits" className="mx-auto max-w-7xl px-4 pb-6 pt-8 sm:px-6 sm:pb-9 sm:pt-10 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[10px] font-extrabold tracking-[.24em] text-[#a17950] sm:text-xs">A LITTLE CARE GOES A LONG WAY</p>
-          <h2 className="ritual-serif mt-2 text-2xl font-semibold leading-tight text-[#263e2d] sm:text-3xl">চুলের যত্ন, আরও গোছানোভাবে</h2>
+          <h2 className="ritual-serif mt-2 text-2xl font-semibold leading-tight text-[#263e2d] sm:text-3xl">{landingSettings?.benefits_heading || "চুলের যত্ন, আরও গোছানোভাবে"}</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#6d7568] sm:text-base">প্রতিদিনের ব্যস্ততার মাঝেও নিজের যত্নে রাখুন একটু সময়। আপনার হেয়ার কেয়ার রুটিন শুরু হোক সহজ এক ধাপে।</p>
         </div>
         <div className="mx-auto mt-5 max-w-3xl rounded-2xl border border-[#e3e6d9] bg-[#fffdf7] p-4 shadow-[0_8px_24px_rgba(44,63,43,.045)] sm:mt-6 sm:p-5">
@@ -184,7 +190,7 @@ export default function HairPackLandingPage() {
           </ul>
           <div className="mt-3 border-t border-[#ece8dc] pt-3 text-xs leading-6 text-[#73796c] sm:text-sm">নিজের চুলের যত্নে নিয়মিত সময় দিন এবং পণ্যের নির্দেশনা অনুযায়ী ব্যবহার করুন।</div>
         </div>
-      </section>
+      </section>}
 
       <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-9">
         <div className="text-center"><p className="text-[10px] font-extrabold tracking-[.22em] text-[#a17950] sm:text-xs">GOOD TO KNOW</p><h2 className="ritual-serif mt-2 text-3xl font-semibold text-[#263e2d] sm:text-4xl">পণ্যের আরও তথ্য</h2><p className="mt-2 text-sm text-[#73796c]">প্রয়োজনীয় তথ্যগুলো খুলে দেখে নিন</p></div>
@@ -207,13 +213,13 @@ export default function HairPackLandingPage() {
         </div>
       </section>
 
-      {editorialReviews.length > 0 && (
+      {landingSettings?.show_editorial_reviews !== false && editorialReviews.length > 0 && (
         <section className="overflow-hidden bg-[#fffdf7] px-4 py-7 sm:px-6 sm:py-10">
           <div className="mx-auto max-w-6xl">
             <div className="mb-5">
               <p className="text-[10px] font-extrabold uppercase tracking-[.22em] text-[#9b754e] sm:text-xs">FEATURED STORIES</p>
-              <h2 className="ritual-serif mt-2 text-2xl font-semibold text-[#263e2d] sm:text-3xl">রিভিউ ও অভিজ্ঞতা</h2>
-              <p className="mt-2 text-sm text-[#73796c]">আমাদের বেছে নেওয়া ছবি ও ভিডিও রিভিউ</p>
+              <h2 className="ritual-serif mt-2 text-2xl font-semibold text-[#263e2d] sm:text-3xl">{landingSettings?.reviews_heading || "রিভিউ ও অভিজ্ঞতা"}</h2>
+              <p className="mt-2 text-sm text-[#73796c]">{landingSettings?.reviews_description || "আমাদের বেছে নেওয়া ছবি ও ভিডিও রিভিউ"}</p>
             </div>
             <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3">
               {editorialReviews.map((item) => (
@@ -240,11 +246,11 @@ export default function HairPackLandingPage() {
         </section>
       )}
 
-      <section className="bg-[#eaeedf]">
+      {landingSettings?.show_how_to_use !== false && <section className="bg-[#eaeedf]">
         <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 py-6 sm:px-6 sm:py-9 lg:grid-cols-2 lg:gap-14 lg:px-8">
           <div>
             <p className="text-[10px] font-extrabold tracking-[.22em] text-[#9b754e] sm:text-xs">YOUR ROUTINE, YOUR WAY</p>
-            <h2 className="ritual-serif mt-2 text-3xl font-semibold leading-tight text-[#263e2d] sm:text-4xl">ব্যবহার সহজ রাখুন</h2>
+            <h2 className="ritual-serif mt-2 text-3xl font-semibold leading-tight text-[#263e2d] sm:text-4xl">{landingSettings?.how_to_use_heading || "ব্যবহার সহজ রাখুন"}</h2>
             <p className="mt-3 text-sm leading-7 text-[#687365]">প্যাকেটের নির্দেশনা পড়ে ব্যবহার করুন। প্রথমবার হলে অল্প জায়গায় পরীক্ষা করে নেওয়া ভালো—বিশেষ করে আপনার স্ক্যাল্প সংবেদনশীল হলে।</p>
             <div className="mt-5 flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#294b37] text-sm font-bold text-white">১</span><div><h3 className="text-sm font-bold text-[#304a35]">প্রস্তুতি নিন</h3><p className="mt-1 text-sm leading-6 text-[#687365]">{product.how_to_use_bn?.trim() || 'পণ্যের প্যাকেট বা বিবরণে দেওয়া নির্দেশনা অনুযায়ী ব্যবহার উপযোগী করে নিন।'}</p></div></div>
             <div className="mt-4 flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#294b37] text-sm font-bold text-white">২</span><div><h3 className="text-sm font-bold text-[#304a35]">নির্দেশনা মেনে ব্যবহার করুন</h3><p className="mt-1 text-sm leading-6 text-[#687365]">চুলে সমানভাবে লাগিয়ে প্যাকেটে উল্লেখ করা সময় পর্যন্ত রাখুন, এরপর নির্দেশনা অনুযায়ী ধুয়ে ফেলুন।</p></div></div>
@@ -257,7 +263,7 @@ export default function HairPackLandingPage() {
             <a href="#order-hairpack" className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#f0d9b6] px-5 py-3 text-sm font-bold text-[#203b2b]">পণ্যটি দেখুন <ArrowDown size={16} /></a>
           </div>
         </div>
-      </section>
+      </section>}
 
       <section id="order-hairpack" className="relative isolate overflow-hidden bg-[#203b2b] px-4 py-8 text-[#fff8e9] sm:px-6 sm:py-12">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_100%_100%,rgba(187,137,92,.22),transparent_42%)]" />

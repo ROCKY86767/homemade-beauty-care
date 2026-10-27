@@ -43,7 +43,7 @@ export default function HairPackLandingPage() {
   const benefits = useMemo(() => {
     const source = product?.benefits_bn?.trim();
     if (!source) return fallbackBenefits;
-    const parsed = source.split(/\\n|•|।(?=\\s)|,(?=\\s)/).map((item) => item.trim()).filter(Boolean).slice(0, 6);
+    const parsed = source.split(/\n|•|।(?=\s)|,(?=\s)/).map((item) => item.trim()).filter(Boolean).slice(0, 6);
     return parsed.length ? parsed : fallbackBenefits;
   }, [product?.benefits_bn]);
 

@@ -21,6 +21,7 @@ export default function HairPackLandingPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState('');
+  const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -29,10 +30,13 @@ export default function HairPackLandingPage() {
     Promise.all([
       supabase.from('products').select('*, category:categories(*)').eq('slug', 'ghorowa-hairpack').maybeSingle(),
       getSettings(),
-    ]).then(([{ data }, siteSettings]) => {
+      supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
+    ]).then(([{ data }, siteSettings, editorialResult]) => {
       if (!active) return;
       if (data) setProduct(data as Product);
       setSettings(siteSettings);
+      if (editorialResult.error) console.error('Landing page editorial reviews load error:', editorialResult.error);
+      setEditorialReviews(editorialResult.data || []);
       setLoading(false);
     }).catch(() => {
       if (active) setLoading(false);
@@ -203,11 +207,38 @@ export default function HairPackLandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-8">
-        <Link to="/" onClick={() => { sessionStorage.setItem("hbc-scroll-to-home-reviews", "1"); }} className="group flex items-center justify-between gap-4 rounded-2xl border border-[#e2d9c8] bg-[#fffdf7] p-4 shadow-sm transition hover:border-[#bdcdb5] sm:rounded-3xl sm:p-6">
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e9eee3] text-[#31553c]"><Heart size={20} /></span><div><h2 className="text-sm font-bold text-[#304a35] sm:text-base">রিভিউ ও অভিজ্ঞতা দেখুন</h2><p className="mt-1 text-xs leading-5 text-[#7a8072] sm:text-sm">ক্রেতাদের রিভিউ ও অভিজ্ঞতা দেখতে এখানে চাপ দিন</p></div></div><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#294b37] text-white transition group-hover:translate-x-1"><ArrowRight size={17} /></span>
-        </Link>
-      </section>
+      {editorialReviews.length > 0 && (
+        <section className="overflow-hidden bg-[#fffdf7] px-4 py-7 sm:px-6 sm:py-10">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.22em] text-[#9b754e] sm:text-xs">FEATURED STORIES</p>
+              <h2 className="ritual-serif mt-2 text-2xl font-semibold text-[#263e2d] sm:text-3xl">রিভিউ ও অভিজ্ঞতা</h2>
+              <p className="mt-2 text-sm text-[#73796c]">আমাদের বেছে নেওয়া ছবি ও ভিডিও রিভিউ</p>
+            </div>
+            <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3">
+              {editorialReviews.map((item) => (
+                <article key={item.id} className="w-[72vw] max-w-[270px] shrink-0 snap-start overflow-hidden rounded-2xl border border-[#e3e5d9] bg-white shadow-sm sm:w-[250px]">
+                  {Array.isArray(item.media_urls) && item.media_urls.length > 0 && (
+                    <div className="grid grid-cols-1 gap-1 bg-[#e9e8dd]">
+                      {item.media_urls.map((url: string) => (
+                        /\.(mp4|webm|mov)(\?|$)/i.test(url)
+                          ? <video key={url} src={url} controls preload="metadata" playsInline className="max-h-[340px] w-full bg-black object-contain" />
+                          : <img key={url} src={url} alt={item.title || item.customer_name || 'Review'} loading="lazy" className="max-h-[340px] w-full object-contain" />
+                      ))}
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <div className="mb-1 text-sm text-[#b58a52]">{'★'.repeat(Math.min(5, Math.max(1, Number(item.rating || 5))))}{'☆'.repeat(5 - Math.min(5, Math.max(1, Number(item.rating || 5))))}</div>
+                    <h3 className="text-sm font-bold text-[#304a35]">{item.title || item.customer_name}</h3>
+                    {item.location && <p className="mt-0.5 text-xs text-[#8a8e80]">{item.location}</p>}
+                    {item.review_text && <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#687365]">{item.review_text}</p>}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="bg-[#eaeedf]">
         <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 py-6 sm:px-6 sm:py-9 lg:grid-cols-2 lg:gap-14 lg:px-8">

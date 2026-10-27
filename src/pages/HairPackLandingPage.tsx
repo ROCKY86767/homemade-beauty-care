@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowDown, ArrowRight, CheckCircle2, Leaf, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react';
+import { ArrowDown, ArrowRight, CheckCircle2, Leaf, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck, Star, PackageCheck, Flower2, HeartHandshake, CircleHelp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
@@ -74,7 +74,7 @@ export default function HairPackLandingPage() {
   const productName = product.name_bn || 'ঘরোয়া হেয়ার প্যাক';
 
   return (
-    <div className="overflow-hidden bg-[#fbf8f0] text-[#243b2c]">
+    <div className="overflow-hidden bg-[#fbf8f0] pb-20 text-[#243b2c] selection:bg-[#dce6d6]">
       <SEO
         title="ঘরোয়া হেয়ার প্যাক | Homemade Beauty Care"
         description={product.short_description_bn || 'Homemade Beauty Care-এর ঘরোয়া হেয়ার প্যাক সম্পর্কে জানুন, ব্যবহারের নিয়ম দেখুন এবং অনলাইনে অর্ডার করুন।'}
@@ -97,7 +97,7 @@ export default function HairPackLandingPage() {
           <div className="order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#45664d]/20 bg-white/75 px-4 py-2 text-xs font-semibold tracking-wide text-[#45664d] sm:text-sm"><Leaf size={15} /> ঘরোয়া যত্ন, নিজের রুটিনে</div>
             <p className="mt-6 text-sm font-semibold tracking-[0.18em] text-[#8c6a45]">GHOROYA ROOPCHARCHA</p>
-            <h1 className="mt-3 max-w-xl font-display text-4xl font-bold leading-[1.14] text-[#233d2c] sm:text-5xl lg:text-6xl">{productName}</h1>
+            <h1 className="mt-3 max-w-xl font-display text-4xl font-bold leading-[1.14] text-[#233d2c] sm:text-5xl lg:text-[3.7rem] tracking-tight">{productName}</h1>
             <p className="mt-5 max-w-xl text-base leading-8 text-[#526354] sm:text-lg">{product.short_description_bn || 'আপনার নিয়মিত চুলের যত্নের রুটিনে যোগ করুন ঘরোয়া রূপচর্চার সহজ একটি ধাপ।'}</p>
             <div className="mt-7 flex flex-wrap items-baseline gap-3">
               <span className="text-3xl font-bold text-[#294c34] sm:text-4xl">{formatPrice(product.price)}</span>
@@ -110,7 +110,7 @@ export default function HairPackLandingPage() {
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[#526354]"><span className="inline-flex items-center gap-2"><Truck size={17} /> সারা বাংলাদেশে ডেলিভারি</span><span className="inline-flex items-center gap-2"><ShieldCheck size={17} /> নিরাপদ অর্ডার</span></div>
           </div>
           <div className="order-1 mx-auto w-full max-w-[520px] lg:order-2">
-            <div className="relative rounded-[2rem] bg-white/60 p-3 shadow-[0_25px_80px_rgba(39,65,43,0.14)] ring-1 ring-white/80 sm:p-5">
+            <div className="relative rounded-[2rem] border border-white/80 bg-white/55 p-3 shadow-[0_30px_90px_rgba(39,65,43,0.16)] backdrop-blur-sm sm:p-5">
               <div className="absolute -left-2 top-8 z-10 hidden rounded-2xl bg-white px-4 py-3 shadow-lg sm:block"><p className="text-xs text-[#718070]">আপনার যত্নের রুটিনে</p><p className="mt-1 font-semibold text-[#294c34]">প্রকৃতির অনুপ্রেরণা</p></div>
               <img src={gallery[0]} alt={productName} fetchPriority="high" className="aspect-[4/4.2] w-full rounded-[1.5rem] object-cover" />
               {gallery.length > 1 && <div className="mt-3 grid grid-cols-3 gap-3">{gallery.slice(1, 4).map((src, i) => <img key={src + i} src={src} alt={productName + ' ' + (i + 2)} loading="lazy" className="aspect-square w-full rounded-xl object-cover" />)}</div>}
@@ -124,6 +124,16 @@ export default function HairPackLandingPage() {
         <div className="mx-auto max-w-2xl text-center"><p className="text-xs font-bold tracking-[0.2em] text-[#98734d]">WHY MAKE IT PART OF YOUR ROUTINE?</p><h2 className="mt-3 font-display text-3xl font-bold text-[#243b2c] sm:text-4xl">চুলের যত্ন হোক নিয়মিত ও সহজ</h2><p className="mt-4 leading-7 text-[#657265]">পণ্যের বিবরণ ও ব্যবহারের নির্দেশনা দেখে আপনার রুটিনে মানানসই হলে বেছে নিন।</p></div>
         <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{benefits.map((benefit, i) => <div key={benefit} className="rounded-2xl border border-[#dce4d6] bg-white/80 p-5 sm:p-6"><div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#e8eee3] text-[#365b3e]"><CheckCircle2 size={20} /></div><p className="leading-7 text-[#435347]">{benefit}</p></div>)}</div>
       </section>
+
+
+      {(product.who_is_it_for_bn || product.storage_bn || product.notes_bn || product.ingredients_bn) && <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 sm:pb-20 lg:px-8">
+        <div className="grid gap-4 md:grid-cols-2">
+          {product.who_is_it_for_bn && <article className="rounded-3xl border border-[#dfe6d9] bg-[#f0f2e9] p-6 sm:p-8"><HeartHandshake size={22}/><h3 className="mt-4 font-display text-xl font-bold">কার জন্য উপযোগী?</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#5f6e60]">{product.who_is_it_for_bn}</p></article>}
+          {product.ingredients_bn && <article className="rounded-3xl border border-[#e8dfd1] bg-[#f7f0e5] p-6 sm:p-8"><Flower2 size={22}/><h3 className="mt-4 font-display text-xl font-bold">উপাদান সম্পর্কে</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#756858]">{product.ingredients_bn}</p></article>}
+          {product.storage_bn && <article className="rounded-3xl border border-[#dfe6d9] bg-white p-6 sm:p-8"><PackageCheck size={22}/><h3 className="mt-4 font-display text-xl font-bold">সংরক্ষণের নিয়ম</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#5f6e60]">{product.storage_bn}</p></article>}
+          {product.notes_bn && <article className="rounded-3xl border border-[#e5e3d8] bg-white p-6 sm:p-8"><CircleHelp size={22}/><h3 className="mt-4 font-display text-xl font-bold">বিশেষভাবে মনে রাখুন</h3><p className="mt-3 whitespace-pre-line leading-8 text-[#5f6e60]">{product.notes_bn}</p></article>}
+        </div>
+      </section>}
 
       <section className="bg-[#e9eee3] py-14 sm:py-20">
         <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
@@ -139,7 +149,22 @@ export default function HairPackLandingPage() {
         </div>
       </section>
 
-      <section className="bg-[#2f5238] px-4 py-12 text-center text-white sm:py-16"><p className="text-sm font-semibold tracking-[0.18em] text-[#d7c4a6]">HOMEMADE BEAUTY CARE</p><h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl font-bold sm:text-4xl">প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</h2><p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">আপনার ঘরোয়া রূপচর্চার যাত্রায় সঠিক যত্নের অভ্যাস গড়ে তুলুন।</p><button type="button" onClick={buyNow} disabled={outOfStock} className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-[#f4e8d3] px-8 py-4 font-bold text-[#294c34] transition hover:bg-white disabled:opacity-50">অর্ডার করুন <ArrowRight size={18} /></button><p className="mt-4 text-sm text-white/70">প্রশ্ন আছে? ওয়েবসাইটের Live Chat বা WhatsApp-এ যোগাযোগ করুন।</p></section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 sm:pb-20 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center"><p className="text-[11px] font-bold tracking-[0.24em] text-[#98734d]">FREQUENTLY ASKED QUESTIONS</p><h2 className="mt-3 font-display text-3xl font-bold text-[#243b2c] sm:text-4xl">সাধারণ কিছু প্রশ্ন</h2></div>
+        <div className="mx-auto mt-8 max-w-3xl space-y-3">
+          {[{q:'এই হেয়ার প্যাক কীভাবে ব্যবহার করব?',a:howToUse || 'পণ্যের প্যাকেট ও এখানে দেওয়া ব্যবহারের নির্দেশনা অনুসরণ করুন।'},{q:'পণ্যের উপাদান কোথায় দেখব?',a:product.ingredients_bn || 'উপাদানের বিস্তারিত তথ্য বর্তমানে আলাদাভাবে দেওয়া নেই। প্যাকেটের লেবেল দেখে নিশ্চিত হয়ে নিন।'},{q:'আমার চুলের জন্য উপযুক্ত হবে কি?',a:product.who_is_it_for_bn || 'চুলের ধরন ও ব্যক্তিগত প্রয়োজন ভেদে অভিজ্ঞতা আলাদা হতে পারে। কেনার আগে পণ্যের বিবরণ ও নির্দেশনা পড়ে নিন।'},{q:'অর্ডার কীভাবে করব?',a:'এখনই অর্ডার করুন বাটনে চাপ দিয়ে Checkout পেজে প্রয়োজনীয় তথ্য পূরণ করে অর্ডার সম্পন্ন করুন।'},{q:'কোনো অস্বস্তি হলে কী করব?',a:'ব্যবহারের পর অস্বস্তি, চুলকানি বা জ্বালাপোড়া হলে ব্যবহার বন্ধ করুন। প্রয়োজন হলে স্বাস্থ্যপেশাজীবীর পরামর্শ নিন।'}].map((faq) => <details key={faq.q} className="group rounded-2xl border border-[#dfe5d9] bg-white px-5 py-4 shadow-sm open:border-[#b8c9b2]"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-[#344d37]"><span>{faq.q}</span><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e9eee3] text-[#426447] transition group-open:rotate-45"><Plus size={17}/></span></summary><p className="mt-3 pr-8 text-sm leading-7 text-[#657265]">{faq.a}</p></details>)}
+        </div>
+      </section>
+
+      <section className="bg-[#243f2c] px-4 py-14 text-center text-white sm:py-20"><p className="text-sm font-semibold tracking-[0.18em] text-[#d7c4a6]">HOMEMADE BEAUTY CARE</p><h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl font-bold sm:text-4xl">প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</h2><p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">আপনার ঘরোয়া রূপচর্চার যাত্রায় সঠিক যত্নের অভ্যাস গড়ে তুলুন।</p><button type="button" onClick={buyNow} disabled={outOfStock} className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-[#f4e8d3] px-8 py-4 font-bold text-[#294c34] transition hover:bg-white disabled:opacity-50">অর্ডার করুন <ArrowRight size={18} /></button><p className="mt-4 text-sm text-white/70">প্রশ্ন আছে? ওয়েবসাইটের Live Chat বা WhatsApp-এ যোগাযোগ করুন।</p></section>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#dce4d6] bg-[#fbf8f0]/95 p-3 shadow-[0_-8px_30px_rgba(30,54,35,0.10)] backdrop-blur-xl sm:hidden">
+        <div className="mx-auto flex max-w-xl items-center gap-3">
+          <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-[#526354]">{productName}</p><p className="mt-0.5 text-lg font-bold text-[#294c34]">{formatPrice(product.price)}</p></div>
+          <button type="button" onClick={buyNow} disabled={outOfStock} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#2f5238] px-5 text-sm font-bold text-white shadow-lg disabled:opacity-50"><ShoppingBag size={17}/>{outOfStock ? 'স্টকে নেই' : 'অর্ডার করুন'}</button>
+        </div>
+      </div>
     </div>
   );
 }

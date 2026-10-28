@@ -28,7 +28,6 @@ export default function HairPackLandingPage() {
 
   useEffect(() => {
     let active = true;
-    let initialLoad = true;
 
     const refreshProduct = async () => {
       const { data, error } = await supabase
@@ -68,7 +67,6 @@ export default function HairPackLandingPage() {
       } finally {
         if (active) {
           setLoading(false);
-          initialLoad = false;
         }
       }
     };
@@ -97,7 +95,6 @@ export default function HairPackLandingPage() {
 
     return () => {
       active = false;
-      initialLoad = false;
       window.removeEventListener('focus', refreshWhenVisible);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
       void supabase.removeChannel(productChannel);

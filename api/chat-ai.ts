@@ -60,7 +60,7 @@ CONVERSATION: Keep context from recent messages, answer the latest question dire
 
 ${businessContext}`;
 
-    const model = 'gemini-3.8-flash';
+    const model = 'gemini-3.6-flash';
     let result: any = null;
     const conversationText = cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join(String.fromCharCode(10, 10));
     const input: any[] = [{

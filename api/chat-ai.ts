@@ -11,10 +11,10 @@ function supabaseServer() {
 }
 
 function normalizeBangladeshMobile(value: string) {
-  let digits = value.replace(/\\D/g, '');
+  let digits = value.replace(/\D/g, '');
   if (digits.startsWith('00880')) digits = digits.slice(2);
   if (digits.startsWith('880') && digits.length === 13) digits = '0' + digits.slice(3);
-  return /^01\\d{9}$/.test(digits) ? digits : '';
+  return /^01\d{9}$/.test(digits) ? digits : '';
 }
 
 async function lookupCustomerOrders(phone: string) {
@@ -77,17 +77,21 @@ export default async function handler(req: any, res: VercelResponse) {
     const messages = Array.isArray(body?.messages) ? body.messages : [];
     const mediaUrl = typeof body?.mediaUrl === 'string' ? body.mediaUrl : '';
     const mediaType = body?.mediaType === 'audio' ? 'audio' : body?.mediaType === 'image' ? 'image' : '';
-    const customerName = typeof body?.customerName === 'string' ? body.customerName : 'Customer';\n    const customerMobile = typeof body?.customerMobile === 'string' ? body.customerMobile : '';
+    const customerName = typeof body?.customerName === 'string' ? body.customerName : 'Customer';
+    const customerMobile = typeof body?.customerMobile === 'string' ? body.customerMobile : '';
     const cleanMessages = messages.filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string').slice(-12).map((item: any) => ({ role: item.role, content: item.content.slice(0, 3000) }));
     if (!cleanMessages.length && !mediaUrl) return json(res, { error: 'No conversation message.' }, 400);
     const businessContext = await getBusinessContext();
     const latestUserMessage = [...cleanMessages].reverse().find((item: any) => item.role === 'user')?.content || '';
-    const asksOrderStatus = /অর্ডার|order|কোথায়|কোথায়|কবে পাব|ডেলিভারি|কুরিয়ার|কুরিয়ার|পার্সেল|স্ট্যাটাস|tracking|track/i.test(latestUserMessage);
-    const phoneInMessage = latestUserMessage.match(/(?:\\+?88)?0?1[3-9]\\d[\\s-]?\\d{3}[\\s-]?\\d{4}/)?.[0] || '';
+    const customerConversationText = cleanMessages.filter((item: any) => item.role === 'user').map((item: any) => item.content).join(' ');
+    const orderKeywords = /অর্ডার|order|কোথায়|কোথায়|কবে পাব|ডেলিভারি|কুরিয়ার|কুরিয়ার|পার্সেল|স্ট্যাটাস|tracking|track/i;
+    const asksOrderStatus = orderKeywords.test(latestUserMessage) || orderKeywords.test(customerConversationText);
+    const phoneInMessage = customerConversationText.match(/\+?(?:88)?0?1[3-9]\d{8}/)?.[0] || '';
     const orderPhone = phoneInMessage || customerMobile;
     const customerOrders = asksOrderStatus ? await lookupCustomerOrders(orderPhone) : [];
     const orderContext = asksOrderStatus
-      ? `\\nCUSTOMER ORDER LOOKUP (matched only by the customer's own mobile number; latest first): ${JSON.stringify(customerOrders)}\\nIf a matching order exists, answer with its real current status and any available courier status/consignment/tracking code. Do not ask the customer to wait for an admin when this data is available. Do not disclose address, email, or other private data. If no matching order is found, say you could not find an order for this number and ask them to confirm the number or say an admin will check; never invent an order/status.`
+      ? `\nCUSTOMER ORDER LOOKUP (matched only by the customer's own mobile number; latest first): ${JSON.stringify(customerOrders)}
+If a matching order exists, answer with its real current status and any available courier status/consignment/tracking code. Do not ask the customer to wait for an admin when this data is available. Do not disclose address, email, or other private data. If no matching order is found, say you could not find an order for this number and ask them to confirm the number or say an admin will check; never invent an order/status.`
       : '';
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return json(res, { error: 'Gemini API key is not configured on the server.' }, 500);

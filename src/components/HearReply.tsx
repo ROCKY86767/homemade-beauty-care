@@ -54,8 +54,14 @@ export default function HearReply({ value }: { value: string }) {
 
     const chooseVoice = () => {
       const voices = synth.getVoices();
-      const voice = voices.find(v => /^bn([_-]|$)/i.test(v.lang));
-      if (voice) utterance.voice = voice;
+      const voice = voices.find(v => /^bn([_-]|$)/i.test(v.lang))
+        || voices.find(v => /^en([_-]|$)/i.test(v.lang))
+        || voices[0];
+      if (voice) {
+        utterance.voice = voice;
+        // Some desktop speech engines stay silent if the requested locale has no installed voice.
+        utterance.lang = voice.lang || 'bn-BD';
+      }
     };
     chooseVoice();
 

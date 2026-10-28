@@ -19,30 +19,22 @@ function normalizeBangladeshMobile(value: string) {
   return /^01[3-9]\d{8}$/.test(digits) ? digits : '';
 }
 
-async function lookupCustomerOrders(phone: string) {
+async function lookupCustomerOrders(phone: string, visitorToken: string, conversationId: string) {
   const mobile = normalizeBangladeshMobile(phone);
-  if (!mobile) return [];
+  if (!mobile || !visitorToken || !conversationId) return [];
   const supabase = supabaseServer();
   if (!supabase) return [];
-  // Return only the minimum order-tracking fields; never send customer address or other private details to the model.
-  const { data, error } = await supabase
-    .from('orders')
-    .select('order_number,mobile,alt_phone,status,created_at,pathao_status,pathao_consignment_id,pathao_tracking_code')
-    .or(`mobile.eq.${mobile},alt_phone.eq.${mobile}`)
-    .order('created_at', { ascending: false })
-    .limit(25);
+  // The database RPC validates the visitor token against this exact chat before reading private order statuses.
+  const { data, error } = await supabase.rpc('lookup_guest_chat_orders', {
+    p_visitor_token: visitorToken,
+    p_conversation_id: conversationId,
+    p_mobile: mobile,
+  });
   if (error) {
-    console.error('AI order lookup failed:', error.message);
+    console.error('AI order lookup RPC failed:', error.message);
     return [];
   }
-  return (data || []).map((order: any) => ({
-    order_number: order.order_number,
-    status: order.status,
-    created_at: order.created_at,
-    courier_status: order.pathao_status || order.courier_status || null,
-    consignment_id: order.pathao_consignment_id || order.consignment_id || null,
-    tracking_code: order.pathao_tracking_code || order.tracking_code || null,
-  }));
+  return Array.isArray(data) ? data : [];
 }
 
 async function getBusinessContext() {
@@ -81,6 +73,8 @@ export default async function handler(req: any, res: VercelResponse) {
     const mediaType = body?.mediaType === 'audio' ? 'audio' : body?.mediaType === 'image' ? 'image' : '';
     const customerName = typeof body?.customerName === 'string' ? body.customerName : 'Customer';
     const customerMobile = typeof body?.customerMobile === 'string' ? body.customerMobile : '';
+    const visitorToken = typeof body?.visitorToken === 'string' ? body.visitorToken : '';
+    const conversationId = typeof body?.conversationId === 'string' ? body.conversationId : '';
     const cleanMessages = messages.filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string').slice(-12).map((item: any) => ({ role: item.role, content: item.content.slice(0, 3000) }));
     if (!cleanMessages.length && !mediaUrl) return json(res, { error: 'No conversation message.' }, 400);
     const businessContext = await getBusinessContext();
@@ -92,7 +86,7 @@ export default async function handler(req: any, res: VercelResponse) {
     const phoneInMessage = phoneCandidates.map((candidate: string) => normalizeBangladeshMobile(candidate)).find(Boolean) || '';
     const orderPhone = phoneInMessage || customerMobile;
     const asksAllOrders = /সব\s*(গুলো|গুলি|গুলাই)?\s*অর্ডার|সকল\s*অর্ডার|all\s+(my\s+)?orders|all\s+orders?|every\s+order|sob\s*(gula|gulo)?\s*order|shob\s*(gula|gulo)?\s*order|সব অর্ডারের|সকল অর্ডারের/i.test(customerConversationText);
-    const foundCustomerOrders = asksOrderStatus ? await lookupCustomerOrders(orderPhone) : [];
+    const foundCustomerOrders = asksOrderStatus ? await lookupCustomerOrders(orderPhone || customerMobile, visitorToken, conversationId) : [];
     const customerOrders = asksAllOrders ? foundCustomerOrders : foundCustomerOrders.slice(0, 1);
     const orderContext = asksOrderStatus
       ? `\nCUSTOMER ORDER LOOKUP (matched only by the customer's own mobile number; newest order first): ${JSON.stringify(customerOrders)}

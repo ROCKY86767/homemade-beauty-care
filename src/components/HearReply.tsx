@@ -15,7 +15,7 @@ export default function HearReply({ value }: { value: string }) {
   const openInChrome = () => {
     const currentUrl = window.location.href;
     if (/Android/i.test(navigator.userAgent)) {
-      const target = currentUrl.replace(/^https?:\\/\\//i, '');
+      const target = currentUrl.replace(/^https?:\/\//i, '');
       window.location.href = `intent://${target}#Intent;scheme=https;package=com.android.chrome;end`;
       return;
     }

@@ -4,23 +4,25 @@ import { Volume2, Square } from 'lucide-react';
 export default function HearReply({ value }: { value: string }) {
   const [speaking, setSpeaking] = useState(false);
   const [error, setError] = useState('');
-  const timerRef = useRef<number | null>(null);
-  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const activeRef = useRef(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => () => {
-    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    // Do not cancel global speech on unmount; other messages may be speaking.
+    activeRef.current = false;
   }, []);
 
   const toggleSpeech = () => {
-    if (typeof window === 'undefined' || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
-      setError('এই ব্রাউজারে ভয়েস চালু করা যাচ্ছে না। Chrome ব্রাউজারে চেষ্টা করুন।');
+    if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+      setError('এই ব্রাউজারে ভয়েস চালানোর সুবিধা নেই। Chrome-এ চেষ্টা করুন।');
       return;
     }
 
-    if (speaking || window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
-      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
-      activeUtteranceRef.current = null;
+    const synth = window.speechSynthesis;
+    if (activeRef.current) {
+      activeRef.current = false;
+      synth.cancel();
+      utteranceRef.current = null;
       setSpeaking(false);
       setError('');
       return;
@@ -31,6 +33,7 @@ export default function HearReply({ value }: { value: string }) {
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
       .replace(/https?:\/\/\S+/g, '')
       .replace(/\[\[NEXT_MESSAGE\]\]/g, ' ')
+      .replace(/[*_#`]/g, '')
       .trim();
 
     if (!text) {
@@ -39,74 +42,63 @@ export default function HearReply({ value }: { value: string }) {
     }
 
     setError('');
-    setSpeaking(true);
-    window.speechSynthesis.cancel();
+    activeRef.current = true;
+    setSpeaking(false);
+    synth.cancel();
 
-    // Chrome sometimes needs a short pause after cancel() before it accepts a new utterance.
-    timerRef.current = window.setTimeout(() => {
-      const synth = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'bn-BD';
-      utterance.rate = 0.88;
-      utterance.pitch = 1;
-      activeUtteranceRef.current = utterance;
+    // Use one utterance at a time; do not use a startup timeout that can stop short replies.
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'bn-BD';
+    utterance.rate = 0.88;
+    utterance.pitch = 1;
+    utteranceRef.current = utterance;
 
-      const chooseVoice = () => {
-        const voices = synth.getVoices();
-        const bengaliVoice = voices.find(voice => /^bn([_-]|$)/i.test(voice.lang));
-        if (bengaliVoice) utterance.voice = bengaliVoice;
+    const chooseVoice = () => {
+      const voices = synth.getVoices();
+      const voice = voices.find(v => /^bn([_-]|$)/i.test(v.lang));
+      if (voice) utterance.voice = voice;
+    };
+    chooseVoice();
+
+    utterance.onstart = () => {
+      if (utteranceRef.current !== utterance) return;
+      setSpeaking(true);
+      setError('');
+    };
+    utterance.onend = () => {
+      if (utteranceRef.current !== utterance) return;
+      activeRef.current = false;
+      utteranceRef.current = null;
+      setSpeaking(false);
+    };
+    utterance.onerror = (event) => {
+      if (utteranceRef.current !== utterance) return;
+      activeRef.current = false;
+      utteranceRef.current = null;
+      setSpeaking(false);
+      const reason = (event as SpeechSynthesisErrorEvent).error;
+      if (reason === 'canceled' || reason === 'interrupted') return;
+      setError(reason === 'not-allowed'
+        ? 'ব্রাউজার ভয়েস চালাতে বাধা দিচ্ছে। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।'
+        : 'ডিভাইসের Text-to-Speech ভয়েস চালু হয়নি। Chrome/ডিভাইসের বাংলা voice সেটিংস পরীক্ষা করুন।');
+    };
+
+    // Load voice list when the browser supplies it asynchronously.
+    if (synth.getVoices().length === 0) {
+      const onVoicesChanged = () => {
+        chooseVoice();
+        synth.removeEventListener?.('voiceschanged', onVoicesChanged);
       };
+      synth.addEventListener?.('voiceschanged', onVoicesChanged);
+    }
 
-      chooseVoice();
-      // Voice lists can load asynchronously in Chrome; retry once they are available.
-      if (synth.getVoices().length === 0) {
-        const onVoicesChanged = () => {
-          chooseVoice();
-          synth.removeEventListener?.('voiceschanged', onVoicesChanged);
-        };
-        synth.addEventListener?.('voiceschanged', onVoicesChanged);
-      }
-
-      utterance.onstart = () => {
-        setSpeaking(true);
-        setError('');
-      };
-      utterance.onend = () => {
-        setSpeaking(false);
-        activeUtteranceRef.current = null;
-      };
-      utterance.onerror = (event) => {
-        setSpeaking(false);
-        activeUtteranceRef.current = null;
-        const reason = (event as SpeechSynthesisErrorEvent).error;
-        setError(reason === 'not-allowed'
-          ? 'ব্রাউজার ভয়েস চালাতে বাধা দিচ্ছে। পেজ রিফ্রেশ করে আবার চাপ দিন।'
-          : 'ভয়েস চালু হয়নি। ডিভাইসে বাংলা Text-to-Speech voice ইনস্টল/চালু আছে কি না দেখুন।');
-      };
-
-      synth.resume();
-      synth.speak(utterance);
-
-      // If the browser silently refuses speech, do not leave the button stuck in "playing".
-      window.setTimeout(() => {
-        if (activeUtteranceRef.current === utterance && !synth.speaking && !synth.pending) {
-          setSpeaking(false);
-          activeUtteranceRef.current = null;
-          setError('ডিভাইসের Text-to-Speech ভয়েস পাওয়া যায়নি। Chrome/ফোনের বাংলা voice সেটিংস পরীক্ষা করুন।');
-        }
-      }, 2500);
-    }, 120);
+    synth.resume();
+    synth.speak(utterance);
   };
 
   return (
     <span className="inline-flex flex-col items-start">
-      <button
-        type="button"
-        aria-label={speaking ? 'ভয়েস বন্ধ করুন' : 'উত্তর শুনুন'}
-        title={speaking ? 'ভয়েস বন্ধ করুন' : 'উত্তর শুনুন'}
-        onClick={toggleSpeech}
-        className="mt-1 inline-flex items-center gap-1 text-xs text-primary"
-      >
+      <button type="button" aria-label={speaking ? 'ভয়েস বন্ধ করুন' : 'উত্তর শুনুন'} title={speaking ? 'ভয়েস বন্ধ করুন' : 'উত্তর শুনুন'} onClick={toggleSpeech} className="mt-1 inline-flex items-center gap-1 text-xs text-primary">
         {speaking ? <Square className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
         {speaking ? 'বন্ধ করুন' : 'শুনুন'}
       </button>

@@ -84,7 +84,7 @@ ${businessContext}`;
     }
 
     try {
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      let response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
@@ -96,6 +96,22 @@ ${businessContext}`;
         }),
         signal: AbortSignal.timeout(30000),
       });
+      if (response.status === 429 || response.status === 503 || response.status === 504) {
+        // Retry transient capacity errors once with the lighter free-tier model.
+        await new Promise(resolve => setTimeout(resolve, 900));
+        response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({
+            model: 'gemini-3.5-flash-lite',
+            input,
+            system_instruction: systemInstruction,
+            store: false,
+            generation_config: { max_output_tokens: 260, thinking_level: 'low' },
+          }),
+          signal: AbortSignal.timeout(30000),
+        });
+      }
       result = await response.json().catch(() => null);
       if (!response.ok) {
         const message = result?.error?.message || `Gemini Interactions API request failed (${response.status}).`;

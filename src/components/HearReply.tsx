@@ -12,6 +12,16 @@ export default function HearReply({ value }: { value: string }) {
     activeRef.current = false;
   }, []);
 
+  const openInChrome = () => {
+    const currentUrl = window.location.href;
+    if (/Android/i.test(navigator.userAgent)) {
+      const target = currentUrl.replace(/^https?:\\/\\//i, '');
+      window.location.href = `intent://${target}#Intent;scheme=https;package=com.android.chrome;end`;
+      return;
+    }
+    window.open(currentUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const toggleSpeech = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
       setError('এই ব্রাউজারে ভয়েস চালানোর সুবিধা নেই। Chrome-এ চেষ্টা করুন।');
@@ -107,7 +117,7 @@ export default function HearReply({ value }: { value: string }) {
         {speaking ? <Square className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
         {speaking ? 'বন্ধ করুন' : 'শুনুন'}
       </button>
-      {error && <span role="status" className="mt-1 max-w-[240px] text-[11px] text-red-600">{error}</span>}
+      {error && <span role="status" className="mt-1 max-w-[240px] text-[11px] text-red-600">{error}{error.includes('Chrome-এ চেষ্টা করুন') && <button type="button" onClick={openInChrome} className="ml-1 font-semibold text-primary underline underline-offset-2">Chrome-এ খুলুন</button>}</span>}
     </span>
   );
 }

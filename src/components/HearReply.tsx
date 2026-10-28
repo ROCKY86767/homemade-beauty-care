@@ -44,9 +44,8 @@ export default function HearReply({ value }: { value: string }) {
     setError('');
     activeRef.current = true;
     setSpeaking(false);
-    synth.cancel();
-
-    // Use one utterance at a time; do not use a startup timeout that can stop short replies.
+    // Do not cancel the browser speech queue here: Chrome can cancel the new utterance too.
+    // Use one utterance and let the browser start it from the direct click event.
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'bn-BD';
     utterance.rate = 0.88;
@@ -79,8 +78,8 @@ export default function HearReply({ value }: { value: string }) {
       const reason = (event as SpeechSynthesisErrorEvent).error;
       if (reason === 'canceled' || reason === 'interrupted') return;
       setError(reason === 'not-allowed'
-        ? 'ব্রাউজার ভয়েস চালাতে বাধা দিচ্ছে। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।'
-        : 'ডিভাইসের Text-to-Speech ভয়েস চালু হয়নি। Chrome/ডিভাইসের বাংলা voice সেটিংস পরীক্ষা করুন।');
+        ? 'ব্রাউজার ভয়েস চালাতে বাধা দিচ্ছে (not-allowed)।'
+        : `ভয়েস চালু হয়নি: ${reason || 'unknown'}। Chrome-এর sound ও voice settings পরীক্ষা করুন।`);
     };
 
     // Load voice list when the browser supplies it asynchronously.

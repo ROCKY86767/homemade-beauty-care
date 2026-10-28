@@ -58,27 +58,48 @@ Customer name: ${customerName}
 
 ${businessContext}`;
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        system_instruction: systemInstruction,
-        model: 'gemini-3.8-flash',
-        input: cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join(String.fromCharCode(10, 10)),
-        store: false,
-        generation_config: { max_output_tokens: 700, thinking_level: 'low' },
-      }),
-      signal: AbortSignal.timeout(55000),
-    });
+    const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
+    let result: any = null;
+    let lastError = 'Gemini API request failed.';
+    let succeeded = false;
 
-    const result: any = await response.json().catch(() => null);
-    if (!response.ok) {
-      console.error('Gemini Interactions API error', response.status, result?.error?.message || 'Unknown Gemini API error');
-      return json(res, { error: result?.error?.message || 'Gemini API request failed.' }, response.status === 429 ? 429 : 502);
+    for (const model of models) {
+      try {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            system_instruction: systemInstruction,
+            model,
+            input: cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join(String.fromCharCode(10, 10)),
+            store: false,
+            generation_config: { max_output_tokens: 500, thinking_level: 'low' },
+          }),
+          signal: AbortSignal.timeout(22000),
+        });
+
+        result = await response.json().catch(() => null);
+        if (response.ok) {
+          succeeded = true;
+          break;
+        }
+
+        lastError = result?.error?.message || `Gemini API request failed (${response.status}).`;
+        console.error('Gemini Interactions API error', model, response.status, lastError);
+        // Retry with the alternate model only for temporary capacity/rate-limit/server errors.
+        if (![429, 500, 502, 503, 504].includes(response.status)) {
+          return json(res, { error: lastError }, response.status === 429 ? 429 : 502);
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : 'Gemini API request failed.';
+        console.error('Gemini model attempt failed', model, lastError);
+      }
     }
+
+    if (!succeeded) return json(res, { error: lastError }, 502);
     const reply = (typeof result?.output_text === 'string' ? result.output_text : (Array.isArray(result?.steps) ? result.steps : []).filter((step: any) => step?.type === 'model_output').flatMap((step: any) => Array.isArray(step?.content) ? step.content : []).map((part: any) => typeof part?.text === 'string' ? part.text : '').join('')).trim();
     if (!reply) return json(res, { error: 'Gemini returned an empty response. Please try again.' }, 502);
     return json(res, { text: reply });

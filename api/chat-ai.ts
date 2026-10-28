@@ -14,10 +14,10 @@ async function getBusinessContext() {
   const supabase = supabaseServer();
   if (!supabase) return '';
   const [productsResult, settingsResult] = await Promise.all([
-    supabase.from('products').select('name_bn,name_en,slug,description_bn,short_description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,notes_bn,subcategory,price,old_price,stock,is_active,is_on_sale,size_bn').eq('is_active', true).order('created_at', { ascending: false }).limit(30),
+    supabase.from('products').select('name_bn,name_en,slug,image_url,gallery,description_bn,short_description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,notes_bn,subcategory,price,old_price,stock,is_active,is_on_sale,size_bn').eq('is_active', true).order('created_at', { ascending: false }).limit(30),
     supabase.from('site_settings').select('brand_name,brand_tagline_bn,phone,whatsapp_number,delivery_inside_dhaka,delivery_outside_dhaka,free_delivery_threshold,currency,announcement_bn,cod_enabled,online_payment_enabled,free_delivery_enabled').limit(1).maybeSingle(),
   ]);
-  const products = (productsResult.data || []).map((p: any) => ({ name: p.name_bn || p.name_en, slug: p.slug, price: p.price, old_price: p.old_price, stock: p.stock, size: p.size_bn, short_description: p.short_description_bn, description: p.description_bn, benefits: p.benefits_bn, how_to_use: p.how_to_use_bn, ingredients: p.ingredients_bn, suitable_for: p.who_is_it_for_bn, storage: p.storage_bn, notes: p.notes_bn, subcategory: p.subcategory, on_sale: p.is_on_sale }));
+  const products = (productsResult.data || []).map((p: any) => ({ name: p.name_bn || p.name_en, slug: p.slug, product_url: `https://homemade-beauty-care.vercel.app/product/${p.slug}`, image_url: p.image_url || (Array.isArray(p.gallery) ? p.gallery[0] : null), price: p.price, old_price: p.old_price, stock: p.stock, size: p.size_bn, short_description: p.short_description_bn, description: p.description_bn, benefits: p.benefits_bn, how_to_use: p.how_to_use_bn, ingredients: p.ingredients_bn, suitable_for: p.who_is_it_for_bn, storage: p.storage_bn, notes: p.notes_bn, subcategory: p.subcategory, on_sale: p.is_on_sale }));
   const settings = settingsResult.data;
   return `BUSINESS DATA — source of truth. Never invent missing facts.
 Store: ${settings?.brand_name || 'Homemade Beauty Care'}
@@ -76,7 +76,7 @@ ${businessContext}`;
             model,
             input: cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join(String.fromCharCode(10, 10)),
             store: false,
-            generation_config: { max_output_tokens: 500, thinking_level: 'low' },
+            generation_config: { max_output_tokens: 220, thinking_level: 'low' },
           }),
           signal: AbortSignal.timeout(22000),
         });

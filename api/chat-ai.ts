@@ -11,10 +11,12 @@ function supabaseServer() {
 }
 
 function normalizeBangladeshMobile(value: string) {
-  let digits = value.replace(/\D/g, '');
+  const banglaDigits = '০১২৩৪৫৬৭৮৯';
+  let digits = value.replace(/[০-৯]/g, digit => String(banglaDigits.indexOf(digit))).replace(/\D/g, '');
   if (digits.startsWith('00880')) digits = digits.slice(2);
   if (digits.startsWith('880') && digits.length === 13) digits = '0' + digits.slice(3);
-  return /^01\d{9}$/.test(digits) ? digits : '';
+  if (digits.length === 10 && digits.startsWith('1')) digits = '0' + digits;
+  return /^01[3-9]\d{8}$/.test(digits) ? digits : '';
 }
 
 async function lookupCustomerOrders(phone: string) {
@@ -25,8 +27,8 @@ async function lookupCustomerOrders(phone: string) {
   // Return only the minimum order-tracking fields; never send customer address or other private details to the model.
   const { data, error } = await supabase
     .from('orders')
-    .select('*')
-    .eq('mobile', mobile)
+    .select('order_number,mobile,alt_phone,status,created_at,pathao_status,pathao_consignment_id,pathao_tracking_code')
+    .or(`mobile.eq.${mobile},alt_phone.eq.${mobile}`)
     .order('created_at', { ascending: false })
     .limit(3);
   if (error) {
@@ -86,7 +88,7 @@ export default async function handler(req: any, res: VercelResponse) {
     const customerConversationText = cleanMessages.filter((item: any) => item.role === 'user').map((item: any) => item.content).join(' ');
     const orderKeywords = /অর্ডার|order|কোথায়|কোথায়|কবে পাব|ডেলিভারি|কুরিয়ার|কুরিয়ার|পার্সেল|স্ট্যাটাস|tracking|track/i;
     const asksOrderStatus = orderKeywords.test(latestUserMessage) || orderKeywords.test(customerConversationText);
-    const phoneInMessage = customerConversationText.match(/\+?(?:88)?0?1[3-9]\d{8}/)?.[0] || '';
+    const phoneInMessage = customerConversationText.match(/(?:\+?88)?\s*[০-৯0-9][০-৯0-9\s-]{8,16}[০-৯0-9]/)?.[0] || '';
     const orderPhone = phoneInMessage || customerMobile;
     const customerOrders = asksOrderStatus ? await lookupCustomerOrders(orderPhone) : [];
     const orderContext = asksOrderStatus

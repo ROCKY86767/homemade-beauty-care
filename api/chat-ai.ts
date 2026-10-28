@@ -46,7 +46,7 @@ export default async function handler(req: any, res: VercelResponse) {
     const mediaType = body?.mediaType === 'audio' ? 'audio' : body?.mediaType === 'image' ? 'image' : '';
     const customerName = typeof body?.customerName === 'string' ? body.customerName : 'Customer';
     const cleanMessages = messages.filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string').slice(-12).map((item: any) => ({ role: item.role, content: item.content.slice(0, 3000) }));
-    if (!cleanMessages.length) return json(res, { error: 'No conversation message.' }, 400);
+    if (!cleanMessages.length && !mediaUrl) return json(res, { error: 'No conversation message.' }, 400);
     const businessContext = await getBusinessContext();
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return json(res, { error: 'Gemini API key is not configured on the server.' }, 500);

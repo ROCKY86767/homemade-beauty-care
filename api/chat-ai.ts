@@ -34,6 +34,6 @@ export default async function handler(req:any,res:VercelResponse){ if(req.method
     if(Array.isArray(result?.steps)) for(const step of result.steps){ if(typeof step?.text==='string') textParts.push(step.text); if(Array.isArray(step?.content)) for(const part of step.content) if(typeof part?.text==='string') textParts.push(part.text); }
     const reply=[...new Set(textParts.map(x=>x.trim()).filter(Boolean))].join('\\n').trim();
     if(!reply){ console.error('Gemini response contained no readable text; response keys:',Object.keys(result||{})); return json(res,{error:'Gemini returned no text. Please try again.'},502); }
-    const needsAdmin=/\\[\\[ADMIN_PENDING\\]\\]/i.test(reply);
-    const customerReply=reply.replace(/\\[\\[ADMIN_PENDING\\]\\]/gi,'').trim();
+    const needsAdmin=/\[\[ADMIN_PENDING\]\]/i.test(reply);
+    const customerReply=reply.replace(/\[\[ADMIN_PENDING\]\]/gi,'').trim();
     return json(res,{text:customerReply,needsAdmin}); }catch(error){console.error('AI chat error',error);return json(res,{error:error instanceof Error?error.message:'AI reply could not be generated.'},502)}}

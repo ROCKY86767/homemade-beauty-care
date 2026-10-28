@@ -60,41 +60,45 @@ CONVERSATION: Keep context from recent messages, answer the latest question dire
 
 ${businessContext}`;
 
-    const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
+    const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
     let result: any = null;
     let lastError = 'Gemini API request failed.';
     let succeeded = false;
+    const conversationText = cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join(String.fromCharCode(10, 10));
+    const parts: any[] = [{ text: `Recent conversation:\n${conversationText}\n\nAnswer the latest customer message. If audio is attached, understand the spoken words and reply to them. If an image is attached, inspect it and answer the customer about it.` }];
+
+    if (mediaUrl && mediaType) {
+      try {
+        const mediaResponse = await fetch(mediaUrl, { signal: AbortSignal.timeout(12000) });
+        if (!mediaResponse.ok) throw new Error('Uploaded attachment could not be read.');
+        const contentType = mediaResponse.headers.get('content-type') || '';
+        if (mediaType === 'audio' && !contentType.startsWith('audio/')) throw new Error('Voice file format is not supported.');
+        if (mediaType === 'image' && !contentType.startsWith('image/')) throw new Error('Image file could not be read.');
+        const bytes = await mediaResponse.arrayBuffer();
+        if (bytes.byteLength > 12 * 1024 * 1024) throw new Error('Attachment is too large for AI analysis.');
+        parts.push({ inline_data: { mime_type: contentType.split(';')[0], data: Buffer.from(bytes).toString('base64') } });
+      } catch (mediaError) {
+        return json(res, { error: mediaError instanceof Error ? mediaError.message : 'Attachment could not be read.' }, 400);
+      }
+    }
 
     for (const model of models) {
       try {
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey,
-          },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
           body: JSON.stringify({
-            system_instruction: systemInstruction,
-            model,
-            input: cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join(String.fromCharCode(10, 10)),
-            store: false,
-            generation_config: { max_output_tokens: 220, thinking_level: 'low' },
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            contents: [{ role: 'user', parts }],
+            generationConfig: { maxOutputTokens: 260, temperature: 0.4 },
           }),
-          signal: AbortSignal.timeout(22000),
+          signal: AbortSignal.timeout(25000),
         });
-
         result = await response.json().catch(() => null);
-        if (response.ok) {
-          succeeded = true;
-          break;
-        }
-
+        if (response.ok) { succeeded = true; break; }
         lastError = result?.error?.message || `Gemini API request failed (${response.status}).`;
-        console.error('Gemini Interactions API error', model, response.status, lastError);
-        // Retry with the alternate model only for temporary capacity/rate-limit/server errors.
-        if (![429, 500, 502, 503, 504].includes(response.status)) {
-          return json(res, { error: lastError }, response.status === 429 ? 429 : 502);
-        }
+        console.error('Gemini generateContent API error', model, response.status, lastError);
+        if (![429, 500, 502, 503, 504].includes(response.status)) return json(res, { error: lastError }, 502);
       } catch (error) {
         lastError = error instanceof Error ? error.message : 'Gemini API request failed.';
         console.error('Gemini model attempt failed', model, lastError);
@@ -102,7 +106,7 @@ ${businessContext}`;
     }
 
     if (!succeeded) return json(res, { error: lastError }, 502);
-    const reply = (typeof result?.output_text === 'string' ? result.output_text : (Array.isArray(result?.steps) ? result.steps : []).filter((step: any) => step?.type === 'model_output').flatMap((step: any) => Array.isArray(step?.content) ? step.content : []).map((part: any) => typeof part?.text === 'string' ? part.text : '').join('')).trim();
+    const reply = (Array.isArray(result?.candidates?.[0]?.content?.parts) ? result.candidates[0].content.parts : []).map((part: any) => typeof part?.text === 'string' ? part.text : '').join('').trim();
     if (!reply) return json(res, { error: 'Gemini returned an empty response. Please try again.' }, 502);
     return json(res, { text: reply });
   } catch (error) {

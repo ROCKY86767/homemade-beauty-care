@@ -190,7 +190,7 @@ export default function HairPackLandingPage() {
         <div className="mx-auto grid max-w-7xl items-center gap-0 px-4 pb-7 pt-5 sm:px-6 sm:pb-12 sm:pt-9 lg:grid-cols-[.92fr_1.08fr] lg:gap-12 lg:px-8 lg:py-14">
           <div className="order-2 relative z-10 pt-5 lg:order-1 lg:py-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-[#D4AF37] sm:text-xs"><Sparkles size={14} /> YOUR HAIR CARE RITUAL</div>
-            <p className="mt-4 text-xs font-semibold tracking-[.24em] text-[#D4AF37]">{landingSettings?.hero_eyebrow || "GHOROYA ROOPCHARCHA"}</p>
+            <div className="mt-4"><p className="ritual-serif text-lg font-extrabold tracking-[.12em] text-[#D4AF37] sm:text-xl">{landingSettings?.hero_eyebrow?.trim() === "GHOROYA ROOPCHARCHA" || !landingSettings?.hero_eyebrow?.trim() ? "GHOROWA ROOPCHARCHA" : landingSettings.hero_eyebrow}</p><p className="mt-1.5 flex items-center gap-2 text-[10px] font-medium tracking-[.12em] text-[#edf6e9]/85 sm:text-xs"><span className="text-[#D4AF37]">✦</span><span>Homemade Beauty Care</span><span className="text-[#D4AF37]">✦</span></p></div>
             <h1 className="ritual-serif mt-3 max-w-xl text-[2.45rem] font-semibold leading-[1.17] tracking-tight text-[#fff9ed] sm:text-5xl lg:text-[3.7rem]">{landingHeroTitle}</h1>
             <p className="mt-4 max-w-lg text-sm leading-7 text-[#edf6e9]/90 sm:text-base sm:leading-8">{landingDescription}</p>
 

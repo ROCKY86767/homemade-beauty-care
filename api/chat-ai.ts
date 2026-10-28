@@ -30,7 +30,7 @@ async function lookupCustomerOrders(phone: string) {
     .select('order_number,mobile,alt_phone,status,created_at,pathao_status,pathao_consignment_id,pathao_tracking_code')
     .or(`mobile.eq.${mobile},alt_phone.eq.${mobile}`)
     .order('created_at', { ascending: false })
-    .limit(3);
+    .limit(25);
   if (error) {
     console.error('AI order lookup failed:', error.message);
     return [];
@@ -88,12 +88,15 @@ export default async function handler(req: any, res: VercelResponse) {
     const customerConversationText = cleanMessages.filter((item: any) => item.role === 'user').map((item: any) => item.content).join(' ');
     const orderKeywords = /অর্ডার|order|কোথায়|কোথায়|কবে পাব|ডেলিভারি|কুরিয়ার|কুরিয়ার|পার্সেল|স্ট্যাটাস|tracking|track/i;
     const asksOrderStatus = orderKeywords.test(latestUserMessage) || orderKeywords.test(customerConversationText);
-    const phoneInMessage = customerConversationText.match(/(?:\+?88)?\s*[০-৯0-9][০-৯0-9\s-]{8,16}[০-৯0-9]/)?.[0] || '';
+    const phoneCandidates = customerConversationText.match(/[+০-৯0-9][+০-৯0-9()\s.-]{7,20}[০-৯0-9]/g) || [];
+    const phoneInMessage = phoneCandidates.map((candidate: string) => normalizeBangladeshMobile(candidate)).find(Boolean) || '';
     const orderPhone = phoneInMessage || customerMobile;
-    const customerOrders = asksOrderStatus ? await lookupCustomerOrders(orderPhone) : [];
+    const asksAllOrders = /সব\s*(গুলো|গুলি|গুলাই)?\s*অর্ডার|সকল\s*অর্ডার|all\s+(my\s+)?orders|every\s+order|সব অর্ডারের|সকল অর্ডারের/i.test(customerConversationText);
+    const foundCustomerOrders = asksOrderStatus ? await lookupCustomerOrders(orderPhone) : [];
+    const customerOrders = asksAllOrders ? foundCustomerOrders : foundCustomerOrders.slice(0, 1);
     const orderContext = asksOrderStatus
-      ? `\nCUSTOMER ORDER LOOKUP (matched only by the customer's own mobile number; latest first): ${JSON.stringify(customerOrders)}
-If a matching order exists, answer with its real current status and any available courier status/consignment/tracking code. Do not ask the customer to wait for an admin when this data is available. Do not disclose address, email, or other private data. If no matching order is found, say you could not find an order for this number and ask them to confirm the number or say an admin will check; never invent an order/status.`
+      ? \`\nCUSTOMER ORDER LOOKUP (matched only by the customer's own mobile number; newest order first): \${JSON.stringify(customerOrders)}
+ORDER RESPONSE RULE: By default, report ONLY the single newest order shown here and its real current status. If the customer explicitly asks for all orders / every order / সব অর্ডার / সকল অর্ডার, report each matching order, newest first, with each order number, order date, current status, and any available courier status/consignment/tracking code. Keep it concise and clear in Bangla. If tracking/courier information is absent, say it is not available yet; never guess an arrival date or claim the parcel is on the way unless the data confirms that. Do not ask the customer to wait for an admin when useful order data is available. Do not disclose address, email, or other private details. If no matching order is found, say you could not find an order for this number and ask them to confirm the number or say an admin will check; never invent an order/status.\`
       : '';
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return json(res, { error: 'Gemini API key is not configured on the server.' }, 500);

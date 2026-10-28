@@ -1,9 +1,8 @@
 import { generateText, gateway } from 'ai';
 import { createClient } from '@supabase/supabase-js';
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-}
+type VercelResponse = { status: (code: number) => VercelResponse; json: (body: unknown) => VercelResponse };
+function json(res: VercelResponse, body: unknown, status = 200) { return res.status(status).json(body); }
 
 function supabaseServer() {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -37,14 +36,16 @@ Announcement: ${settings?.announcement_bn || ''}
 ACTIVE PRODUCTS:\n${JSON.stringify(products)}`;
 }
 
-export default async function handler(req: Request) {
-  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+export default async function handler(req: any, res: VercelResponse) {
+  if (req.method !== 'POST') return json(res, { error: 'Method not allowed' }, 405);
   try {
-    const body = await req.json();
+    let body: any = req.body;
+    if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
+    if (!body || typeof body !== 'object') return json(res, { error: 'Invalid request body.' }, 400);
     const messages = Array.isArray(body?.messages) ? body.messages : [];
     const customerName = typeof body?.customerName === 'string' ? body.customerName : 'Customer';
     const cleanMessages = messages.filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string').slice(-12).map((item: any) => ({ role: item.role, content: item.content.slice(0, 3000) }));
-    if (!cleanMessages.length) return json({ error: 'No conversation message.' }, 400);
+    if (!cleanMessages.length) return json(res, { error: 'No conversation message.' }, 400);
     const businessContext = await getBusinessContext();
     const { text } = await generateText({
       model: gateway('openai/gpt-5.5'),
@@ -59,9 +60,9 @@ ${businessContext}`,
       messages: cleanMessages,
       temperature: 0.2,
     });
-    return json({ text: text.trim() });
+    return json(res, { text: text.trim() });
   } catch (error) {
     console.error('AI chat error', error);
-    return json({ error: error instanceof Error ? error.message : 'AI reply could not be generated.' }, 500);
+    return json(res, { error: error instanceof Error ? error.message : 'AI reply could not be generated.' }, 502);
   }
 }

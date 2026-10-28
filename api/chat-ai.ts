@@ -67,7 +67,7 @@ ${businessContext}`;
       body: JSON.stringify({
         system_instruction: systemInstruction,
         model: 'gemini-3.8-flash',
-        input: cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join('\\n\\n'),
+        input: cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join(String.fromCharCode(10, 10)),
         store: false,
         generation_config: { max_output_tokens: 700, thinking_level: 'low' },
       }),

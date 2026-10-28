@@ -34,6 +34,6 @@ export default async function handler(req:any,res:VercelResponse){ if(req.method
     if(Array.isArray(result?.steps)) for(const step of result.steps){ if(typeof step?.text==='string') textParts.push(step.text); if(Array.isArray(step?.content)) for(const part of step.content) if(typeof part?.text==='string') textParts.push(part.text); }
     const reply=[...new Set(textParts.map(x=>x.trim()).filter(Boolean))].join('\\n').trim();
     if(!reply){ console.error('Gemini response contained no readable text; response keys:',Object.keys(result||{})); return json(res,{error:'Gemini returned no text. Please try again.'},502); }
-    const needsAdmin=/\[\[ADMIN_PENDING\]\]/i.test(reply);
+    const indicatesHumanHandoff=/আমাদের\s*(?:প্রতিনিধি|সাপোর্ট|কাস্টমার কেয়ার|কাস্টমার কেয়ার)|প্রতিনিধি\s*(?:শীঘ্রই|আপনাকে|যোগাযোগ)|শীঘ্রই\s*আপনাকে\s*কল|প্রয়োজনে\s*আপনিও|প্রয়োজনে\s*আপনিও|কল\s*করতে\s*পারেন|কাস্টমার\s*সাপোর্টে\s*যোগাযোগ|মানব\s*প্রতিনিধি|human\s*(?:agent|support)|contact\s*(?:our\s*)?support|representative\s*will\s*call/i.test(reply);\n    const needsAdmin=/\\[\\[ADMIN_PENDING\\]\\]/i.test(reply)||indicatesHumanHandoff;
     const customerReply=reply.replace(/\[\[ADMIN_PENDING\]\]/gi,'').trim();
     return json(res,{text:customerReply,needsAdmin}); }catch(error){console.error('AI chat error',error);return json(res,{error:error instanceof Error?error.message:'AI reply could not be generated.'},502)}}

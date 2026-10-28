@@ -42,6 +42,8 @@ export default async function handler(req: any, res: VercelResponse) {
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
     if (!body || typeof body !== 'object') return json(res, { error: 'Invalid request body.' }, 400);
     const messages = Array.isArray(body?.messages) ? body.messages : [];
+    const mediaUrl = typeof body?.mediaUrl === 'string' ? body.mediaUrl : '';
+    const mediaType = body?.mediaType === 'audio' ? 'audio' : body?.mediaType === 'image' ? 'image' : '';
     const customerName = typeof body?.customerName === 'string' ? body.customerName : 'Customer';
     const cleanMessages = messages.filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string').slice(-12).map((item: any) => ({ role: item.role, content: item.content.slice(0, 3000) }));
     if (!cleanMessages.length) return json(res, { error: 'No conversation message.' }, 400);

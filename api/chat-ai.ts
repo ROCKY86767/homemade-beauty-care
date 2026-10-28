@@ -91,7 +91,7 @@ export default async function handler(req: any, res: VercelResponse) {
     const phoneCandidates = customerConversationText.match(/[+০-৯0-9][+০-৯0-9()\s.-]{7,20}[০-৯0-9]/g) || [];
     const phoneInMessage = phoneCandidates.map((candidate: string) => normalizeBangladeshMobile(candidate)).find(Boolean) || '';
     const orderPhone = phoneInMessage || customerMobile;
-    const asksAllOrders = /সব\s*(গুলো|গুলি|গুলাই)?\s*অর্ডার|সকল\s*অর্ডার|all\s+(my\s+)?orders|every\s+order|সব অর্ডারের|সকল অর্ডারের/i.test(customerConversationText);
+    const asksAllOrders = /সব\s*(গুলো|গুলি|গুলাই)?\s*অর্ডার|সকল\s*অর্ডার|all\s+(my\s+)?orders|all\s+orders?|every\s+order|sob\s*(gula|gulo)?\s*order|shob\s*(gula|gulo)?\s*order|সব অর্ডারের|সকল অর্ডারের/i.test(customerConversationText);
     const foundCustomerOrders = asksOrderStatus ? await lookupCustomerOrders(orderPhone) : [];
     const customerOrders = asksAllOrders ? foundCustomerOrders : foundCustomerOrders.slice(0, 1);
     const orderContext = asksOrderStatus

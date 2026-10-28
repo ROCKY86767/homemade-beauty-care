@@ -59,6 +59,7 @@ Customer name: ${customerName}
 ${businessContext}`,
       messages: cleanMessages,
       temperature: 0.2,
+      abortSignal: AbortSignal.timeout(25000),
     });
     return json(res, { text: text.trim() });
   } catch (error) {

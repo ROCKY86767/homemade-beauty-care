@@ -28,23 +28,80 @@ export default function HairPackLandingPage() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      supabase.from('products').select('*, category:categories(*)').eq('slug', 'ghorowa-hairpack').maybeSingle(),
-      getSettings(),
-      supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
-      supabase.from('hairpack_landing_page_settings').select('*').eq('id', 1).maybeSingle(),
-    ]).then(([{ data }, siteSettings, editorialResult, landingResult]) => {
+    let initialLoad = true;
+
+    const refreshProduct = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, category:categories(*)')
+        .eq('slug', 'ghorowa-hairpack')
+        .maybeSingle();
       if (!active) return;
-      if (data) setProduct(data as Product);
-      setSettings(siteSettings);
-      if (editorialResult.error) console.error('Landing page editorial reviews load error:', editorialResult.error);
-      setEditorialReviews(editorialResult.data || []);
-      setLandingSettings(landingResult.data || {});
-      setLoading(false);
-    }).catch(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
+      if (error) {
+        console.error('Hair Pack landing product refresh error:', error);
+        return;
+      }
+      setProduct((data as Product | null) ?? null);
+    };
+
+    const loadPageData = async () => {
+      try {
+        const [
+          { data },
+          siteSettings,
+          editorialResult,
+          landingResult,
+        ] = await Promise.all([
+          supabase.from('products').select('*, category:categories(*)').eq('slug', 'ghorowa-hairpack').maybeSingle(),
+          getSettings(),
+          supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
+          supabase.from('hairpack_landing_page_settings').select('*').eq('id', 1).maybeSingle(),
+        ]);
+        if (!active) return;
+        if (data) setProduct(data as Product);
+        setSettings(siteSettings);
+        if (editorialResult.error) console.error('Landing page editorial reviews load error:', editorialResult.error);
+        setEditorialReviews(editorialResult.data || []);
+        setLandingSettings(landingResult.data || {});
+      } catch (error) {
+        console.error('Hair Pack landing page load error:', error);
+      } finally {
+        if (active) {
+          setLoading(false);
+          initialLoad = false;
+        }
+      }
+    };
+
+    void loadPageData();
+
+    // Reflect admin product edits while the landing page is open.
+    const productChannel = supabase
+      .channel('hairpack-landing-product-live-sync')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'products',
+        filter: 'slug=eq.ghorowa-hairpack',
+      }, () => {
+        void refreshProduct();
+      })
+      .subscribe();
+
+    // Fallback refresh when a visitor returns to the tab/device.
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void refreshProduct();
+    };
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+
+    return () => {
+      active = false;
+      initialLoad = false;
+      window.removeEventListener('focus', refreshWhenVisible);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      void supabase.removeChannel(productChannel);
+    };
   }, []);
 
   const benefits = useMemo(() => {

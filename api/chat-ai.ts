@@ -58,32 +58,28 @@ Customer name: ${customerName}
 
 ${businessContext}`;
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': apiKey,
       },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        contents: cleanMessages.map((item: any) => ({
-          role: item.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: item.content }],
-        })),
-        generationConfig: { temperature: 0.2, maxOutputTokens: 700 },
+        system_instruction: systemInstruction,
+        model: 'gemini-3.8-flash',
+        input: cleanMessages.map((item: any) => (item.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + item.content).join('\\n\\n'),
+        store: false,
+        generation_config: { max_output_tokens: 700, thinking_level: 'low' },
       }),
       signal: AbortSignal.timeout(25000),
     });
 
     const result: any = await response.json().catch(() => null);
     if (!response.ok) {
-      console.error('Gemini API error', response.status, result?.error?.message || 'Unknown Gemini API error');
+      console.error('Gemini Interactions API error', response.status, result?.error?.message || 'Unknown Gemini API error');
       return json(res, { error: result?.error?.message || 'Gemini API request failed.' }, response.status === 429 ? 429 : 502);
     }
-    const reply = result?.candidates?.[0]?.content?.parts
-      ?.map((part: any) => typeof part.text === 'string' ? part.text : '')
-      .join('')
-      .trim();
+    const reply = (typeof result?.output_text === 'string' ? result.output_text : (Array.isArray(result?.steps) ? result.steps : []).filter((step: any) => step?.type === 'model_output').flatMap((step: any) => Array.isArray(step?.content) ? step.content : []).map((part: any) => typeof part?.text === 'string' ? part.text : '').join('')).trim();
     if (!reply) return json(res, { error: 'Gemini returned an empty response. Please try again.' }, 502);
     return json(res, { text: reply });
   } catch (error) {

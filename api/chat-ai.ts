@@ -11,7 +11,7 @@ export default async function handler(req:any,res:VercelResponse){ if(req.method
     if(asksOrderStatus && customerOrders.length){
       const statusBn=(value:any)=>{const s=String(value||'তথ্য আপডেট নেই');const map:Record<string,string>={pending:'প্রসেসিংয়ের অপেক্ষায়',processing:'প্রসেসিং হচ্ছে',confirmed:'নিশ্চিত',shipped:'কুরিয়ারে পাঠানো হয়েছে',in_transit:'পথে আছে',delivered:'ডেলিভারি সম্পন্ন',cancelled:'বাতিল',returned:'রিটার্ন'};return map[s.toLowerCase()]||s;};
       const lines=customerOrders.map((o:any)=>`• ${o.order_number?`অর্ডার ${o.order_number}`:'অর্ডার নম্বর পাওয়া যায়নি'} — ${statusBn(o.status)}${o.courier_status?`; কুরিয়ার: ${statusBn(o.courier_status)}`:''}${o.consignment_id?`; Consignment ID: ${o.consignment_id}`:''}${o.tracking_code?`; Tracking: ${o.tracking_code}`:''}`);
-      return json(res,{text:`আপনার ${asksAllOrders?'অর্ডারগুলোর':'সর্বশেষ অর্ডারের'} তথ্য:\\n${lines.join('\\n')}\\n\\nআরও বিস্তারিত জানতে আমাদের কাস্টমার সাপোর্টে যোগাযোগ করুন।`});
+      return json(res,{text:`আপনার ${asksAllOrders?'অর্ডারগুলোর':'সর্বশেষ অর্ডারের'} তথ্য:\n${lines.join('\n')}\n\nআরও বিস্তারিত জানতে আমাদের কাস্টমার সাপোর্টে যোগাযোগ করুন।`});
     }
     if(asksOrderStatus && !customerOrders.length){
       return json(res,{text:'দুঃখিত, এই চ্যাটে দেওয়া নম্বর দিয়ে অর্ডারটি স্বয়ংক্রিয়ভাবে যাচাই করা যায়নি। নম্বরটি আবার মিলিয়ে দেখুন অথবা বিস্তারিত জানতে ০১৯৯৯৪১৮২০৩ নম্বরে যোগাযোগ করুন।'});

@@ -1,4 +1,3 @@
-import { generateText, gateway } from 'ai';
 import { createClient } from '@supabase/supabase-js';
 
 type VercelResponse = { status: (code: number) => VercelResponse; json: (body: unknown) => VercelResponse };
@@ -47,21 +46,46 @@ export default async function handler(req: any, res: VercelResponse) {
     const cleanMessages = messages.filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string').slice(-12).map((item: any) => ({ role: item.role, content: item.content.slice(0, 3000) }));
     if (!cleanMessages.length) return json(res, { error: 'No conversation message.' }, 400);
     const businessContext = await getBusinessContext();
-    const { text } = await generateText({
-      model: gateway('openai/gpt-5.5'),
-      system: `You are the customer support assistant for Homemade Beauty Care, a Bangladeshi natural beauty-care e-commerce store.
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return json(res, { error: 'Gemini API key is not configured on the server.' }, 500);
+
+    const systemInstruction = `You are the customer support assistant for Homemade Beauty Care, a Bangladeshi natural beauty-care e-commerce store.
 Reply naturally in Bangla unless the customer uses English. Keep replies concise, friendly and helpful.
 Use BUSINESS DATA as the source of truth for product names, prices, stock, ingredients, benefits, usage, sizes, delivery and payment information.
 Never invent prices, stock, ingredients, delivery charges, policies, order status or medical claims.
 If a fact is missing, say you need to check it and offer an admin handover. Do not make medical diagnoses or promise treatment results. If the customer asks for a human/admin, say an admin will take over.
 Customer name: ${customerName}
 
-${businessContext}`,
-      messages: cleanMessages,
-      temperature: 0.2,
-      abortSignal: AbortSignal.timeout(25000),
+${businessContext}`;
+
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents: cleanMessages.map((item: any) => ({
+          role: item.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: item.content }],
+        })),
+        generationConfig: { temperature: 0.2, maxOutputTokens: 700 },
+      }),
+      signal: AbortSignal.timeout(25000),
     });
-    return json(res, { text: text.trim() });
+
+    const result: any = await response.json().catch(() => null);
+    if (!response.ok) {
+      console.error('Gemini API error', response.status, result?.error?.message || 'Unknown Gemini API error');
+      return json(res, { error: result?.error?.message || 'Gemini API request failed.' }, response.status === 429 ? 429 : 502);
+    }
+    const reply = result?.candidates?.[0]?.content?.parts
+      ?.map((part: any) => typeof part.text === 'string' ? part.text : '')
+      .join('')
+      .trim();
+    if (!reply) return json(res, { error: 'Gemini returned an empty response. Please try again.' }, 502);
+    return json(res, { text: reply });
   } catch (error) {
     console.error('AI chat error', error);
     return json(res, { error: error instanceof Error ? error.message : 'AI reply could not be generated.' }, 502);

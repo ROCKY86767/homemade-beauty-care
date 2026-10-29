@@ -156,7 +156,7 @@ export default async function handler(req, res) {
       { headers },
       SUPABASE_TIMEOUT_MS
     );
-    if (!productsResponse.ok) return jsonError(res, 502, 'ওয়েবসাইটের পণ্যের তথ্য এখন পাওয়া যাচ্ছে না।');
+    if (!productsResponse.ok) return res.status(200).json(buildFallbackResponse(latestMessage.message, [], {}));
     const products = await productsResponse.json();
 
     stage = 'site settings';
@@ -165,10 +165,10 @@ export default async function handler(req, res) {
       { headers },
       SUPABASE_TIMEOUT_MS
     );
-    if (!settingsResponse.ok) return jsonError(res, 502, 'ডেলিভারি ও ওয়েবসাইটের সেটিংস এখন ডাটাবেস থেকে পাওয়া যাচ্ছে না।');
+    if (!settingsResponse.ok) return res.status(200).json(buildFallbackResponse(latestMessage.message, [], {}));
     const settingsRows = await settingsResponse.json();
     if (!Array.isArray(settingsRows) || settingsRows.length === 0) {
-      return jsonError(res, 502, 'ওয়েবসাইটের ডেলিভারি ও পেমেন্টের তথ্য ডাটাবেসে পাওয়া যায়নি।');
+      return res.status(200).json(buildFallbackResponse(latestMessage.message, [], {}));
     }
     const siteSettings = settingsRows[0];
     const origin = 'https://homemade-beauty-care.vercel.app';
@@ -314,8 +314,8 @@ export default async function handler(req, res) {
 
     if (typeof raw !== 'string' || !raw.trim()) return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');
     let result;
-    try { result = parseJsonObject(raw); } catch { console.warn('Gemini response was not valid JSON', { responseLength: raw.length }); return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি। আবার চেষ্টা করুন।'); }
-    if (typeof result.reply !== 'string' || !result.reply.trim()) return jsonError(res, 502, 'AI কোনো উত্তর দেয়নি।');
+    try { result = parseJsonObject(raw); } catch { console.warn('Gemini response was not valid JSON; using catalog-grounded fallback', { responseLength: raw.length }); return res.status(200).json(buildFallbackResponse(latestMessage.message, productContext, publicBusinessContext)); }
+    if (typeof result.reply !== 'string' || !result.reply.trim()) return res.status(200).json(buildFallbackResponse(latestMessage.message, productContext, publicBusinessContext));
 
     const safeResult = {
       reply: result.reply.slice(0, 1800),

@@ -98,7 +98,7 @@ export default async function handler(req, res) {
 
     let raw = '';
     if (geminiApiKey) {
-      const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
+      const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -217,6 +217,7 @@ export default async function handler(req, res) {
     }
     return res.status(200).json(safeResult);
   } catch (error) {
+    console.error('AI chat handler failed', { name: error && error.name, message: String(error && error.message || error).slice(0, 500) });
     return jsonError(res, 500, 'AI chat-এ সাময়িক সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।');
   }
 }

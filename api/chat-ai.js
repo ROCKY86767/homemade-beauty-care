@@ -1,7 +1,7 @@
 export const config = { maxDuration: 60 };
 
 const SUPABASE_TIMEOUT_MS = 12000;
-const AI_TIMEOUT_MS = 18000;
+const AI_TIMEOUT_MS = 20000;
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = SUPABASE_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -197,8 +197,8 @@ export default async function handler(req, res) {
       'orderReady=true কেবল তখনই হবে যখন customer-এর অর্ডার করার ইচ্ছা আছে এবং নির্দিষ্ট পণ্য ও পরিমাণ কথোপকথন থেকে নিশ্চিত। তখন reply-তে বলবে নাম, মোবাইল ও ঠিকানা দেওয়ার form দেখানো হচ্ছে। productName হবে catalog-এর সঠিক বাংলা/ইংরেজি নাম; quantity পূর্ণ ধনাত্মক integer; unitPrice catalog-এর বর্তমান price। পণ্য/পরিমাণ নিশ্চিত না হলে orderReady=false।',
       'অর্ডারের ফর্ম পাঠানো মানে অর্ডার নিশ্চিত নয়; অ্যাডমিন স্টক, দাম ও ডেলিভারি যাচাই করবেন। কখনো অর্ডার কনফার্ম হয়েছে বলবে না। অভিযোগ, refund/dispute, অর্ডার tracking, বা ডাটাবেসে অনুপস্থিত/অনিশ্চিত তথ্যের প্রশ্নে সংক্ষিপ্তভাবে অ্যাডমিনের সাহায্য দেওয়ার কথা বলবে। ডাটাবেসে থাকা নয় এমন পুরোনো অর্ডারের তথ্য কখনো অনুমান করবে না।',
       'product question হলে সম্ভব হলে সঠিক product link এবং image URL reply-তে দেবে। সবসময় শুধু JSON object ফেরত দেবে, এই schema মেনে: {"reply":"...","orderReady":false,"productName":null,"quantity":null,"unitPrice":null,"handoff":false}.',
-      'LIVE PRODUCT DATA: ' + JSON.stringify(productContext).slice(0, 26000),
-      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 10000),
+      'LIVE PRODUCT DATA: ' + JSON.stringify(productContext).slice(0, 14000),
+      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
     ].join('\n\n');
 
     let raw = '';
@@ -218,7 +218,7 @@ export default async function handler(req, res) {
     };
     const conversationText = [
       'CONVERSATION HISTORY (oldest first):',
-      messages.slice(-10).map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content).join('\n'),
+      messages.slice(-6).map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content.slice(0, 1400)).join('\n'),
       'Return only the JSON object required by the schema.',
     ].join('\n\n');
 
@@ -237,7 +237,7 @@ export default async function handler(req, res) {
               generationConfig: {
                 responseMimeType: 'application/json',
                 responseSchema,
-                maxOutputTokens: 500,
+                maxOutputTokens: 350,
                 ...(model === 'gemini-3.8-flash' ? { thinkingConfig: { thinkingLevel: 'LOW' } } : { temperature: 0.2 }),
               },
             }),

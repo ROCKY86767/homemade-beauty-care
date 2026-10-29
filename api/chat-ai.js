@@ -10,10 +10,11 @@ export default async function handler(req, res) {
     return jsonError(res, 405, 'Method not allowed');
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+  const openAiApiKey = process.env.OPENAI_API_KEY;
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  if (!apiKey) return jsonError(res, 503, 'OPENAI_API_KEY Vercel-এ সেট করা নেই।');
+  if (!geminiApiKey && !openAiApiKey) return jsonError(res, 503, 'Vercel-এ GEMINI_API_KEY সেট করা নেই। Google AI Studio থেকে free API key তৈরি করে যোগ করুন।');
   if (!supabaseUrl || !supabaseAnonKey) return jsonError(res, 503, 'Supabase server configuration পাওয়া যায়নি।');
 
   const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -95,74 +96,96 @@ export default async function handler(req, res) {
       'LIVE PRODUCT DATA: ' + JSON.stringify(productContext).slice(0, 26000),
     ].join('\n\n');
 
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        messages: [{ role: 'system', content: systemPrompt }, ...messages],
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'homemade_beauty_chat_reply',
-            strict: true,
-            schema: {
-              type: 'object',
+    let raw = '';
+    if (geminiApiKey) {
+      const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: messages.map((m) => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }],
+          })),
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
               properties: {
-                reply: { type: 'string' },
-                orderReady: { type: 'boolean' },
-                productName: { type: ['string', 'null'] },
-                quantity: { type: ['integer', 'null'] },
-                unitPrice: { type: ['number', 'null'] },
-                handoff: { type: 'boolean' },
+                reply: { type: 'STRING' },
+                orderReady: { type: 'BOOLEAN' },
+                productName: { type: 'STRING', nullable: true },
+                quantity: { type: 'INTEGER', nullable: true },
+                unitPrice: { type: 'NUMBER', nullable: true },
+                handoff: { type: 'BOOLEAN' },
               },
               required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
-              additionalProperties: false,
+            },
+            maxOutputTokens: 700,
+            temperature: 0.3,
+          },
+        }),
+      });
+      let geminiPayload = {};
+      try { geminiPayload = await geminiResponse.json(); } catch { geminiPayload = {}; }
+      if (!geminiResponse.ok) {
+        const providerError = geminiPayload && geminiPayload.error ? geminiPayload.error : {};
+        const providerMessage = String(providerError.message || '').slice(0, 400);
+        console.error('Gemini API request failed', { status: geminiResponse.status, code: providerError.status || '', message: providerMessage });
+        if (geminiResponse.status === 400 || geminiResponse.status === 403) return jsonError(res, 502, 'Gemini API key বা API configuration সঠিক নয়। Google AI Studio-তে key ও Gemini API access যাচাই করুন।');
+        if (geminiResponse.status === 429) return jsonError(res, 502, 'Gemini free API quota আপাতত শেষ হয়েছে। quota reset হলে আবার চেষ্টা করুন।');
+        return jsonError(res, 502, `Gemini API অনুরোধ ব্যর্থ হয়েছে (HTTP ${geminiResponse.status})।`);
+      }
+      raw = geminiPayload.candidates && geminiPayload.candidates[0] && geminiPayload.candidates[0].content && geminiPayload.candidates[0].content.parts && geminiPayload.candidates[0].content.parts.map((p) => p.text || '').join('');
+    } else {
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + openAiApiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: OPENAI_MODEL,
+          messages: [{ role: 'system', content: systemPrompt }, ...messages],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'homemade_beauty_chat_reply',
+              strict: true,
+              schema: {
+                type: 'object',
+                properties: {
+                  reply: { type: 'string' },
+                  orderReady: { type: 'boolean' },
+                  productName: { type: ['string', 'null'] },
+                  quantity: { type: ['integer', 'null'] },
+                  unitPrice: { type: ['number', 'null'] },
+                  handoff: { type: 'boolean' },
+                },
+                required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
+                additionalProperties: false,
+              },
             },
           },
-        },
-        max_completion_tokens: 500,
-      }),
-    });
-
-    let aiPayload = {};
-    try {
-      aiPayload = await openAIResponse.json();
-    } catch {
-      aiPayload = {};
-    }
-    if (!openAIResponse.ok) {
-      const providerError = aiPayload && aiPayload.error ? aiPayload.error : {};
-      const providerCode = String(providerError.code || providerError.type || '');
-      const providerMessage = String(providerError.message || '').slice(0, 500);
-      console.error('OpenAI API request failed', {
-        status: openAIResponse.status,
-        code: providerCode,
-        message: providerMessage,
+          max_completion_tokens: 500,
+        }),
       });
-
-      if (openAIResponse.status === 401) {
-        return jsonError(res, 502, 'OpenAI API key সঠিক নয় বা বাতিল হয়েছে। Vercel-এর OPENAI_API_KEY যাচাই করে নতুন deployment দিন।');
+      let aiPayload = {};
+      try { aiPayload = await openAIResponse.json(); } catch { aiPayload = {}; }
+      if (!openAIResponse.ok) {
+        const providerError = aiPayload && aiPayload.error ? aiPayload.error : {};
+        const providerCode = String(providerError.code || providerError.type || '');
+        const providerMessage = String(providerError.message || '').slice(0, 500);
+        console.error('OpenAI API request failed', { status: openAIResponse.status, code: providerCode, message: providerMessage });
+        if (openAIResponse.status === 401) return jsonError(res, 502, 'OpenAI API key সঠিক নয় বা বাতিল হয়েছে।');
+        if (openAIResponse.status === 429 && /insufficient_quota|billing|quota/i.test(providerCode + ' ' + providerMessage)) return jsonError(res, 502, 'OpenAI API account-এ পর্যাপ্ত API credit নেই বা billing limit শেষ।');
+        if (openAIResponse.status === 429) return jsonError(res, 502, 'OpenAI API-তে rate limit হয়েছে।');
+        return jsonError(res, 502, `OpenAI API request ব্যর্থ হয়েছে (HTTP ${openAIResponse.status})।`);
       }
-      if (openAIResponse.status === 429 && /insufficient_quota|billing|quota/i.test(providerCode + ' ' + providerMessage)) {
-        return jsonError(res, 502, 'OpenAI API account-এ পর্যাপ্ত API credit নেই বা billing limit শেষ। OpenAI Platform-এর Billing ও Usage যাচাই করুন।');
-      }
-      if (openAIResponse.status === 429) {
-        return jsonError(res, 502, 'OpenAI API-তে rate limit হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।');
-      }
-      if (openAIResponse.status === 400) {
-        return jsonError(res, 502, 'OpenAI API request গ্রহণ করেনি। Vercel runtime logs-এ error code যাচাই করতে হবে।');
-      }
-      if (openAIResponse.status === 403) {
-        return jsonError(res, 502, 'OpenAI API account বা project-এর permission/billing বাধা দিচ্ছে। OpenAI Platform-এর project ও billing settings যাচাই করুন।');
-      }
-      return jsonError(res, 502, `OpenAI API request ব্যর্থ হয়েছে (HTTP ${openAIResponse.status})। Vercel runtime logs-এ বিস্তারিত error রাখা হয়েছে।`);
+      raw = aiPayload.choices && aiPayload.choices[0] && aiPayload.choices[0].message && aiPayload.choices[0].message.content;
     }
-    const raw = aiPayload.choices && aiPayload.choices[0] && aiPayload.choices[0].message && aiPayload.choices[0].message.content;
-    if (typeof raw !== 'string') return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');
+
+    if (typeof raw !== 'string' || !raw.trim()) return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');
     let result;
     try { result = JSON.parse(raw); } catch { return jsonError(res, 502, 'AI-এর উত্তর পড়া যায়নি।'); }
     if (typeof result.reply !== 'string' || !result.reply.trim()) return jsonError(res, 502, 'AI কোনো উত্তর দেয়নি।');

@@ -1,5 +1,7 @@
+export const config = { maxDuration: 60 };
+
 const SUPABASE_TIMEOUT_MS = 12000;
-const AI_TIMEOUT_MS = 7000;
+const AI_TIMEOUT_MS = 18000;
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = SUPABASE_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -221,7 +223,7 @@ export default async function handler(req, res) {
     ].join('\n\n');
 
     // Try two Gemini models in order. If the first is slow/unavailable, quickly try the second.
-    const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
+    const geminiModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
     if (geminiApiKey) {
       for (const model of geminiModels) {
         stage = 'Gemini API (' + model + ')';
@@ -236,10 +238,10 @@ export default async function handler(req, res) {
                 responseMimeType: 'application/json',
                 responseSchema,
                 maxOutputTokens: 500,
-                temperature: 0.2,
+                ...(model === 'gemini-3.8-flash' ? { thinkingConfig: { thinkingLevel: 'LOW' } } : { temperature: 0.2 }),
               },
             }),
-          }, 9000);
+          }, model === 'gemini-3.8-flash' ? AI_TIMEOUT_MS : 9000);
           const payload = await response.json().catch(() => ({}));
           const parts = payload && payload.candidates && payload.candidates[0] && payload.candidates[0].content && payload.candidates[0].content.parts;
           const candidateText = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
@@ -260,8 +262,8 @@ export default async function handler(req, res) {
     }
 
     if (!raw.trim()) {
-      console.error('Both Gemini models failed', { geminiFailure });
-      return jsonError(res, 502, 'দুইটি Gemini মডেলই এখন উত্তর দিতে পারেনি। একটু পরে আবার চেষ্টা করুন।');
+      console.error('All Gemini models failed', { geminiFailure });
+      return jsonError(res, 502, 'Gemini AI এখন ব্যস্ত বা সাড়া দিতে দেরি করছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
 
     if (typeof raw !== 'string' || !raw.trim()) return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');

@@ -1,7 +1,7 @@
 export const config = { maxDuration: 60 };
 
-const SUPABASE_TIMEOUT_MS = 8000;
-const AI_TIMEOUT_MS = 12000;
+const SUPABASE_TIMEOUT_MS = 5000;
+const AI_TIMEOUT_MS = 7000;
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = SUPABASE_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -102,8 +102,10 @@ function buildFallbackResponse(question, productContext, settings) {
     add('আপনার প্রশ্ন অনুযায়ী ক্যাটালগে এই পণ্যগুলো মিলেছে:', items.join(' | '), 'কোন পণ্যটি সম্পর্কে বিস্তারিত জানতে চান?');
     return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
-  add('দুঃখিত, AI সহকারী এখন সাময়িকভাবে ধীরগতিতে কাজ করছে।', 'আপনার মেসেজটি চ্যাটে রাখা হয়েছে—পণ্যের নাম বা প্রশ্নটি একটু নির্দিষ্ট করে লিখুন, অথবা টিমের উত্তর পাওয়ার জন্য এই চ্যাটটি খোলা রাখুন।');
-  return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true };
+  const originalQuestion = String(question || '').trim().replace(/\\s+/g, ' ').slice(0, 220);
+  if (originalQuestion) add('আপনার প্রশ্নটি পেয়েছি: “' + originalQuestion + '”।');
+  add('এই মুহূর্তে ক্যাটালগ বা সেটিংস থেকে নির্ভরযোগ্য উত্তর নিশ্চিত করা যাচ্ছে না।', 'ভুল তথ্য না দিয়ে আপনার মেসেজটি টিমের নজরে রাখছি; চ্যাটটি খোলা রাখুন, অ্যাডমিন উত্তর দেবেন।');
+  return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true };
 }
 
 
@@ -281,45 +283,53 @@ export default async function handler(req, res) {
       'Return only the JSON object required by the schema.',
     ].join('\n\n');
 
-    // Try two Gemini models in order. If the first is slow/unavailable, quickly try the second.
-    const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.8-flash'];
+    // Gemini-only resilience: try the newest stable Flash first, with one bounded retry per model.
+    // Keep total attempts bounded so Vercel can return a response before its function deadline.
+    const geminiModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
     if (geminiApiKey) {
       for (const model of geminiModels) {
-        stage = 'Gemini API (' + model + ')';
-        try {
-          const response = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(geminiApiKey), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              system_instruction: { parts: [{ text: systemPrompt }] },
-              contents: [{ role: 'user', parts: [{ text: conversationText }] }],
-              generationConfig: {
-                responseMimeType: 'application/json',
-                responseSchema,
-                maxOutputTokens: 350,
-                ...(model === 'gemini-3.8-flash' ? { thinkingConfig: { thinkingLevel: 'LOW' } } : { temperature: 0.2 }),
-              },
-            }),
-          }, model === 'gemini-3.8-flash' ? AI_TIMEOUT_MS : 10000);
-          const payload = await response.json().catch(() => ({}));
-          const parts = payload && payload.candidates && payload.candidates[0] && payload.candidates[0].content && payload.candidates[0].content.parts;
-          const candidateText = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
-          if (response.ok && candidateText.trim()) {
-            raw = candidateText;
-            console.info('Gemini model replied', { model });
-            break;
+        for (let attempt = 1; attempt <= 2; attempt += 1) {
+          stage = 'Gemini API (' + model + ', attempt ' + attempt + ')';
+          try {
+            const response = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(geminiApiKey), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                system_instruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ role: 'user', parts: [{ text: conversationText }] }],
+                generationConfig: {
+                  responseMimeType: 'application/json',
+                  responseSchema,
+                  maxOutputTokens: 350,
+                  ...(model === 'gemini-3.8-flash' ? { thinkingConfig: { thinkingLevel: 'LOW' } } : { temperature: 0.2 }),
+                },
+              }),
+            }, AI_TIMEOUT_MS);
+            const payload = await response.json().catch(() => ({}));
+            const parts = payload && payload.candidates && payload.candidates[0] && payload.candidates[0].content && payload.candidates[0].content.parts;
+            const candidateText = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
+            if (response.ok && candidateText.trim()) {
+              raw = candidateText;
+              console.info('Gemini model replied', { model, attempt });
+              break;
+            }
+            const providerStatus = response.status;
+            const modelFailure = model + ' attempt ' + attempt + ' HTTP ' + providerStatus + (payload?.error?.message ? ': ' + String(payload.error.message).slice(0, 180) : '');
+            geminiFailure = geminiFailure ? geminiFailure + ' | ' + modelFailure : modelFailure;
+            console.warn('Gemini model attempt failed', { model, attempt, status: providerStatus, providerMessage: String(payload?.error?.message || '').slice(0, 220), hasText: Boolean(candidateText.trim()) });
+            // Retry transient provider failures once; move to the next model for permanent errors.
+            if (attempt >= 2 || ![408, 429, 500, 502, 503, 504].includes(providerStatus)) break;
+          } catch (error) {
+            const modelFailure = model + ' attempt ' + attempt + ': ' + String(error && error.message || error).slice(0, 180);
+            geminiFailure = geminiFailure ? geminiFailure + ' | ' + modelFailure : modelFailure;
+            console.warn('Gemini model attempt timed out/failed', { model, attempt, name: error && error.name, message: String(error && error.message || error).slice(0, 180) });
+            if (attempt >= 2) break;
           }
-          const modelFailure = model + ' HTTP ' + response.status + (payload?.error?.message ? ': ' + String(payload.error.message).slice(0, 180) : '');
-          geminiFailure = geminiFailure ? geminiFailure + ' | ' + modelFailure : modelFailure;
-          console.warn('Gemini model failed; trying next model', { model, status: response.status, providerMessage: String(payload?.error?.message || '').slice(0, 220), hasText: Boolean(candidateText.trim()) });
-        } catch (error) {
-          const modelFailure = model + ': ' + String(error && error.message || error).slice(0, 180);
-          geminiFailure = geminiFailure ? geminiFailure + ' | ' + modelFailure : modelFailure;
-          console.warn('Gemini model timed out/failed; trying next model', { model, name: error && error.name, message: String(error && error.message || error).slice(0, 180) });
+          await new Promise((resolve) => setTimeout(resolve, 250));
         }
+        if (raw.trim()) break;
       }
     }
-
     if (!raw.trim()) {
       console.error('All Gemini models failed; using catalog-grounded fallback', { geminiFailure });
       const fallback = buildFallbackResponse(latestMessage.message, productContext, publicBusinessContext);

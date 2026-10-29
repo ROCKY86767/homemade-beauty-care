@@ -1,6 +1,6 @@
 const OPENAI_MODEL = 'gpt-4o-mini';
 const SUPABASE_TIMEOUT_MS = 12000;
-const AI_TIMEOUT_MS = 25000;
+const AI_TIMEOUT_MS = 7000;
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = SUPABASE_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -113,108 +113,110 @@ export default async function handler(req, res) {
     ].join('\n\n');
 
     let raw = '';
+    let geminiFailure = '';
+    const responseSchema = {
+      type: 'OBJECT',
+      properties: {
+        reply: { type: 'STRING' },
+        orderReady: { type: 'BOOLEAN' },
+        productName: { type: 'STRING', nullable: true },
+        quantity: { type: 'INTEGER', nullable: true },
+        unitPrice: { type: 'NUMBER', nullable: true },
+        handoff: { type: 'BOOLEAN' },
+      },
+      required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
+    };
+    const conversationText = [
+      'CONVERSATION HISTORY (oldest first):',
+      messages.slice(-10).map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content).join('\n'),
+      'Return only the JSON object required by the schema.',
+    ].join('\n\n');
+
+    // Primary model: Gemini. Short timeout ensures a slow provider does not block fallback for long.
     if (geminiApiKey) {
       stage = 'Gemini API';
-      const conversationInput = [
-        'SYSTEM INSTRUCTIONS:\\n' + systemPrompt,
-        'CONVERSATION HISTORY (oldest first):\\n' + messages.map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content).join('\\n'),
-        'Return only the JSON object required by the schema.',
-      ].join('\\n\\n');
-      const geminiResponse = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: 'user', parts: [{ text: [
-            'CONVERSATION HISTORY (oldest first):',
-            messages.map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content).join('\\n'),
-            'Return only the JSON object required by the schema.',
-          ].join('\\n\\n') }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: 'OBJECT',
-              properties: {
-                reply: { type: 'STRING' },
-                orderReady: { type: 'BOOLEAN' },
-                productName: { type: 'STRING', nullable: true },
-                quantity: { type: 'INTEGER', nullable: true },
-                unitPrice: { type: 'NUMBER', nullable: true },
-                handoff: { type: 'BOOLEAN' },
-              },
-              required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
+      try {
+        const response = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: conversationText }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema,
+              maxOutputTokens: 500,
+              temperature: 0.2,
             },
-            maxOutputTokens: 700,
-            temperature: 0.3,
-          },
-        }),
-      }, AI_TIMEOUT_MS);
-      let geminiPayload = {};
-      try { geminiPayload = await geminiResponse.json(); } catch { geminiPayload = {}; }
-      if (!geminiResponse.ok) {
-        const providerError = geminiPayload && geminiPayload.error ? geminiPayload.error : {};
-        const providerMessage = String(providerError.message || '').slice(0, 400);
-        console.error('Gemini generateContent API request failed', { status: geminiResponse.status, code: providerError.status || '', message: providerMessage });
-        if (geminiResponse.status === 400 || geminiResponse.status === 403 || geminiResponse.status === 401) return jsonError(res, 502, 'Gemini API key বা API configuration সঠিক নয়। Google AI Studio-তে key ও API access যাচাই করুন।');
-        if (geminiResponse.status === 429) return jsonError(res, 502, 'Gemini API quota বা rate limit আপাতত শেষ হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।');
-        return jsonError(res, 502, `Gemini API অনুরোধ ব্যর্থ হয়েছে (HTTP ${geminiResponse.status})।`);
+          }),
+        }, 7000);
+        const payload = await response.json().catch(() => ({}));
+        const parts = payload && payload.candidates && payload.candidates[0] && payload.candidates[0].content && payload.candidates[0].content.parts;
+        raw = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
+        if (!response.ok || !raw.trim()) {
+          geminiFailure = 'Gemini HTTP ' + response.status + (payload?.error?.message ? ': ' + String(payload.error.message).slice(0, 180) : '');
+          console.warn('Primary AI provider failed; trying fallback', { provider: 'Gemini', status: response.status, hasText: Boolean(raw.trim()) });
+          raw = '';
+        }
+      } catch (error) {
+        geminiFailure = String(error && error.message || error).slice(0, 180);
+        console.warn('Primary AI provider timed out/failed; trying fallback', { provider: 'Gemini', name: error && error.name });
       }
-      const parts = geminiPayload && geminiPayload.candidates && geminiPayload.candidates[0] && geminiPayload.candidates[0].content && geminiPayload.candidates[0].content.parts;
-      raw = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
-      if (!raw.trim()) {
-        console.error('Gemini generateContent response did not contain text output', {
-          keys: Object.keys(geminiPayload || {}),
-          finishReason: geminiPayload && geminiPayload.candidates && geminiPayload.candidates[0] && geminiPayload.candidates[0].finishReason,
-        });
-        return jsonError(res, 502, 'Gemini API থেকে উত্তর পাওয়া যায়নি। আবার চেষ্টা করুন।');
-      }
-    } else {
+    }
+
+    // Fallback model: OpenAI, used if Gemini is slow, unavailable, or returns no usable text.
+    if (!raw.trim() && openAiApiKey) {
       stage = 'OpenAI API';
-      const openAIResponse = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + openAiApiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: OPENAI_MODEL,
-          messages: [{ role: 'system', content: systemPrompt }, ...messages],
-          response_format: {
-            type: 'json_schema',
-            json_schema: {
-              name: 'homemade_beauty_chat_reply',
-              strict: true,
-              schema: {
-                type: 'object',
-                properties: {
-                  reply: { type: 'string' },
-                  orderReady: { type: 'boolean' },
-                  productName: { type: ['string', 'null'] },
-                  quantity: { type: ['integer', 'null'] },
-                  unitPrice: { type: ['number', 'null'] },
-                  handoff: { type: 'boolean' },
+      try {
+        const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + openAiApiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: OPENAI_MODEL,
+            messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-10)],
+            response_format: {
+              type: 'json_schema',
+              json_schema: {
+                name: 'homemade_beauty_chat_reply',
+                strict: true,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reply: { type: 'string' },
+                    orderReady: { type: 'boolean' },
+                    productName: { type: ['string', 'null'] },
+                    quantity: { type: ['integer', 'null'] },
+                    unitPrice: { type: ['number', 'null'] },
+                    handoff: { type: 'boolean' },
+                  },
+                  required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
+                  additionalProperties: false,
                 },
-                required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
-                additionalProperties: false,
               },
             },
-          },
-          max_completion_tokens: 500,
-        }),
-      }, AI_TIMEOUT_MS);
-      let aiPayload = {};
-      try { aiPayload = await openAIResponse.json(); } catch { aiPayload = {}; }
-      if (!openAIResponse.ok) {
-        const providerError = aiPayload && aiPayload.error ? aiPayload.error : {};
-        const providerCode = String(providerError.code || providerError.type || '');
-        const providerMessage = String(providerError.message || '').slice(0, 500);
-        console.error('OpenAI API request failed', { status: openAIResponse.status, code: providerCode, message: providerMessage });
-        if (openAIResponse.status === 401) return jsonError(res, 502, 'OpenAI API key সঠিক নয় বা বাতিল হয়েছে।');
-        if (openAIResponse.status === 429 && /insufficient_quota|billing|quota/i.test(providerCode + ' ' + providerMessage)) return jsonError(res, 502, 'OpenAI API account-এ পর্যাপ্ত API credit নেই বা billing limit শেষ।');
-        if (openAIResponse.status === 429) return jsonError(res, 502, 'OpenAI API-তে rate limit হয়েছে।');
-        return jsonError(res, 502, `OpenAI API request ব্যর্থ হয়েছে (HTTP ${openAIResponse.status})।`);
+            max_completion_tokens: 400,
+          }),
+        }, 7000);
+        const payload = await response.json().catch(() => ({}));
+        raw = payload?.choices?.[0]?.message?.content || '';
+        if (!response.ok || !raw.trim()) {
+          const providerError = payload && payload.error ? payload.error : {};
+          console.error('Fallback AI provider failed', { status: response.status, code: providerError.code || providerError.type || '', message: String(providerError.message || '').slice(0, 250) });
+          raw = '';
+        }
+      } catch (error) {
+        console.error('Fallback AI provider timed out/failed', { name: error && error.name, message: String(error && error.message || error).slice(0, 180) });
       }
-      raw = aiPayload.choices && aiPayload.choices[0] && aiPayload.choices[0].message && aiPayload.choices[0].message.content;
+    }
+
+    if (!raw.trim()) {
+      console.error('All AI providers failed', { geminiFailure, openAiConfigured: Boolean(openAiApiKey) });
+      return jsonError(res, 502, openAiApiKey
+        ? 'দুইটি AI মডেলই এখন উত্তর দিতে পারেনি। একটু পরে আবার চেষ্টা করুন।'
+        : 'প্রধান AI মডেল উত্তর দেয়নি এবং বিকল্প মডেলের API key সেট করা নেই।');
     }
 
     if (typeof raw !== 'string' || !raw.trim()) return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');

@@ -63,6 +63,50 @@ function jsonError(res, status, message) {
   return res.status(status).json({ error: message });
 }
 
+function buildFallbackResponse(question, productContext, settings) {
+  const q = String(question || '').toLowerCase();
+  const has = (...words) => words.some((word) => q.includes(word));
+  const replies = [];
+  const add = (...parts) => parts.filter(Boolean).forEach((part) => replies.push(String(part).slice(0, 600)));
+  const money = (value) => value === null || value === undefined || value === '' ? null : '৳' + value;
+  const isGreeting = has('হ্যালো', 'হ্যালো', 'hello', 'hi', 'আসসালামু', 'assalamu', 'নমস্কার');
+  if (isGreeting) {
+    add('আসসালামু আলাইকুম! Homemade Beauty Care-এ আপনাকে স্বাগতম।', 'চুলের যত্ন নাকি ত্বকের যত্নের পণ্য খুঁজছেন?');
+    return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  if (has('ডেলিভারি চার্জ', 'delivery charge', 'ডেলিভারি কত', 'কুরিয়ার চার্জ', 'ঢাকার ভিতর', 'ঢাকার বাইরে')) {
+    const inside = settings.delivery_inside_dhaka;
+    const outside = settings.delivery_outside_dhaka;
+    add('ডেলিভারি চার্জের তথ্য:', inside !== null && inside !== undefined ? 'ঢাকার ভিতরে ' + money(inside) + '.' : 'ঢাকার ভিতরের চার্জটি এখন নিশ্চিত করতে পারছি না.', outside !== null && outside !== undefined ? 'ঢাকার বাইরে ' + money(outside) + '.' : 'ঢাকার বাইরের চার্জটি এখন নিশ্চিত করতে পারছি না.');
+    add('আপনার ডেলিভারি এলাকা জানালে টিম সঠিক চার্জ নিশ্চিত করতে পারবে।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  if (has('ক্যাশ অন ডেলিভারি', 'cash on delivery', 'cod', 'হাতে পেয়ে', 'পণ্য পেয়ে টাকা')) {
+    add(settings.cash_on_delivery_enabled === true ? 'জি, ওয়েবসাইটের সেটিংস অনুযায়ী ক্যাশ অন ডেলিভারি চালু আছে।' : 'ক্যাশ অন ডেলিভারি চালু আছে কি না, এখন নিশ্চিত করতে পারছি না।', 'আপনি চাইলে পছন্দের পণ্যটি জানাতে পারেন, আমি তথ্য খুঁজে দিতে চেষ্টা করব।');
+    return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  const queryWords = q.split(/[^\p{L}\p{N}]+/u).filter((word) => word.length > 2);
+  const scored = (Array.isArray(productContext) ? productContext : []).map((product) => {
+    const haystack = [product.name_bn, product.name_en, product.description, product.benefits, product.ingredients, product.suitable_for, product.how_to_use, product.slug].filter(Boolean).join(' ').toLowerCase();
+    let score = queryWords.reduce((sum, word) => sum + (haystack.includes(word) ? 2 : 0), 0);
+    if (has('চুল', 'hair', 'হেয়ার', 'হেয়ার') && /hair|চুল|হেয়ার|হেয়ার/.test(haystack)) score += 2;
+    if (has('ত্বক', 'skin', 'face', 'মুখ', 'স্কিন', 'ফেস') && /skin|face|ত্বক|মুখ|স্কিন|ফেস/.test(haystack)) score += 2;
+    return { product, score };
+  }).filter((item) => item.score > 0 && Number(item.product.stock || 0) > 0).sort((a, b) => b.score - a.score).slice(0, 2);
+  if (scored.length) {
+    const items = scored.map(({ product }) => {
+      const name = product.name_bn || product.name_en || 'পণ্য';
+      const price = money(product.price);
+      return name + (price ? ' — ' + price : '') + (product.link ? '। বিস্তারিত: ' + product.link : '');
+    });
+    add('আপনার প্রশ্ন অনুযায়ী ক্যাটালগে এই পণ্যগুলো মিলেছে:', items.join(' | '), 'কোন পণ্যটি সম্পর্কে বিস্তারিত জানতে চান?');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  add('দুঃখিত, AI সহকারী এখন সাময়িকভাবে ধীরগতিতে কাজ করছে।', 'আপনার মেসেজটি চ্যাটে রাখা হয়েছে—পণ্যের নাম বা প্রশ্নটি একটু নির্দিষ্ট করে লিখুন, অথবা টিমের উত্তর পাওয়ার জন্য এই চ্যাটটি খোলা রাখুন।');
+  return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true };
+}
+
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -263,8 +307,9 @@ export default async function handler(req, res) {
     }
 
     if (!raw.trim()) {
-      console.error('All Gemini models failed', { geminiFailure });
-      return jsonError(res, 502, 'Gemini AI এখন ব্যস্ত বা সাড়া দিতে দেরি করছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      console.error('All Gemini models failed; using catalog-grounded fallback', { geminiFailure });
+      const fallback = buildFallbackResponse(latestMessage.message, productContext, publicBusinessContext);
+      return res.status(200).json(fallback);
     }
 
     if (typeof raw !== 'string' || !raw.trim()) return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');

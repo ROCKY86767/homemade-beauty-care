@@ -40,6 +40,10 @@ export default async function handler(req, res) {
     if (!historyResponse.ok) return jsonError(res, 403, 'এই chat যাচাই করা যায়নি। Chat refresh করে আবার চেষ্টা করুন।');
     const history = await historyResponse.json();
     if (!Array.isArray(history) || history.length === 0) return jsonError(res, 400, 'এই chat-এ এখনো কোনো message পাওয়া যায়নি।');
+    const latestMessage = history[history.length - 1];
+    if (latestMessage.sender_type !== 'customer' || latestMessage.message_type !== 'text') {
+      return jsonError(res, 409, 'এই message-এর উত্তর ইতিমধ্যে দেওয়া হয়েছে অথবা এটি text message নয়।');
+    }
 
     const productsResponse = await fetch(
       baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&order=created_at.desc&limit=100',
@@ -47,9 +51,7 @@ export default async function handler(req, res) {
     );
     if (!productsResponse.ok) return jsonError(res, 502, 'ওয়েবসাইটের পণ্যের তথ্য এখন পাওয়া যাচ্ছে না।');
     const products = await productsResponse.json();
-    const origin = req.headers.origin && /^https:\/\//i.test(req.headers.origin)
-      ? req.headers.origin
-      : 'https://homemade-beauty-care.vercel.app';
+    const origin = 'https://homemade-beauty-care.vercel.app';
 
     const productContext = (Array.isArray(products) ? products : []).map((p) => ({
       name_bn: p.name_bn,

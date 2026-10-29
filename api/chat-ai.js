@@ -162,7 +162,31 @@ export default async function handler(req, res) {
         if (geminiResponse.status === 429) return jsonError(res, 502, 'Gemini API quota বা rate limit আপাতত শেষ হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।');
         return jsonError(res, 502, `Gemini API অনুরোধ ব্যর্থ হয়েছে (HTTP ${geminiResponse.status})।`);
       }
-      raw = typeof geminiPayload.output_text === 'string' ? geminiPayload.output_text : '';
+      // REST Interactions API returns generated text inside steps[].content[].text.
+      // output_text is an SDK convenience property and is not guaranteed in raw REST JSON.
+      if (typeof geminiPayload.output_text === 'string') {
+        raw = geminiPayload.output_text;
+      } else if (Array.isArray(geminiPayload.steps)) {
+        raw = geminiPayload.steps
+          .filter((step) => step && step.type === 'model_output' && Array.isArray(step.content))
+          .flatMap((step) => step.content)
+          .filter((part) => part && part.type === 'text' && typeof part.text === 'string')
+          .map((part) => part.text)
+          .join('');
+      } else if (Array.isArray(geminiPayload.outputs)) {
+        // Backward compatibility for the legacy Interactions response format.
+        raw = geminiPayload.outputs
+          .filter((part) => part && part.type === 'text' && typeof part.text === 'string')
+          .map((part) => part.text)
+          .join('');
+      }
+      if (!raw.trim()) {
+        console.error('Gemini response did not contain text output', {
+          keys: Object.keys(geminiPayload || {}),
+          stepTypes: Array.isArray(geminiPayload.steps) ? geminiPayload.steps.map((step) => step && step.type).slice(0, 8) : [],
+        });
+        return jsonError(res, 502, 'Gemini API থেকে উত্তর পাওয়া যায়নি। আবার চেষ্টা করুন।');
+      }
     } else {
       stage = 'OpenAI API';
       const openAIResponse = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {

@@ -102,7 +102,7 @@ function buildFallbackResponse(question, productContext, settings) {
     add('আপনার প্রশ্ন অনুযায়ী ক্যাটালগে এই পণ্যগুলো মিলেছে:', items.join(' | '), 'কোন পণ্যটি সম্পর্কে বিস্তারিত জানতে চান?');
     return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
-  const originalQuestion = String(question || '').trim().replace(/\\s+/g, ' ').slice(0, 220);
+  const originalQuestion = String(question || '').trim().replace(/\s+/g, ' ').slice(0, 220);
   if (originalQuestion) add('আপনার প্রশ্নটি পেয়েছি: “' + originalQuestion + '”।');
   add('এই মুহূর্তে ক্যাটালগ বা সেটিংস থেকে নির্ভরযোগ্য উত্তর নিশ্চিত করা যাচ্ছে না।', 'ভুল তথ্য না দিয়ে আপনার মেসেজটি টিমের নজরে রাখছি; চ্যাটটি খোলা রাখুন, অ্যাডমিন উত্তর দেবেন।');
   return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true };

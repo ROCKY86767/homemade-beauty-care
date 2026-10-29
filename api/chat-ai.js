@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     }
 
     const productsResponse = await fetch(
-      baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&order=created_at.desc&limit=100',
+      baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&is_active=eq.true&order=created_at.desc&limit=100',
       { headers }
     );
     if (!productsResponse.ok) return jsonError(res, 502, 'ওয়েবসাইটের পণ্যের তথ্য এখন পাওয়া যাচ্ছে না।');

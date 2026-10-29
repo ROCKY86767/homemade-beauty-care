@@ -128,8 +128,39 @@ export default async function handler(req, res) {
       }),
     });
 
-    const aiPayload = await openAIResponse.json();
-    if (!openAIResponse.ok) return jsonError(res, 502, 'OpenAI থেকে উত্তর পাওয়া যায়নি। API key ও billing configuration যাচাই করতে হবে।');
+    let aiPayload = {};
+    try {
+      aiPayload = await openAIResponse.json();
+    } catch {
+      aiPayload = {};
+    }
+    if (!openAIResponse.ok) {
+      const providerError = aiPayload && aiPayload.error ? aiPayload.error : {};
+      const providerCode = String(providerError.code || providerError.type || '');
+      const providerMessage = String(providerError.message || '').slice(0, 500);
+      console.error('OpenAI API request failed', {
+        status: openAIResponse.status,
+        code: providerCode,
+        message: providerMessage,
+      });
+
+      if (openAIResponse.status === 401) {
+        return jsonError(res, 502, 'OpenAI API key সঠিক নয় বা বাতিল হয়েছে। Vercel-এর OPENAI_API_KEY যাচাই করে নতুন deployment দিন।');
+      }
+      if (openAIResponse.status === 429 && /insufficient_quota|billing|quota/i.test(providerCode + ' ' + providerMessage)) {
+        return jsonError(res, 502, 'OpenAI API account-এ পর্যাপ্ত API credit নেই বা billing limit শেষ। OpenAI Platform-এর Billing ও Usage যাচাই করুন।');
+      }
+      if (openAIResponse.status === 429) {
+        return jsonError(res, 502, 'OpenAI API-তে rate limit হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।');
+      }
+      if (openAIResponse.status === 400) {
+        return jsonError(res, 502, 'OpenAI API request গ্রহণ করেনি। Vercel runtime logs-এ error code যাচাই করতে হবে।');
+      }
+      if (openAIResponse.status === 403) {
+        return jsonError(res, 502, 'OpenAI API account বা project-এর permission/billing বাধা দিচ্ছে। OpenAI Platform-এর project ও billing settings যাচাই করুন।');
+      }
+      return jsonError(res, 502, `OpenAI API request ব্যর্থ হয়েছে (HTTP ${openAIResponse.status})। Vercel runtime logs-এ বিস্তারিত error রাখা হয়েছে।`);
+    }
     const raw = aiPayload.choices && aiPayload.choices[0] && aiPayload.choices[0].message && aiPayload.choices[0].message.content;
     if (typeof raw !== 'string') return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');
     let result;

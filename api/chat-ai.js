@@ -115,45 +115,54 @@ export default async function handler(req, res) {
     let raw = '';
     if (geminiApiKey) {
       stage = 'Gemini API';
-      const geminiResponse = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
+      const conversationInput = [
+        'SYSTEM INSTRUCTIONS:\\n' + systemPrompt,
+        'CONVERSATION HISTORY (oldest first):\\n' + messages.map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content).join('\\n'),
+        'Return only the JSON object required by the schema.',
+      ].join('\\n\\n');
+      const geminiResponse = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/interactions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': geminiApiKey,
+        },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: messages.map((m) => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }],
-          })),
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: 'OBJECT',
+          model: 'gemini-3.8-flash',
+          input: conversationInput,
+          store: false,
+          response_format: {
+            type: 'text',
+            mime_type: 'application/json',
+            schema: {
+              type: 'object',
               properties: {
-                reply: { type: 'STRING' },
-                orderReady: { type: 'BOOLEAN' },
-                productName: { type: 'STRING', nullable: true },
-                quantity: { type: 'INTEGER', nullable: true },
-                unitPrice: { type: 'NUMBER', nullable: true },
-                handoff: { type: 'BOOLEAN' },
+                reply: { type: 'string' },
+                orderReady: { type: 'boolean' },
+                productName: { type: ['string', 'null'] },
+                quantity: { type: ['integer', 'null'] },
+                unitPrice: { type: ['number', 'null'] },
+                handoff: { type: 'boolean' },
               },
               required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
             },
-            maxOutputTokens: 700,
+          },
+          generation_config: {
+            max_output_tokens: 700,
             temperature: 0.3,
           },
         }),
-      });
+      }, AI_TIMEOUT_MS);
       let geminiPayload = {};
       try { geminiPayload = await geminiResponse.json(); } catch { geminiPayload = {}; }
       if (!geminiResponse.ok) {
         const providerError = geminiPayload && geminiPayload.error ? geminiPayload.error : {};
         const providerMessage = String(providerError.message || '').slice(0, 400);
-        console.error('Gemini API request failed', { status: geminiResponse.status, code: providerError.status || '', message: providerMessage });
-        if (geminiResponse.status === 400 || geminiResponse.status === 403) return jsonError(res, 502, 'Gemini API key বা API configuration সঠিক নয়। Google AI Studio-তে key ও Gemini API access যাচাই করুন।');
-        if (geminiResponse.status === 429) return jsonError(res, 502, 'Gemini free API quota আপাতত শেষ হয়েছে। quota reset হলে আবার চেষ্টা করুন।');
+        console.error('Gemini Interactions API request failed', { status: geminiResponse.status, code: providerError.status || '', message: providerMessage });
+        if (geminiResponse.status === 400 || geminiResponse.status === 403 || geminiResponse.status === 401) return jsonError(res, 502, 'Gemini API key বা API configuration সঠিক নয়। Google AI Studio-তে key ও API access যাচাই করুন।');
+        if (geminiResponse.status === 429) return jsonError(res, 502, 'Gemini API quota বা rate limit আপাতত শেষ হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।');
         return jsonError(res, 502, `Gemini API অনুরোধ ব্যর্থ হয়েছে (HTTP ${geminiResponse.status})।`);
       }
-      raw = geminiPayload.candidates && geminiPayload.candidates[0] && geminiPayload.candidates[0].content && geminiPayload.candidates[0].content.parts && geminiPayload.candidates[0].content.parts.map((p) => p.text || '').join('');
+      raw = typeof geminiPayload.output_text === 'string' ? geminiPayload.output_text : '';
     } else {
       stage = 'OpenAI API';
       const openAIResponse = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {

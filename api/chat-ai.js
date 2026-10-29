@@ -120,34 +120,31 @@ export default async function handler(req, res) {
         'CONVERSATION HISTORY (oldest first):\\n' + messages.map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content).join('\\n'),
         'Return only the JSON object required by the schema.',
       ].join('\\n\\n');
-      const geminiResponse = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      const geminiResponse = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': geminiApiKey,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gemini-3.8-flash',
-          input: conversationInput,
-          store: false,
-          response_format: {
-            type: 'text',
-            mime_type: 'application/json',
-            schema: {
-              type: 'object',
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: [
+            'CONVERSATION HISTORY (oldest first):',
+            messages.map((m) => (m.role === 'assistant' ? 'Assistant: ' : 'Customer: ') + m.content).join('\\n'),
+            'Return only the JSON object required by the schema.',
+          ].join('\\n\\n') }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
               properties: {
-                reply: { type: 'string' },
-                orderReady: { type: 'boolean' },
-                productName: { type: ['string', 'null'] },
-                quantity: { type: ['integer', 'null'] },
-                unitPrice: { type: ['number', 'null'] },
-                handoff: { type: 'boolean' },
+                reply: { type: 'STRING' },
+                orderReady: { type: 'BOOLEAN' },
+                productName: { type: 'STRING', nullable: true },
+                quantity: { type: 'INTEGER', nullable: true },
+                unitPrice: { type: 'NUMBER', nullable: true },
+                handoff: { type: 'BOOLEAN' },
               },
               required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
             },
-          },
-          generation_config: {
-            max_output_tokens: 700,
+            maxOutputTokens: 700,
             temperature: 0.3,
           },
         }),
@@ -157,33 +154,17 @@ export default async function handler(req, res) {
       if (!geminiResponse.ok) {
         const providerError = geminiPayload && geminiPayload.error ? geminiPayload.error : {};
         const providerMessage = String(providerError.message || '').slice(0, 400);
-        console.error('Gemini Interactions API request failed', { status: geminiResponse.status, code: providerError.status || '', message: providerMessage });
+        console.error('Gemini generateContent API request failed', { status: geminiResponse.status, code: providerError.status || '', message: providerMessage });
         if (geminiResponse.status === 400 || geminiResponse.status === 403 || geminiResponse.status === 401) return jsonError(res, 502, 'Gemini API key বা API configuration সঠিক নয়। Google AI Studio-তে key ও API access যাচাই করুন।');
         if (geminiResponse.status === 429) return jsonError(res, 502, 'Gemini API quota বা rate limit আপাতত শেষ হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।');
         return jsonError(res, 502, `Gemini API অনুরোধ ব্যর্থ হয়েছে (HTTP ${geminiResponse.status})।`);
       }
-      // REST Interactions API returns generated text inside steps[].content[].text.
-      // output_text is an SDK convenience property and is not guaranteed in raw REST JSON.
-      if (typeof geminiPayload.output_text === 'string') {
-        raw = geminiPayload.output_text;
-      } else if (Array.isArray(geminiPayload.steps)) {
-        raw = geminiPayload.steps
-          .filter((step) => step && step.type === 'model_output' && Array.isArray(step.content))
-          .flatMap((step) => step.content)
-          .filter((part) => part && part.type === 'text' && typeof part.text === 'string')
-          .map((part) => part.text)
-          .join('');
-      } else if (Array.isArray(geminiPayload.outputs)) {
-        // Backward compatibility for the legacy Interactions response format.
-        raw = geminiPayload.outputs
-          .filter((part) => part && part.type === 'text' && typeof part.text === 'string')
-          .map((part) => part.text)
-          .join('');
-      }
+      const parts = geminiPayload && geminiPayload.candidates && geminiPayload.candidates[0] && geminiPayload.candidates[0].content && geminiPayload.candidates[0].content.parts;
+      raw = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
       if (!raw.trim()) {
-        console.error('Gemini response did not contain text output', {
+        console.error('Gemini generateContent response did not contain text output', {
           keys: Object.keys(geminiPayload || {}),
-          stepTypes: Array.isArray(geminiPayload.steps) ? geminiPayload.steps.map((step) => step && step.type).slice(0, 8) : [],
+          finishReason: geminiPayload && geminiPayload.candidates && geminiPayload.candidates[0] && geminiPayload.candidates[0].finishReason,
         });
         return jsonError(res, 502, 'Gemini API থেকে উত্তর পাওয়া যায়নি। আবার চেষ্টা করুন।');
       }

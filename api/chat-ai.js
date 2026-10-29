@@ -1,4 +1,16 @@
 const OPENAI_MODEL = 'gpt-4o-mini';
+const SUPABASE_TIMEOUT_MS = 12000;
+const AI_TIMEOUT_MS = 25000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = SUPABASE_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 function jsonError(res, status, message) {
   return res.status(status).json({ error: message });
@@ -32,12 +44,14 @@ export default async function handler(req, res) {
     'Content-Type': 'application/json',
   };
 
+  let stage = 'chat history';
   try {
-    const historyResponse = await fetch(baseUrl + '/rest/v1/rpc/get_guest_chat', {
+    console.info('AI chat request started');
+    const historyResponse = await fetchWithTimeout(baseUrl + '/rest/v1/rpc/get_guest_chat', {
       method: 'POST',
       headers,
       body: JSON.stringify({ p_visitor_token: visitorToken, p_conversation_id: conversationId }),
-    });
+    }, SUPABASE_TIMEOUT_MS);
     if (!historyResponse.ok) return jsonError(res, 403, 'এই chat যাচাই করা যায়নি। Chat refresh করে আবার চেষ্টা করুন।');
     const history = await historyResponse.json();
     if (!Array.isArray(history) || history.length === 0) return jsonError(res, 400, 'এই chat-এ এখনো কোনো message পাওয়া যায়নি।');
@@ -46,9 +60,11 @@ export default async function handler(req, res) {
       return jsonError(res, 409, 'এই message-এর উত্তর ইতিমধ্যে দেওয়া হয়েছে অথবা এটি text message নয়।');
     }
 
-    const productsResponse = await fetch(
+    stage = 'product catalog';
+    const productsResponse = await fetchWithTimeout(
       baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&is_active=eq.true&order=created_at.desc&limit=100',
-      { headers }
+      { headers },
+      SUPABASE_TIMEOUT_MS
     );
     if (!productsResponse.ok) return jsonError(res, 502, 'ওয়েবসাইটের পণ্যের তথ্য এখন পাওয়া যাচ্ছে না।');
     const products = await productsResponse.json();
@@ -98,7 +114,8 @@ export default async function handler(req, res) {
 
     let raw = '';
     if (geminiApiKey) {
-      const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
+      stage = 'Gemini API';
+      const geminiResponse = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -138,7 +155,8 @@ export default async function handler(req, res) {
       }
       raw = geminiPayload.candidates && geminiPayload.candidates[0] && geminiPayload.candidates[0].content && geminiPayload.candidates[0].content.parts && geminiPayload.candidates[0].content.parts.map((p) => p.text || '').join('');
     } else {
-      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      stage = 'OpenAI API';
+      const openAIResponse = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           Authorization: 'Bearer ' + openAiApiKey,
@@ -169,7 +187,7 @@ export default async function handler(req, res) {
           },
           max_completion_tokens: 500,
         }),
-      });
+      }, AI_TIMEOUT_MS);
       let aiPayload = {};
       try { aiPayload = await openAIResponse.json(); } catch { aiPayload = {}; }
       if (!openAIResponse.ok) {
@@ -215,9 +233,16 @@ export default async function handler(req, res) {
         safeResult.unitPrice = Number(matched.price);
       }
     }
+    console.info('AI chat request completed');
     return res.status(200).json(safeResult);
   } catch (error) {
-    console.error('AI chat handler failed', { name: error && error.name, message: String(error && error.message || error).slice(0, 500) });
+    const timedOut = error && error.name === 'AbortError';
+    console.error('AI chat handler failed', { stage, name: error && error.name, message: String(error && error.message || error).slice(0, 300) });
+    if (timedOut) {
+      return jsonError(res, 504, stage === 'Gemini API' || stage === 'OpenAI API'
+        ? 'AI service সময়মতো উত্তর দেয়নি। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+        : 'চ্যাটের তথ্য আনতে Supabase দেরি করছে। আবার চেষ্টা করুন।');
+    }
     return jsonError(res, 500, 'AI chat-এ সাময়িক সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।');
   }
 }

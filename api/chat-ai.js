@@ -11,6 +11,52 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = SUPABASE_TIMEOUT_
   }
 }
 
+function parseJsonObject(text) {
+  const source = String(text || '').trim();
+  const candidates = [
+    source,
+    source.replace(/^\uFEFF/, '').replace(/^\x60{3}(?:json)?\s*/i, '').replace(/\s*\x60{3}\s*$/, '').trim(),
+  ];
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch {}
+  }
+
+  // Some model responses include a short preamble or Markdown around the JSON.
+  // Extract the first complete JSON object without breaking on braces inside strings.
+  for (const candidate of candidates) {
+    const start = candidate.indexOf('{');
+    if (start < 0) continue;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let i = start; i < candidate.length; i += 1) {
+      const ch = candidate[i];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (ch === '\\') escaped = true;
+        else if (ch === '"') inString = false;
+        continue;
+      }
+      if (ch === '"') inString = true;
+      else if (ch === '{') depth += 1;
+      else if (ch === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          try {
+            const parsed = JSON.parse(candidate.slice(start, i + 1));
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+          } catch {}
+          break;
+        }
+      }
+    }
+  }
+  throw new Error('Model response did not contain a valid JSON object');
+}
+
 function jsonError(res, status, message) {
   return res.status(status).json({ error: message });
 }
@@ -219,7 +265,7 @@ export default async function handler(req, res) {
 
     if (typeof raw !== 'string' || !raw.trim()) return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');
     let result;
-    try { result = JSON.parse(raw); } catch { return jsonError(res, 502, 'AI-এর উত্তর পড়া যায়নি।'); }
+    try { result = parseJsonObject(raw); } catch { console.warn('Gemini response was not valid JSON', { responseLength: raw.length }); return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি। আবার চেষ্টা করুন।'); }
     if (typeof result.reply !== 'string' || !result.reply.trim()) return jsonError(res, 502, 'AI কোনো উত্তর দেয়নি।');
 
     const safeResult = {

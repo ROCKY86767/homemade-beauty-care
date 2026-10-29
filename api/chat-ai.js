@@ -1,4 +1,3 @@
-const OPENAI_MODEL = 'gpt-4o-mini';
 const SUPABASE_TIMEOUT_MS = 12000;
 const AI_TIMEOUT_MS = 7000;
 
@@ -23,10 +22,9 @@ export default async function handler(req, res) {
   }
 
   const geminiApiKey = process.env.GEMINI_API_KEY;
-  const openAiApiKey = process.env.OPENAI_API_KEY;
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  if (!geminiApiKey && !openAiApiKey) return jsonError(res, 503, 'Vercel-এ GEMINI_API_KEY সেট করা নেই। Google AI Studio থেকে free API key তৈরি করে যোগ করুন।');
+  if (!geminiApiKey) return jsonError(res, 503, 'Vercel-এ GEMINI_API_KEY সেট করা নেই। Google AI Studio থেকে API key যোগ করুন।');
   if (!supabaseUrl || !supabaseAnonKey) return jsonError(res, 503, 'Supabase server configuration পাওয়া যায়নি।');
 
   const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -171,59 +169,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fallback model: OpenAI, used if Gemini is slow, unavailable, or returns no usable text.
-    if (!raw.trim() && openAiApiKey) {
-      stage = 'OpenAI API';
-      try {
-        const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: 'Bearer ' + openAiApiKey,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: OPENAI_MODEL,
-            messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-10)],
-            response_format: {
-              type: 'json_schema',
-              json_schema: {
-                name: 'homemade_beauty_chat_reply',
-                strict: true,
-                schema: {
-                  type: 'object',
-                  properties: {
-                    reply: { type: 'string' },
-                    orderReady: { type: 'boolean' },
-                    productName: { type: ['string', 'null'] },
-                    quantity: { type: ['integer', 'null'] },
-                    unitPrice: { type: ['number', 'null'] },
-                    handoff: { type: 'boolean' },
-                  },
-                  required: ['reply', 'orderReady', 'productName', 'quantity', 'unitPrice', 'handoff'],
-                  additionalProperties: false,
-                },
-              },
-            },
-            max_completion_tokens: 400,
-          }),
-        }, 7000);
-        const payload = await response.json().catch(() => ({}));
-        raw = payload?.choices?.[0]?.message?.content || '';
-        if (!response.ok || !raw.trim()) {
-          const providerError = payload && payload.error ? payload.error : {};
-          console.error('Fallback AI provider failed', { status: response.status, code: providerError.code || providerError.type || '', message: String(providerError.message || '').slice(0, 250) });
-          raw = '';
-        }
-      } catch (error) {
-        console.error('Fallback AI provider timed out/failed', { name: error && error.name, message: String(error && error.message || error).slice(0, 180) });
-      }
-    }
-
     if (!raw.trim()) {
-      console.error('All AI providers failed', { geminiFailure, openAiConfigured: Boolean(openAiApiKey) });
-      return jsonError(res, 502, openAiApiKey
-        ? 'দুইটি Gemini মডেলই এখন উত্তর দিতে পারেনি। একটু পরে আবার চেষ্টা করুন।'
-        : 'প্রধান AI মডেল উত্তর দেয়নি এবং বিকল্প মডেলের API key সেট করা নেই।');
+      console.error('Both Gemini models failed', { geminiFailure });
+      return jsonError(res, 502, 'দুইটি Gemini মডেলই এখন উত্তর দিতে পারেনি। একটু পরে আবার চেষ্টা করুন।');
     }
 
     if (typeof raw !== 'string' || !raw.trim()) return jsonError(res, 502, 'AI-এর উত্তর সঠিকভাবে তৈরি হয়নি।');
@@ -262,8 +210,8 @@ export default async function handler(req, res) {
     const timedOut = error && error.name === 'AbortError';
     console.error('AI chat handler failed', { stage, name: error && error.name, message: String(error && error.message || error).slice(0, 300) });
     if (timedOut) {
-      return jsonError(res, 504, stage === 'Gemini API' || stage === 'OpenAI API'
-        ? 'AI service সময়মতো উত্তর দেয়নি। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+      return jsonError(res, 504, stage.startsWith('Gemini API')
+        ? 'Gemini AI service সময়মতো উত্তর দেয়নি। কিছুক্ষণ পর আবার চেষ্টা করুন।'
         : 'চ্যাটের তথ্য আনতে Supabase দেরি করছে। আবার চেষ্টা করুন।');
     }
     return jsonError(res, 500, 'AI chat-এ সাময়িক সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।');

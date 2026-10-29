@@ -133,7 +133,7 @@ export default async function handler(req, res) {
     ].join('\n\n');
 
     // Try two Gemini models in order. If the first is slow/unavailable, quickly try the second.
-    const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
+    const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
     if (geminiApiKey) {
       for (const model of geminiModels) {
         stage = 'Gemini API (' + model + ')';
@@ -151,7 +151,7 @@ export default async function handler(req, res) {
                 temperature: 0.2,
               },
             }),
-          }, 5000);
+          }, 9000);
           const payload = await response.json().catch(() => ({}));
           const parts = payload && payload.candidates && payload.candidates[0] && payload.candidates[0].content && payload.candidates[0].content.parts;
           const candidateText = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
@@ -160,11 +160,13 @@ export default async function handler(req, res) {
             console.info('Gemini model replied', { model });
             break;
           }
-          geminiFailure = model + ' HTTP ' + response.status + (payload?.error?.message ? ': ' + String(payload.error.message).slice(0, 180) : '');
-          console.warn('Gemini model failed; trying next model', { model, status: response.status, hasText: Boolean(candidateText.trim()) });
+          const modelFailure = model + ' HTTP ' + response.status + (payload?.error?.message ? ': ' + String(payload.error.message).slice(0, 180) : '');
+          geminiFailure = geminiFailure ? geminiFailure + ' | ' + modelFailure : modelFailure;
+          console.warn('Gemini model failed; trying next model', { model, status: response.status, providerMessage: String(payload?.error?.message || '').slice(0, 220), hasText: Boolean(candidateText.trim()) });
         } catch (error) {
-          geminiFailure = model + ': ' + String(error && error.message || error).slice(0, 180);
-          console.warn('Gemini model timed out/failed; trying next model', { model, name: error && error.name });
+          const modelFailure = model + ': ' + String(error && error.message || error).slice(0, 180);
+          geminiFailure = geminiFailure ? geminiFailure + ' | ' + modelFailure : modelFailure;
+          console.warn('Gemini model timed out/failed; trying next model', { model, name: error && error.name, message: String(error && error.message || error).slice(0, 180) });
         }
       }
     }

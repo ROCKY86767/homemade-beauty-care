@@ -133,7 +133,7 @@ export default async function handler(req, res) {
     ].join('\n\n');
 
     // Try two Gemini models in order. If the first is slow/unavailable, quickly try the second.
-    const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
+    const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
     if (geminiApiKey) {
       for (const model of geminiModels) {
         stage = 'Gemini API (' + model + ')';

@@ -66,6 +66,19 @@ export default async function handler(req, res) {
     );
     if (!productsResponse.ok) return jsonError(res, 502, 'ওয়েবসাইটের পণ্যের তথ্য এখন পাওয়া যাচ্ছে না।');
     const products = await productsResponse.json();
+
+    stage = 'site settings';
+    const settingsResponse = await fetchWithTimeout(
+      baseUrl + '/rest/v1/site_settings?select=brand_name,brand_tagline_bn,phone,whatsapp_number,email,address_bn,delivery_inside_dhaka,delivery_outside_dhaka,free_delivery_threshold,free_delivery_enabled,free_delivery_minimum,cod_enabled,online_payment_enabled,announcement_bn,combo_offer_enabled,combo_offer_title,combo_offer_description,combo_offer_original_price,combo_offer_price,combo_offer_image_url,combo_offer_button_text,combo_offer_button_link,currency&id=eq.1&limit=1',
+      { headers },
+      SUPABASE_TIMEOUT_MS
+    );
+    if (!settingsResponse.ok) return jsonError(res, 502, 'ডেলিভারি ও ওয়েবসাইটের সেটিংস এখন ডাটাবেস থেকে পাওয়া যাচ্ছে না।');
+    const settingsRows = await settingsResponse.json();
+    if (!Array.isArray(settingsRows) || settingsRows.length === 0) {
+      return jsonError(res, 502, 'ওয়েবসাইটের ডেলিভারি ও পেমেন্টের তথ্য ডাটাবেসে পাওয়া যায়নি।');
+    }
+    const siteSettings = settingsRows[0];
     const origin = 'https://homemade-beauty-care.vercel.app';
 
     const productContext = (Array.isArray(products) ? products : []).map((p) => ({
@@ -100,14 +113,44 @@ export default async function handler(req, res) {
       };
     }).filter((m) => m.content.trim());
 
+    const publicBusinessContext = {
+      brand_name: siteSettings.brand_name,
+      tagline_bn: siteSettings.brand_tagline_bn,
+      contact_phone: siteSettings.phone,
+      whatsapp_number: siteSettings.whatsapp_number,
+      contact_email: siteSettings.email,
+      business_address: siteSettings.address_bn,
+      delivery_inside_dhaka: siteSettings.delivery_inside_dhaka,
+      delivery_outside_dhaka: siteSettings.delivery_outside_dhaka,
+      free_delivery_enabled: siteSettings.free_delivery_enabled,
+      free_delivery_threshold: siteSettings.free_delivery_threshold,
+      free_delivery_minimum: siteSettings.free_delivery_minimum,
+      cash_on_delivery_enabled: siteSettings.cod_enabled,
+      online_payment_enabled: siteSettings.online_payment_enabled,
+      announcement: siteSettings.announcement_bn,
+      combo_offer_enabled: siteSettings.combo_offer_enabled,
+      combo_offer_title: siteSettings.combo_offer_title,
+      combo_offer_description: siteSettings.combo_offer_description,
+      combo_offer_original_price: siteSettings.combo_offer_original_price,
+      combo_offer_price: siteSettings.combo_offer_price,
+      combo_offer_image_url: siteSettings.combo_offer_image_url,
+      combo_offer_button_text: siteSettings.combo_offer_button_text,
+      combo_offer_button_link: siteSettings.combo_offer_button_link,
+      currency: siteSettings.currency,
+    };
+
     const systemPrompt = [
-      'তুমি Homemade Beauty Care-এর লাইভ-চ্যাট কাস্টমার কেয়ার সহকারী। বাংলা, বাংলিশ, ইংরেজি এবং বানান ভুল বুঝবে। স্বাভাবিক, সংক্ষিপ্ত, ভদ্র বাংলায় উত্তর দেবে; সাধারণত ১-৩টি ছোট বাক্য। একই প্রশ্ন বারবার করবে না এবং প্রতিবার customer-এর নাম ধরে ডাকবে না।',
-      'শুধু নিচের LIVE PRODUCT DATA-কে পণ্যের তথ্যের নির্ভরযোগ্য উৎস হিসেবে ব্যবহার করবে। দাম, স্টক, উপাদান, উপকারিতা, ব্যবহারবিধি, অফার বা লিংক বানিয়ে বলবে না। কোনো তথ্য নেই বা মিল নিশ্চিত নয়—সেটা স্পষ্ট করে বলবে এবং প্রয়োজন হলে অ্যাডমিনের সাহায্য চাইবে। স্টক 0 হলে পণ্য মজুদ নেই বলবে। পণ্যের নামের typo যেমন harpack/hairpack হলে তালিকার সঙ্গে মিল খুঁজবে।',
+      'তুমি Homemade Beauty Care-এর লাইভ-চ্যাট কাস্টমার কেয়ার ও সেলস সহকারী। বাংলা, বাংলিশ, ইংরেজি এবং বানান ভুল বুঝবে। স্বাভাবিক, সংক্ষিপ্ত, ভদ্র বাংলায় উত্তর দেবে; সাধারণত ১-৩টি ছোট বাক্য, দরকার হলে ২-৩টি ছোট মেসেজের মতো উত্তর সাজাবে। একই প্রশ্ন বারবার করবে না এবং প্রতিবার customer-এর নাম ধরে ডাকবে না।',
+      'ডাটাবেসের LIVE PRODUCT DATA ও LIVE BUSINESS SETTINGS-ই পণ্য, দাম, স্টক, সাইজ, উপাদান, উপকারিতা, ব্যবহারবিধি, ডেলিভারি চার্জ, ফ্রি ডেলিভারি, পেমেন্ট, যোগাযোগ, ঠিকানা ও অফারের একমাত্র নির্ভরযোগ্য উৎস। কোনো তথ্য বানাবে না বা পুরোনো/অনুমান করা তথ্য বলবে না। ডাটাবেসে কোনো তথ্য null/ফাঁকা/অনুপস্থিত হলে নিশ্চিত তথ্য নেই বলবে এবং অ্যাডমিনের সাহায্য অফার করবে। ডাটাবেসে থাকা বর্তমান তথ্য থেকেই উত্তর দেবে।',
+      'ডেলিভারি প্রশ্নে ঢাকার ভিতর ও ঢাকার বাইরে আলাদা চার্জ SETTINGS থেকে জানাবে। free_delivery_enabled true না হলে ফ্রি ডেলিভারি আছে বলবে না, threshold/minimum দিয়ে নিজে থেকে ছাড় তৈরি করবে না। cash_on_delivery_enabled true হলে ক্যাশ অন ডেলিভারি আছে বলতে পারবে; online_payment_enabled false হলে অনলাইন পেমেন্ট চালু আছে বলবে না। ডেলিভারি সময় বা নির্দিষ্ট কুরিয়ার সেটিংসে নেই, তাই সময়/কুরিয়ার বানাবে না; জেলা/এলাকা অনুযায়ী নিশ্চিত না হলে অ্যাডমিনের সাহায্য দেবে।',
+      'সেলস ও অর্ডার কনভার্সন: customer-এর প্রয়োজন/চুল বা ত্বকের concern অনুযায়ী catalog-এ থাকা উপযুক্ত পণ্য সাজেস্ট করো; ডাটাবেসে থাকা বাস্তব উপকারিতা ও ব্যবহারবিধি সহজভাবে বোঝাও। প্রশ্নের উত্তর দেওয়ার পর স্বাভাবিকভাবে জিজ্ঞেস করতে পারো তিনি অর্ডার করতে চান কি না, অথবা পণ্যটি অর্ডার করে দিতে বলবে। দ্বিধা থাকলে দাম, সাইজ, ব্যবহার, ডেলিভারি বা COD-এর প্রাসঙ্গিক তথ্য বুঝিয়ে সাহায্য করো। চাপ দেবে না, মিথ্যা scarcity/discount/guarantee/review/medical claim করবে না, চুল পড়া/ত্বকের রোগ সারানোর নিশ্চয়তা দেবে না, customer-এর সমস্যা নিয়ে ভয় দেখাবে না। একসঙ্গে অনেক প্রশ্ন করবে না; পরবর্তী অর্ডার-ধাপের জন্য একটি সহজ প্রশ্ন করবে।',
+      'Combo offer শুধু combo_offer_enabled true হলে উল্লেখ করবে; title/price/description ডাটাবেস থেকে হুবহু তথ্য অনুযায়ী বলবে। Offer button link থাকলে সেটি ব্যবহার করতে পারো। কোনো product/offer stock বা price সম্পর্কে অনিশ্চিত হলে বানিয়ে বলবে না।',
       'অর্ডার নিয়ম: “order nin”, “অর্ডার নেন”, “order korbo” মানে নতুন অর্ডার করতে চাওয়া; tracking নয়। কথোপকথনে পণ্য ও অর্ডার করার ইচ্ছা আগেই বলা থাকলে সেটা মনে রাখবে। পণ্য জানা কিন্তু quantity না জানা থাকলে শুধু পরিমাণ জিজ্ঞেস করবে। quantity জানা থাকলে আবার জিজ্ঞেস করবে না।',
       'orderReady=true কেবল তখনই হবে যখন customer-এর অর্ডার করার ইচ্ছা আছে এবং নির্দিষ্ট পণ্য ও পরিমাণ কথোপকথন থেকে নিশ্চিত। তখন reply-তে বলবে নাম, মোবাইল ও ঠিকানা দেওয়ার form দেখানো হচ্ছে। productName হবে catalog-এর সঠিক বাংলা/ইংরেজি নাম; quantity পূর্ণ ধনাত্মক integer; unitPrice catalog-এর বর্তমান price। পণ্য/পরিমাণ নিশ্চিত না হলে orderReady=false।',
-      'অর্ডারের ফর্ম পাঠানো মানে অর্ডার নিশ্চিত নয়; অ্যাডমিন স্টক, দাম ও ডেলিভারি যাচাই করবেন। কখনো অর্ডার কনফার্ম হয়েছে বলবে না। অভিযোগ, refund/dispute, অর্ডার tracking, বা পণ্যের বাইরে অনিশ্চিত প্রশ্নে সংক্ষিপ্তভাবে অ্যাডমিনের সাহায্য দেওয়ার কথা বলবে। ডাটাবেসে থাকা নয় এমন পুরোনো অর্ডারের তথ্য কখনো অনুমান করবে না।',
-      'product question হলে সম্ভব হলে সঠিক product link এবং image URL reply-তে দেবে। শুধু JSON object ফেরত দেবে, এই schema মেনে: {"reply":"...","orderReady":false,"productName":null,"quantity":null,"unitPrice":null,"handoff":false}.',
+      'অর্ডারের ফর্ম পাঠানো মানে অর্ডার নিশ্চিত নয়; অ্যাডমিন স্টক, দাম ও ডেলিভারি যাচাই করবেন। কখনো অর্ডার কনফার্ম হয়েছে বলবে না। অভিযোগ, refund/dispute, অর্ডার tracking, বা ডাটাবেসে অনুপস্থিত/অনিশ্চিত তথ্যের প্রশ্নে সংক্ষিপ্তভাবে অ্যাডমিনের সাহায্য দেওয়ার কথা বলবে। ডাটাবেসে থাকা নয় এমন পুরোনো অর্ডারের তথ্য কখনো অনুমান করবে না।',
+      'product question হলে সম্ভব হলে সঠিক product link এবং image URL reply-তে দেবে। সবসময় শুধু JSON object ফেরত দেবে, এই schema মেনে: {"reply":"...","orderReady":false,"productName":null,"quantity":null,"unitPrice":null,"handoff":false}.',
       'LIVE PRODUCT DATA: ' + JSON.stringify(productContext).slice(0, 26000),
+      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 10000),
     ].join('\n\n');
 
     let raw = '';

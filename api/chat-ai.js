@@ -132,35 +132,40 @@ export default async function handler(req, res) {
       'Return only the JSON object required by the schema.',
     ].join('\n\n');
 
-    // Primary model: Gemini. Short timeout ensures a slow provider does not block fallback for long.
+    // Try two Gemini models in order. If the first is slow/unavailable, quickly try the second.
+    const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
     if (geminiApiKey) {
-      stage = 'Gemini API';
-      try {
-        const response = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(geminiApiKey), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: 'user', parts: [{ text: conversationText }] }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema,
-              maxOutputTokens: 500,
-              temperature: 0.2,
-            },
-          }),
-        }, 7000);
-        const payload = await response.json().catch(() => ({}));
-        const parts = payload && payload.candidates && payload.candidates[0] && payload.candidates[0].content && payload.candidates[0].content.parts;
-        raw = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
-        if (!response.ok || !raw.trim()) {
-          geminiFailure = 'Gemini HTTP ' + response.status + (payload?.error?.message ? ': ' + String(payload.error.message).slice(0, 180) : '');
-          console.warn('Primary AI provider failed; trying fallback', { provider: 'Gemini', status: response.status, hasText: Boolean(raw.trim()) });
-          raw = '';
+      for (const model of geminiModels) {
+        stage = 'Gemini API (' + model + ')';
+        try {
+          const response = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(geminiApiKey), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: 'user', parts: [{ text: conversationText }] }],
+              generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema,
+                maxOutputTokens: 500,
+                temperature: 0.2,
+              },
+            }),
+          }, 5000);
+          const payload = await response.json().catch(() => ({}));
+          const parts = payload && payload.candidates && payload.candidates[0] && payload.candidates[0].content && payload.candidates[0].content.parts;
+          const candidateText = Array.isArray(parts) ? parts.filter((part) => part && typeof part.text === 'string').map((part) => part.text).join('') : '';
+          if (response.ok && candidateText.trim()) {
+            raw = candidateText;
+            console.info('Gemini model replied', { model });
+            break;
+          }
+          geminiFailure = model + ' HTTP ' + response.status + (payload?.error?.message ? ': ' + String(payload.error.message).slice(0, 180) : '');
+          console.warn('Gemini model failed; trying next model', { model, status: response.status, hasText: Boolean(candidateText.trim()) });
+        } catch (error) {
+          geminiFailure = model + ': ' + String(error && error.message || error).slice(0, 180);
+          console.warn('Gemini model timed out/failed; trying next model', { model, name: error && error.name });
         }
-      } catch (error) {
-        geminiFailure = String(error && error.message || error).slice(0, 180);
-        console.warn('Primary AI provider timed out/failed; trying fallback', { provider: 'Gemini', name: error && error.name });
       }
     }
 
@@ -215,7 +220,7 @@ export default async function handler(req, res) {
     if (!raw.trim()) {
       console.error('All AI providers failed', { geminiFailure, openAiConfigured: Boolean(openAiApiKey) });
       return jsonError(res, 502, openAiApiKey
-        ? 'দুইটি AI মডেলই এখন উত্তর দিতে পারেনি। একটু পরে আবার চেষ্টা করুন।'
+        ? 'দুইটি Gemini মডেলই এখন উত্তর দিতে পারেনি। একটু পরে আবার চেষ্টা করুন।'
         : 'প্রধান AI মডেল উত্তর দেয়নি এবং বিকল্প মডেলের API key সেট করা নেই।');
     }
 

@@ -205,6 +205,20 @@ export default async function handler(req, res) {
       };
     }).filter((m) => m.content.trim());
 
+    const questionWords = String(latestMessage.message || '').toLowerCase().split(/[^\\p{L}\\p{N}]+/u).filter((word) => word.length > 2);
+    const modelProductContext = productContext
+      .map((product) => {
+        const searchable = [product.name_bn, product.name_en, product.slug, product.description, product.benefits, product.ingredients, product.how_to_use, product.suitable_for].filter(Boolean).join(' ').toLowerCase();
+        let score = questionWords.reduce((total, word) => total + (searchable.includes(word) ? 2 : 0), 0);
+        const question = String(latestMessage.message || '').toLowerCase();
+        if (/চুল|hair|হেয়ার|হেয়ার/.test(question) && /hair|চুল|হেয়ার|হেয়ার/.test(searchable)) score += 3;
+        if (/ত্বক|skin|face|মুখ|স্কিন|ফেস/.test(question) && /skin|face|ত্বক|মুখ|স্কিন|ফেস/.test(searchable)) score += 3;
+        return { product, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30)
+      .map(({ product }) => product);
+
     const publicBusinessContext = {
       brand_name: siteSettings.brand_name,
       tagline_bn: siteSettings.brand_tagline_bn,
@@ -241,7 +255,7 @@ export default async function handler(req, res) {
       'orderReady=true কেবল তখনই হবে যখন customer-এর অর্ডার করার ইচ্ছা আছে এবং নির্দিষ্ট পণ্য ও পরিমাণ কথোপকথন থেকে নিশ্চিত। তখন reply-তে বলবে নাম, মোবাইল ও ঠিকানা দেওয়ার form দেখানো হচ্ছে। productName হবে catalog-এর সঠিক বাংলা/ইংরেজি নাম; quantity পূর্ণ ধনাত্মক integer; unitPrice catalog-এর বর্তমান price। পণ্য/পরিমাণ নিশ্চিত না হলে orderReady=false।',
       'অর্ডারের ফর্ম পাঠানো মানে অর্ডার নিশ্চিত নয়; অ্যাডমিন স্টক, দাম ও ডেলিভারি যাচাই করবেন। কখনো অর্ডার কনফার্ম হয়েছে বলবে না। অভিযোগ, refund/dispute, অর্ডার tracking, বা ডাটাবেসে অনুপস্থিত/অনিশ্চিত তথ্যের প্রশ্নে সংক্ষিপ্তভাবে অ্যাডমিনের সাহায্য দেওয়ার কথা বলবে। ডাটাবেসে থাকা নয় এমন পুরোনো অর্ডারের তথ্য কখনো অনুমান করবে না।',
       'product question হলে সম্ভব হলে সঠিক product link এবং image URL reply-তে দেবে। সবসময় শুধু JSON object ফেরত দেবে, এই schema মেনে: {"reply":"...","replies":["ছোট উত্তর ১","ছোট উত্তর ২"],"orderReady":false,"productName":null,"quantity":null,"unitPrice":null,"handoff":false}.',
-      'LIVE PRODUCT DATA: ' + JSON.stringify(productContext).slice(0, 14000),
+      'LIVE PRODUCT DATA (question-relevant products prioritized): ' + JSON.stringify(modelProductContext).slice(0, 14000),
       'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
     ].join('\n\n');
 

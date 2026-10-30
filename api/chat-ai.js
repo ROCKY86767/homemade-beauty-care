@@ -294,7 +294,7 @@ export default async function handler(req, res) {
     const latestMessage = history[history.length - 1];
     // Answer return/refund questions from the published Returns & Refunds policy.
     const latestQuestion = String(latestMessage.message || '').toLowerCase();
-    const refundIntent = /\\b(?:refund|return|money back|tk ferot|taka ferot| taka back)\\b/i.test(latestQuestion)
+    const refundIntent = /(?:refund|return|money\\s*back|tk\\s*ferot|taka\\s*ferot|taka\\s*back|tk\\s*back|refund\\s*pabo|return\\s*niben)/i.test(latestQuestion)
       || /রিফান্ড|রিটার্ন|টাকা ফেরত|টাকা ফেরত দেন|টাকা ফেরত পাব|পণ্য ফেরত|ফেরত পাব|কাজ না করলে|কাজ না করে|ফল না পেলে|ফলাফল না পেলে|কাজ না করলে টাকা|পছন্দ না হলে/.test(latestQuestion);
     if (refundIntent) {
       const replies = [

@@ -325,6 +325,9 @@ export default async function handler(req, res) {
         const normalize = (value) => String(value || '').toLowerCase()
           .normalize('NFKC')
           .replace(/[?؟!,.،؛:;'"“”()\\[\\]{}]/g, ' ')
+          .replace(/\bkoyta\b/g, 'koyti')
+          .replace(/\bkoto\b/g, 'koyti')
+          .replace(/\btotal\b/g, ' ')
           .replace(/\s+/g, ' ').trim();
         const normalizedQuestion = normalize(latestMessage.message);
         const matchedKnowledge = (Array.isArray(knowledgeRows) ? knowledgeRows : []).find((row) =>

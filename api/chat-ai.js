@@ -87,7 +87,11 @@ function buildFallbackResponse(question, productContext, settings, history = [])
   const orderIntent = /\b(?:order|ordar|nibo|niben|kinbo|buy)\b/i.test(q) || has('অর্ডার', 'কিনব', 'নেব', 'নিতে চাই');
   const quantityMatch = q.match(/(?:^|\D)(\d{1,2})(?!\d)\s*(?:pcs?|piece|ta|টি|পিস)?\b/) || String(question || '').match(/([০-৯]{1,2})\s*(?:টি|পিস)?/);
   const quantity = quantityMatch ? Number(String(quantityMatch[1]).replace(/[০-৯]/g, (digit) => '০১২৩৪৫৬৭৮৯'.indexOf(digit))) : null;
-  const bargainIntent = /(?:\b(?:taka|tk)\s*(?:hole|if)|টাকা\s*হলে)/i.test(q) && orderIntent;
+  const bargainIntent = orderIntent && (
+    /(?:\b(?:taka|tk)\s*(?:hole|if)|টাকা\s*হলে)/i.test(q) ||
+    /(?:^|\D)\d{2,5}\s*(?:taka|tk|টাকা)\b?/i.test(q) ||
+    /(?:কম দামে|কমে হলে|দাম কম|কম টাকা|discount|ডিসকাউন্ট)/i.test(q)
+  );
   if (bargainIntent && matchedProduct && quantity && quantity <= 100) {
     const offered = q.match(/(?:^|\D)(\d{2,5})(?!\d)\s*(?:taka|tk|টাকা)/i);
     const offeredPrice = offered ? Number(offered[1]) : null;

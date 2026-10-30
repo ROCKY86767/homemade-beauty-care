@@ -264,6 +264,54 @@ export default async function handler(req, res) {
       return jsonError(res, 409, 'এই message-এর উত্তর ইতিমধ্যে দেওয়া হয়েছে অথবা এটি text message নয়।');
     }
 
+    // Approved, static FAQ answers are served directly from the database before calling Gemini.
+    // Product price, stock, offers and delivery are deliberately excluded from this reusable memory.
+    stage = 'approved AI knowledge';
+    const dynamicQuestion = /\\b(?:price|dam|daam|koto|cost|stock|available|offer|discount|delivery|courier|charge|shipping|order)\\b/i.test(String(latestMessage.message || '')) || /দাম|মূল্য|কত টাকা|স্টক|অফার|ডিসকাউন্ট|ডেলিভারি|চার্জ|অর্ডার/.test(String(latestMessage.message || ''));
+    if (!dynamicQuestion) {
+    try {
+      const knowledgeResponse = await fetchWithTimeout(
+        baseUrl + '/rest/v1/ai_reply_knowledge?select=id,title,question_patterns,replies,category&approved=eq.true&is_active=eq.true&limit=100',
+        { headers },
+        2500
+      );
+      if (knowledgeResponse.ok) {
+        const knowledgeRows = await knowledgeResponse.json();
+        const normalize = (value) => String(value || '').toLowerCase()
+          .normalize('NFKC')
+          .replace(/[?؟!,.،؛:;'"“”()\\[\\]{}]/g, ' ')
+          .replace(/\\s+/g, ' ').trim();
+        const normalizedQuestion = normalize(latestMessage.message);
+        const matchedKnowledge = (Array.isArray(knowledgeRows) ? knowledgeRows : []).find((row) =>
+          Array.isArray(row.question_patterns) && row.question_patterns.some((pattern) => {
+            const normalizedPattern = normalize(pattern);
+            return normalizedPattern && (normalizedQuestion === normalizedPattern || normalizedQuestion.includes(normalizedPattern));
+          })
+        );
+        if (matchedKnowledge && Array.isArray(matchedKnowledge.replies) && matchedKnowledge.replies.length) {
+          const savedReplies = matchedKnowledge.replies
+            .filter((part) => typeof part === 'string' && part.trim())
+            .slice(0, 3)
+            .map((part) => part.trim().slice(0, 600));
+          if (savedReplies.length) {
+            await fetchWithTimeout(baseUrl + '/rest/v1/rpc/increment_ai_reply_knowledge_use', { method: 'POST', headers, body: JSON.stringify({ p_id: matchedKnowledge.id }) }, 1200).catch(() => null);
+            console.info('Approved AI knowledge matched', { category: matchedKnowledge.category });
+            return res.status(200).json({
+              reply: savedReplies.join(' '), replies: savedReplies,
+              orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false,
+            });
+          }
+        }
+      } else {
+        console.warn('Approved AI knowledge lookup unavailable', { status: knowledgeResponse.status });
+      }
+    } catch (knowledgeError) {
+      console.warn('Approved AI knowledge lookup failed; continuing with live Gemini flow', {
+        message: String(knowledgeError && knowledgeError.message || knowledgeError).slice(0, 160),
+      });
+    }
+    }
+
     stage = 'product catalog';
     let products = [];
     let productsAvailable = false;
@@ -359,51 +407,6 @@ export default async function handler(req, res) {
       settings_available: settingsAvailable,
       products_available: productsAvailable,
     };
-
-    // Approved, static FAQ answers are served directly from the database before calling Gemini.
-    // Product price, stock, offers and delivery are deliberately excluded from this reusable memory.
-    stage = 'approved AI knowledge';
-    try {
-      const knowledgeResponse = await fetchWithTimeout(
-        baseUrl + '/rest/v1/ai_reply_knowledge?select=id,title,question_patterns,replies,category&approved=eq.true&is_active=eq.true&limit=100',
-        { headers },
-        2500
-      );
-      if (knowledgeResponse.ok) {
-        const knowledgeRows = await knowledgeResponse.json();
-        const normalize = (value) => String(value || '').toLowerCase()
-          .normalize('NFKC')
-          .replace(/[?؟!,.،؛:;'"“”()\\[\\]{}]/g, ' ')
-          .replace(/\\s+/g, ' ').trim();
-        const normalizedQuestion = normalize(latestMessage.message);
-        const matchedKnowledge = (Array.isArray(knowledgeRows) ? knowledgeRows : []).find((row) =>
-          Array.isArray(row.question_patterns) && row.question_patterns.some((pattern) => {
-            const normalizedPattern = normalize(pattern);
-            return normalizedPattern && (normalizedQuestion === normalizedPattern || normalizedQuestion.includes(normalizedPattern));
-          })
-        );
-        if (matchedKnowledge && Array.isArray(matchedKnowledge.replies) && matchedKnowledge.replies.length) {
-          const savedReplies = matchedKnowledge.replies
-            .filter((part) => typeof part === 'string' && part.trim())
-            .slice(0, 3)
-            .map((part) => part.trim().slice(0, 600));
-          if (savedReplies.length) {
-            await fetchWithTimeout(baseUrl + '/rest/v1/rpc/increment_ai_reply_knowledge_use', { method: 'POST', headers, body: JSON.stringify({ p_id: matchedKnowledge.id }) }, 1200).catch(() => null);
-            console.info('Approved AI knowledge matched', { category: matchedKnowledge.category });
-            return res.status(200).json({
-              reply: savedReplies.join(' '), replies: savedReplies,
-              orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false,
-            });
-          }
-        }
-      } else {
-        console.warn('Approved AI knowledge lookup unavailable', { status: knowledgeResponse.status });
-      }
-    } catch (knowledgeError) {
-      console.warn('Approved AI knowledge lookup failed; continuing with live Gemini flow', {
-        message: String(knowledgeError && knowledgeError.message || knowledgeError).slice(0, 160),
-      });
-    }
 
     const systemPrompt = [
       'তুমি Homemade Beauty Care-এর লাইভ-চ্যাট কাস্টমার কেয়ার ও সেলস সহকারী। বাংলা, বাংলিশ, ইংরেজি এবং বানান ভুল বুঝবে। স্বাভাবিক, সংক্ষিপ্ত, ভদ্র বাংলায় উত্তর দেবে; প্রতিটি customer প্রশ্নের উত্তর সাধারণত ২-৩টি আলাদা ছোট chat message-এ দেবে—একটি বড় paragraph লিখবে না। প্রতিটি message-এ মাত্র ১টি ছোট বাক্য (সাধারণত ৮-১৮টি বাংলা শব্দ) থাকবে; প্রতিটি message আলাদা replies array item হবে, যাতে আলাদা chat bubble হিসেবে পাঠানো যায়। প্রথম message-এ সরাসরি প্রশ্নের উত্তর, পরেরটিতে দরকারি তথ্য, আর শেষটিতে প্রাসঙ্গিক হলে নরম next step দেবে। প্রশ্নের জন্য সত্যিই একটিমাত্র ছোট উত্তর যথেষ্ট হলে জোর করে বাড়াবে না, তবে সাধারণ customer প্রশ্নে ২-৩টি ছোট message ব্যবহার করবে। একই কথা ভাগ করে পুনরাবৃত্তি করবে না। একই প্রশ্ন বারবার করবে না এবং প্রতিবার customer-এর নাম ধরে ডাকবে না।',

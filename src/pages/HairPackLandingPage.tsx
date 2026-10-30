@@ -115,7 +115,7 @@ export default function HairPackLandingPage() {
       </header>
 
       {landingSettings?.show_sticky_order_bar !== false && <div className="sticky top-0 z-30 border-b border-[#e8e0cc] bg-[#fffdf7]/95 px-3 py-2 shadow-sm backdrop-blur-lg">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3"><div className="min-w-0"><p className="truncate text-[10px] text-[#737d6c] sm:text-xs">{productName}</p><p className="text-lg font-extrabold leading-6 text-[#315b32]">{formatPrice(product.price)}</p></div><a href="#order-hairpack" className="hp-btn inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-[#315b32] px-4 text-xs font-bold text-white shadow sm:px-5 sm:text-sm"><ShoppingBag size={15} />{landingSettings?.primary_button_text || 'এখনই অর্ডার করুন'}</a></div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-2.5"><img src="/new-homemade-logo.png" alt={settings?.brand_name || 'Homemade Beauty Care'} className="h-9 w-9 shrink-0 rounded-lg object-contain sm:h-10 sm:w-10" /><div className="min-w-0"><p className="truncate text-xs font-extrabold tracking-[.08em] text-[#315b32] sm:text-sm">{settings?.brand_name || 'HOMEMADE BEAUTY CARE'}</p><p className="truncate text-[9px] text-[#77806e] sm:text-[11px]">প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</p></div></div><a href="#order-hairpack" className="hp-btn inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-[#315b32] px-4 text-xs font-bold text-white shadow sm:px-5 sm:text-sm"><ShoppingBag size={15} />{landingSettings?.primary_button_text || 'এখনই অর্ডার করুন'}</a></div>
       </div>}
 
       <section className="relative isolate overflow-hidden bg-[#203f29] text-[#fffaf0]">

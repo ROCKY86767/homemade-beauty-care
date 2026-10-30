@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, CheckCircle2, ChevronDown, Flower2, Heart, Leaf, MessageCircle, Minus, Plus, ShoppingBag, Sparkles, Truck } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, ChevronDown, Droplets, Flower2, Heart, Leaf, MessageCircle, Minus, Plus, Scissors, ShoppingBag, Sparkles, TrendingUp, Truck, Waves } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
@@ -137,10 +137,27 @@ export default function HairPackLandingPage() {
       </section>
 
       {landingSettings?.show_trust_strip !== false && <section className="mx-auto -mt-1 max-w-5xl px-3 sm:-mt-4 sm:px-6"><div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-[#e8e0cc] bg-[#fffdf7] shadow-[0_8px_25px_rgba(40,58,39,.07)]">
-        <div className="px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Leaf size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">'প্রাকৃতিক উপাদান'</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">'যত্নে বাছাই করা উপাদান'</p></div>
-        <div className="border-x border-[#e8e0cc] px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#f5edd8] text-[#96733b]"><Flower2 size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">'ঘরোয়া পদ্ধতিতে তৈরি'</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">'ঘরোয়া যত্নের ছোঁয়া'</p></div>
-        <div className="px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Truck size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">'হোম ডেলিভারি'</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">'সারা বাংলাদেশে পৌঁছে দিই'</p></div>
+        <div className="px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Leaf size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">প্রাকৃতিক উপাদান</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">যত্নে বাছাই করা উপাদান</p></div>
+        <div className="border-x border-[#e8e0cc] px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#f5edd8] text-[#96733b]"><Flower2 size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">ঘরোয়া পদ্ধতিতে তৈরি</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">ঘরোয়া যত্নের ছোঁয়া</p></div>
+        <div className="px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Truck size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">হোম ডেলিভারি</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">সারা বাংলাদেশে পৌঁছে দিই</p></div>
       </div></section>}
+
+
+      <section className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9">
+        <div className="mx-auto mb-5 max-w-2xl text-center">
+          <p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">HAIR CARE CONCERNS</p>
+          <h2 className="hp-serif mt-2 text-2xl font-semibold text-[#263b29] sm:text-3xl">চুলের এই সমস্যাগুলো কি আপনারও?</h2>
+          <p className="mt-2 text-sm leading-6 text-[#687461]">নিয়মিত প্রাকৃতিক যত্ন এসব সমস্যার যত্ন নিতে সহায়তা করতে পারে।</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
+          <div className="flex min-h-[88px] items-center gap-2.5 rounded-xl border border-[#e5e2d6] bg-[#fffdf7] p-3 shadow-sm sm:gap-3 sm:p-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Droplets size={18} /></span><p className="text-xs font-bold leading-5 text-[#344a35] sm:text-sm">রুক্ষ ও শুষ্ক চুল</p></div>
+          <div className="flex min-h-[88px] items-center gap-2.5 rounded-xl border border-[#e5e2d6] bg-[#fffdf7] p-3 shadow-sm sm:gap-3 sm:p-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f5edd8] text-[#96733b]"><Waves size={18} /></span><p className="text-xs font-bold leading-5 text-[#344a35] sm:text-sm">অতিরিক্ত চুল পড়া</p></div>
+          <div className="flex min-h-[88px] items-center gap-2.5 rounded-xl border border-[#e5e2d6] bg-[#fffdf7] p-3 shadow-sm sm:gap-3 sm:p-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Sparkles size={18} /></span><p className="text-xs font-bold leading-5 text-[#344a35] sm:text-sm">খুশকি</p></div>
+          <div className="flex min-h-[88px] items-center gap-2.5 rounded-xl border border-[#e5e2d6] bg-[#fffdf7] p-3 shadow-sm sm:gap-3 sm:p-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f5edd8] text-[#96733b]"><Scissors size={18} /></span><p className="text-xs font-bold leading-5 text-[#344a35] sm:text-sm">ডগা ফেটে যাওয়া</p></div>
+          <div className="flex min-h-[88px] items-center gap-2.5 rounded-xl border border-[#e5e2d6] bg-[#fffdf7] p-3 shadow-sm sm:gap-3 sm:p-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Leaf size={18} /></span><p className="text-xs font-bold leading-5 text-[#344a35] sm:text-sm">নিস্তেজ চুল</p></div>
+          <div className="flex min-h-[88px] items-center gap-2.5 rounded-xl border border-[#e5e2d6] bg-[#fffdf7] p-3 shadow-sm sm:gap-3 sm:p-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f5edd8] text-[#96733b]"><TrendingUp size={18} /></span><p className="text-xs font-bold leading-5 text-[#344a35] sm:text-sm">চুল লম্বা না হওয়া</p></div>
+        </div>
+      </section>
 
       {landingSettings?.show_benefits !== false && <section id="hairpack-details" className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
         <div className="mx-auto mb-3 max-w-2xl text-center">

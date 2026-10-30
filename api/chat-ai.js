@@ -63,7 +63,7 @@ function jsonError(res, status, message) {
   return res.status(status).json({ error: message });
 }
 
-function buildFallbackResponse(question, productContext, settings) {
+function buildFallbackResponse(question, productContext, settings, history = []) {
   const q = String(question || '').toLowerCase();
   const has = (...words) => words.some((word) => q.includes(word));
   const replies = [];
@@ -71,6 +71,63 @@ function buildFallbackResponse(question, productContext, settings) {
   const money = (value) => value === null || value === undefined || value === '' ? null : '৳' + value;
   const romanHairFall = /\b(?:cul|chul)\b.*\b(?:pore|porche|jhore|jhorche)\b|\b(?:hair\s*fall|hairfall|hair\s*loss)\b/i.test(q);
   const hairFallConcern = romanHairFall || has('চুল পড়ে', 'চুল পড়ে', 'চুল ঝরে', 'চুল ঝরছে', 'অনেক চুল', 'চুল পড়া', 'চুল পড়া', 'hair fall', 'hairfall', 'hair loss');
+  const conversationText = [question, ...(Array.isArray(history) ? history.slice(-14).map((item) => item && item.message || '') : [])].join(' ').toLowerCase();
+  const matchedProduct = (Array.isArray(productContext) ? productContext : []).find((product) => {
+    const names = [product.name_bn, product.name_en, product.slug].filter(Boolean).map((value) => String(value).toLowerCase());
+    return names.some((name) => conversationText.includes(name)) ||
+      (/hair\s*pack|hairpack|হেয়ার প্যাক|হেয়ার প্যাক|হেয়ারপ্যাক|হেয়ারপ্যাক/.test(conversationText) && /hair|চুল|হেয়ার|হেয়ার/.test([product.name_bn, product.name_en, product.slug].join(' ').toLowerCase()));
+  }) || ((Array.isArray(productContext) ? productContext.length : 0) === 1 ? productContext[0] : null);
+  const priceIntent = /\b(?:price|dam|daam|koto|how much|cost)\b/i.test(q) || has('দাম', 'মূল্য', 'কত টাকা', 'কত দাম', 'দাম কত');
+  const stockIntent = /\b(?:stock|available|availability|ache|ase|pabo)\b/i.test(q) || has('স্টক', 'পাওয়া যাবে', 'পাওয়া যাবে', 'আছে কি', 'আছে নাকি');
+  const usageIntent = /\b(?:how to use|use korbo|kivabe use|kibhabe use|use korar niyom)\b/i.test(q) || has('ব্যবহার', 'কিভাবে লাগাব', 'কীভাবে লাগাব', 'ব্যবহারের নিয়ম', 'ব্যবহারের নিয়ম');
+  const ingredientIntent = /\b(?:ingredient|upadan|ki diye|ki ki diye)\b/i.test(q) || has('উপাদান', 'কি দিয়ে তৈরি', 'কী দিয়ে তৈরি', 'কী কী উপাদান');
+  const benefitIntent = /\b(?:benefit|upokar|kaj kore|ki kaj)\b/i.test(q) || has('উপকার', 'কী কাজে লাগে', 'কি কাজে লাগে', 'কাজ কী');
+  const orderIntent = /\b(?:order|ordar|nibo|niben|kinbo|buy)\b/i.test(q) || has('অর্ডার', 'কিনব', 'নেব', 'নিতে চাই');
+  const quantityMatch = q.match(/\b(\d{1,2})\s*(?:pcs?|piece|ta|টি|পিস)?\b/) || String(question || '').match(/([০-৯]{1,2})\s*(?:টি|পিস)?/);
+  const quantity = quantityMatch ? Number(String(quantityMatch[1]).replace(/[০-৯]/g, (digit) => '০১২৩৪৫৬৭৮৯'.indexOf(digit))) : null;
+  if (orderIntent) {
+    if (!matchedProduct) {
+      add('অবশ্যই, অর্ডার করতে সাহায্য করছি।', 'আপনি কোন পণ্যটি নিতে চান?');
+      return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+    }
+    if (!quantity || quantity < 1 || quantity > 100) {
+      add('জি, ' + (matchedProduct.name_bn || matchedProduct.name_en) + ' অর্ডার করতে পারবেন।', 'কয়টি নিতে চান?');
+      return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+    }
+    if (Number(matchedProduct.stock || 0) < quantity) {
+      add('দুঃখিত, এই মুহূর্তে প্রয়োজনীয় পরিমাণ স্টক নেই।', 'অ্যাডমিন স্টক নিশ্চিত করে আপনাকে জানাবেন।');
+      return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true };
+    }
+    add('জি, আপনার ' + (matchedProduct.name_bn || matchedProduct.name_en) + ' অর্ডারের তথ্য নিচ্ছি।', 'নাম, মোবাইল নম্বর ও ঠিকানা দেওয়ার ফর্মটি খুলে দিচ্ছি।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: true, productName: matchedProduct.name_bn || matchedProduct.name_en, quantity, unitPrice: Number(matchedProduct.price), handoff: false };
+  }
+  if (matchedProduct && priceIntent) {
+    const currentPrice = money(matchedProduct.price);
+    const oldPrice = Number(matchedProduct.old_price || 0);
+    add((matchedProduct.name_bn || matchedProduct.name_en) + ' এর বর্তমান মূল্য ' + currentPrice + '।');
+    if (oldPrice > Number(matchedProduct.price || 0)) add('আগের মূল্য ' + money(oldPrice) + '—এখন সাশ্রয় হচ্ছে ' + money(oldPrice - Number(matchedProduct.price)) + '।');
+    add('আপনি চাইলে কয়টি নিতে চান জানাতে পারেন, অর্ডার করতে সাহায্য করব।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  if (matchedProduct && stockIntent) {
+    const available = Number(matchedProduct.stock || 0);
+    add(available > 0 ? 'জি, ' + (matchedProduct.name_bn || matchedProduct.name_en) + ' বর্তমানে স্টকে আছে।' : 'দুঃখিত, এই পণ্যটি বর্তমানে স্টকে নেই।');
+    if (available > 0) add('বর্তমান মূল্য ' + money(matchedProduct.price) + '।', 'চাইলে অর্ডার করতে সাহায্য করতে পারি।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  if (matchedProduct && usageIntent && matchedProduct.how_to_use) {
+    const steps = String(matchedProduct.how_to_use).split(/\n+/).map((part) => part.replace(/^[\s✅•-]+/, '').trim()).filter(Boolean);
+    add((matchedProduct.name_bn || matchedProduct.name_en) + ' ব্যবহারের নিয়ম:', steps.slice(0, 2).join(' '), steps.slice(2, 4).join(' '), 'আর কোনো বিষয়ে জানতে চাইলে বলুন।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  if (matchedProduct && ingredientIntent && matchedProduct.ingredients) {
+    add((matchedProduct.name_bn || matchedProduct.name_en) + ' তৈরি হয় এই উপাদানগুলো দিয়ে:', String(matchedProduct.ingredients).slice(0, 900));
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  if (matchedProduct && benefitIntent && matchedProduct.benefits) {
+    add((matchedProduct.name_bn || matchedProduct.name_en) + ' এর ডেটাবেসে উল্লেখিত উপকারিতা:', String(matchedProduct.benefits).slice(0, 900), 'ফলাফল ব্যক্তি ও চুলের অবস্থাভেদে ভিন্ন হতে পারে।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
   const offerIntent = /\b(?:offer|offers|discount|sale|promo|promotion|deal)\b/i.test(q) || has('অফার', 'ছাড়', 'ছাড়', 'ডিসকাউন্ট', 'কম্বো', 'kono offer', 'kon offer', 'offer ache', 'offer ase', 'offer ase naki', 'kono discount');
   if (offerIntent) {
     if (settings.settings_available !== true) {
@@ -424,7 +481,7 @@ export default async function handler(req, res) {
     }
     if (!raw.trim()) {
       console.error('All Gemini models failed; using catalog-grounded fallback', { geminiFailure });
-      const fallback = buildFallbackResponse(latestMessage.message, productContext, publicBusinessContext);
+      const fallback = buildFallbackResponse(latestMessage.message, productContext, publicBusinessContext, history);
       return res.status(200).json(fallback);
     }
 

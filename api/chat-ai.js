@@ -69,7 +69,7 @@ function buildFallbackResponse(question, productContext, settings) {
   const replies = [];
   const add = (...parts) => parts.filter(Boolean).forEach((part) => replies.push(String(part).slice(0, 600)));
   const money = (value) => value === null || value === undefined || value === '' ? null : '৳' + value;
-  const romanHairFall = /\\b(cul|chul|hair\\s*fall|hairfall|hair\\s*loss|jhore|jhorche|porche|pore)\\b/i.test(q);
+  const romanHairFall = /\b(?:cul|chul)\b.*\b(?:pore|porche|jhore|jhorche)\b|\b(?:hair\s*fall|hairfall|hair\s*loss)\b/i.test(q);
   const hairFallConcern = romanHairFall || has('চুল পড়ে', 'চুল পড়ে', 'চুল ঝরে', 'চুল ঝরছে', 'অনেক চুল', 'চুল পড়া', 'চুল পড়া', 'hair fall', 'hairfall', 'hair loss');
   const isGreeting = has('হ্যালো', 'হ্যালো', 'hello', 'hi', 'আসসালামু', 'assalamu', 'নমস্কার');
   if (isGreeting) {

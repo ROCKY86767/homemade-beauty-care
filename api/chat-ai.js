@@ -301,7 +301,7 @@ export default async function handler(req, res) {
     stage = 'approved AI knowledge';
     try {
       const knowledgeResponse = await fetchWithTimeout(
-        baseUrl + '/rest/v1/ai_reply_knowledge?select=id,title,question_patterns,replies,category&approved=eq.true&is_active=eq.true&category=eq.general&limit=100',
+        baseUrl + '/rest/v1/ai_reply_knowledge?select=id,title,question_patterns,replies,category&approved=eq.true&is_active=eq.true&limit=100',
         { headers },
         2500
       );

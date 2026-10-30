@@ -58,13 +58,13 @@ export default function HairPackLandingPage() {
   const benefits = useMemo(() => {
     const source = product?.benefits_bn?.trim();
     const rawItems = source
-      ? source.split(/\\r?\\n|•|▪|✓|;|(?=\\s*\\d+[.)]\\s+)/).map(item => item.trim()).filter(Boolean)
+      ? source.split(/\r?\n/).map(item => item.trim()).filter(Boolean)
       : fallbackBenefits;
     return rawItems.map((item, index) => {
-      const numbered = item.match(/^\\s*(\\d+)[.)]\\s*(.*)$/s);
+      const numbered = item.match(/^\s*(\d+)[.)]\s*(.*)$/);
       return {
         number: numbered ? numbered[1] : String(index + 1),
-        text: (numbered ? numbered[2] : item).replace(/^[-*\\s]+/, '').trim(),
+        text: (numbered ? numbered[2] : item).replace(/^[-*•▪✓\s]+/, '').trim(),
       };
     }).filter(item => item.text);
   }, [product?.benefits_bn]);
@@ -156,7 +156,7 @@ export default function HairPackLandingPage() {
             <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-[#e8eee1] px-3 py-1.5 text-[11px] font-semibold text-[#426044]">ঘরোয়া যত্ন</span><span className="rounded-full bg-[#f3ecd9] px-3 py-1.5 text-[11px] font-semibold text-[#8a6a34]">প্রাকৃতিক উপাদান</span></div>
           </div>
           <div className="rounded-2xl border border-[#e3dfce] bg-[#fffdf7] p-5 shadow-[0_10px_28px_rgba(40,58,39,.07)] sm:p-7">
-            <div className="mb-3 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaf0e2] text-[#315b32]"><Sparkles size={20} /></span><div><h3 className="text-base font-bold text-[#263b29]">হেয়ার প্যাকের উপকারিতা</h3><p className="text-xs text-[#78806f]">Admin Panel-এ দেওয়া সব উপকারিতা</p></div></div>
+            <div className="mb-3 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaf0e2] text-[#315b32]"><Sparkles size={20} /></span><div><h3 className="text-base font-bold text-[#263b29]">হেয়ার প্যাকের উপকারিতা</h3></div></div>
             <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">{benefits.map((item, index) => <div key={item.text + index} className="flex min-w-0 items-start gap-2 rounded-lg px-1.5 py-1.5"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#e2eadb] text-[11px] font-extrabold tabular-nums text-[#315b32]">{item.number}</span><p className="text-[13px] leading-5 text-[#40523d]">{item.text}</p></div>)}</div>
           </div>
         </div>

@@ -290,6 +290,19 @@ export default async function handler(req, res) {
     const history = await historyResponse.json();
     if (!Array.isArray(history) || history.length === 0) return jsonError(res, 400, 'এই chat-এ এখনো কোনো message পাওয়া যায়নি।');
     const latestMessage = history[history.length - 1];
+    // Answer return/refund questions from the published Returns & Refunds policy.
+    const latestQuestion = String(latestMessage.message || '').toLowerCase();
+    const refundIntent = /\\b(?:refund|return|money back|tk ferot|taka ferot| taka back)\\b/i.test(latestQuestion)
+      || /রিফান্ড|রিটার্ন|টাকা ফেরত|টাকা ফেরত দেন|টাকা ফেরত পাব|পণ্য ফেরত|ফেরত পাব|কাজ না করলে|কাজ না করে|ফল না পেলে|ফলাফল না পেলে|কাজ না করলে টাকা|পছন্দ না হলে/.test(latestQuestion);
+    if (refundIntent) {
+      const replies = [
+        'শুধু প্রত্যাশিত ফলাফল না পেলে পণ্য ফেরত বা টাকা রিফান্ড প্রযোজ্য নয়।',
+        'তবে ডেলিভারির সময় পণ্য ক্ষতিগ্রস্ত হলে বা ভুল পণ্য পেলে ফেরত দিতে পারবেন; ৩ মাসের মধ্যে মেয়াদ শেষ হলে প্রমাণ সাপেক্ষে পূর্ণ রিফান্ড দেওয়া হয়।',
+        'বিস্তারিত নিয়ম দেখুন: https://homemade-beauty-care.vercel.app/returns-refunds — আপনার ক্ষেত্রে সমস্যা হলে অর্ডার নম্বরসহ অ্যাডমিনকে জানান।'
+      ];
+      console.info('Published Returns & Refunds policy matched');
+      return res.status(200).json({ reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false });
+    }
     if (latestMessage.sender_type !== 'customer' || latestMessage.message_type !== 'text') {
       return jsonError(res, 409, 'এই message-এর উত্তর ইতিমধ্যে দেওয়া হয়েছে অথবা এটি text message নয়।');
     }

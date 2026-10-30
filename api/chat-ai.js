@@ -499,8 +499,8 @@ export default async function handler(req, res) {
       'LIVE PRODUCT DATA (question-relevant products prioritized): ' + JSON.stringify(modelProductContext).slice(0, 14000),
       'PUBLIC WEBSITE PAGE KNOWLEDGE: ' + JSON.stringify(publicPageContext).slice(0, 14000),
       'LIVE HAIRPACK LANDING PAGE ADMIN-CONTROLLED PUBLIC CONTENT: ' + JSON.stringify(landingPageContext).slice(0, 5000),
-      'ওয়েবসাইটের প্রকাশ্য পেজ-সংক্রান্ত প্রশ্নে PUBLIC WEBSITE PAGE KNOWLEDGE ব্যবহার করবে এবং প্রাসঙ্গিক পেজের URL দিতে পারো। Returns & Refunds, Delivery Information, Privacy Policy, About, Contact, Home, Shop, Offers ও Hairpack Landing Page-এর তথ্য এখানে দেওয়া আছে। Policy-র উত্তর পেজের নিয়ম অনুযায়ী দেবে; নিজের থেকে refund/return promise বা policy তৈরি করবে না। পেজ knowledge এবং live database-এ কোনো বিরোধ হলে পরিবর্তনশীল দাম/স্টক/অফারের জন্য live database, আর policy wording-এর জন্য প্রকাশিত policy page অনুসরণ করবে। Admin/private page, customer personal data, private orders বা secret settings প্রকাশ করবে না।
-      ' + 'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
+      'ওয়েবসাইটের প্রকাশ্য পেজ-সংক্রান্ত প্রশ্নে PUBLIC WEBSITE PAGE KNOWLEDGE ব্যবহার করবে এবং প্রাসঙ্গিক পেজের URL দিতে পারো। Returns & Refunds, Delivery Information, Privacy Policy, About, Contact, Home, Shop, Offers ও Hairpack Landing Page-এর তথ্য এখানে দেওয়া আছে। Policy-র উত্তর পেজের নিয়ম অনুযায়ী দেবে; নিজের থেকে refund/return promise বা policy তৈরি করবে না। পেজ knowledge এবং live database-এ কোনো বিরোধ হলে পরিবর্তনশীল দাম/স্টক/অফারের জন্য live database, আর policy wording-এর জন্য প্রকাশিত policy page অনুসরণ করবে। Admin/private page, customer personal data, private orders বা secret settings প্রকাশ করবে না।,
+      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
       'DATA AVAILABILITY: products_available=' + productsAvailable + ', settings_available=' + settingsAvailable + '. If required live data is unavailable, do not invent it; set handoff=true and ask Admin to verify.',
     ].join('\n\n');
 

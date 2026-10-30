@@ -89,7 +89,7 @@ function buildFallbackResponse(question, productContext, settings, history = [])
   const quantity = quantityMatch ? Number(String(quantityMatch[1]).replace(/[০-৯]/g, (digit) => '০১২৩৪৫৬৭৮৯'.indexOf(digit))) : null;
   const bargainIntent = orderIntent && (
     /(?:\b(?:taka|tk)\s*(?:hole|if)|টাকা\s*হলে)/i.test(q) ||
-    /(?:^|\D)\d{2,5}\s*(?:taka|tk|টাকা)\b?/i.test(q) ||
+    /(?:^|\D)\d{2,5}\s*(?:taka|tk|টাকা)(?![a-z])/i.test(q) ||
     /(?:কম দামে|কমে হলে|দাম কম|কম টাকা|discount|ডিসকাউন্ট)/i.test(q)
   );
   if (bargainIntent && matchedProduct && quantity && quantity <= 100) {

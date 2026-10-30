@@ -77,8 +77,8 @@ function buildFallbackResponse(question, productContext, settings, history = [])
     return names.some((name) => conversationText.includes(name)) ||
       (/hair\s*pack|hairpack|হেয়ার প্যাক|হেয়ার প্যাক|হেয়ারপ্যাক|হেয়ারপ্যাক/.test(conversationText) && /hair|চুল|হেয়ার|হেয়ার/.test([product.name_bn, product.name_en, product.slug].join(' ').toLowerCase()));
   }) || ((Array.isArray(productContext) ? productContext.length : 0) === 1 ? productContext[0] : null);
-  const priceIntent = /\b(?:price|dam|daam|koto|how much|cost)\b/i.test(q) || has('দাম', 'মূল্য', 'কত টাকা', 'কত দাম', 'দাম কত');
-  const stockIntent = /\b(?:stock|available|availability|ache|ase|pabo)\b/i.test(q) || has('স্টক', 'পাওয়া যাবে', 'পাওয়া যাবে', 'আছে কি', 'আছে নাকি');
+  const priceIntent = !/\b(?:offer|discount|delivery|courier|shipping|charge)\b/i.test(q) && (/\b(?:price|dam|daam|koto|how much|cost)\b/i.test(q) || has('দাম', 'মূল্য', 'কত টাকা', 'কত দাম', 'দাম কত'));
+  const stockIntent = !/\b(?:offer|discount)\b/i.test(q) && (/\b(?:stock|available|availability|pabo)\b/i.test(q) || has('স্টক', 'পাওয়া যাবে', 'পাওয়া যাবে', 'আছে কি', 'আছে নাকি'));
   const usageIntent = /\b(?:how to use|use korbo|kivabe use|kibhabe use|use korar niyom)\b/i.test(q) || has('ব্যবহার', 'কিভাবে লাগাব', 'কীভাবে লাগাব', 'ব্যবহারের নিয়ম', 'ব্যবহারের নিয়ম');
   const ingredientIntent = /\b(?:ingredient|upadan|ki diye|ki ki diye)\b/i.test(q) || has('উপাদান', 'কি দিয়ে তৈরি', 'কী দিয়ে তৈরি', 'কী কী উপাদান');
   const benefitIntent = /\b(?:benefit|upokar|kaj kore|ki kaj)\b/i.test(q) || has('উপকার', 'কী কাজে লাগে', 'কি কাজে লাগে', 'কাজ কী');
@@ -162,12 +162,14 @@ function buildFallbackResponse(question, productContext, settings, history = [])
   const romanDeliveryIntent = /\b(?:delivery|courier)\b.*\b(?:charge|koto|cost|fee)\b|\b(?:dhaka|inside|outside)\b.*\b(?:delivery|charge)\b/i.test(q) || /\b(?:delivery|courier)\s*(?:koto|charge|fee)\b/i.test(q);\n  if (romanDeliveryIntent || has('ডেলিভারি চার্জ', 'delivery charge', 'ডেলিভারি কত', 'কুরিয়ার চার্জ', 'ঢাকার ভিতর', 'ঢাকার বাইরে', 'ডেলিভারি কত টাকা', 'ডেলিভারি খরচ')) {
     const inside = settings.delivery_inside_dhaka;
     const outside = settings.delivery_outside_dhaka;
+    if (settings.settings_available !== true) { add('ডেলিভারি চার্জের বর্তমান তথ্য যাচাই করা যাচ্ছে না।', 'ভুল তথ্য না দিয়ে অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।'); return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true }; }
     add('ডেলিভারি চার্জের তথ্য:', inside !== null && inside !== undefined ? 'ঢাকার ভিতরে ' + money(inside) + '.' : 'ঢাকার ভিতরের চার্জটি এখন নিশ্চিত করতে পারছি না.', outside !== null && outside !== undefined ? 'ঢাকার বাইরে ' + money(outside) + '.' : 'ঢাকার বাইরের চার্জটি এখন নিশ্চিত করতে পারছি না.');
     add('আপনার ডেলিভারি এলাকা জানালে টিম সঠিক চার্জ নিশ্চিত করতে পারবে।');
-    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: inside === null || inside === undefined || outside === null || outside === undefined };
   }
   if (/\b(?:cash on delivery|cod|cash delivery|product pawar por payment)\b/i.test(q) || has('ক্যাশ অন ডেলিভারি', 'হাতে পেয়ে', 'পণ্য পেয়ে টাকা', 'পণ্য হাতে পেয়ে টাকা')) {
-    add(settings.cash_on_delivery_enabled === true ? 'জি, ওয়েবসাইটের সেটিংস অনুযায়ী ক্যাশ অন ডেলিভারি চালু আছে।' : 'ক্যাশ অন ডেলিভারি চালু আছে কি না, এখন নিশ্চিত করতে পারছি না।', 'আপনি চাইলে পছন্দের পণ্যটি জানাতে পারেন, আমি তথ্য খুঁজে দিতে চেষ্টা করব।');
+    if (settings.settings_available !== true) { add('ক্যাশ অন ডেলিভারি চালু আছে কি না, এখন যাচাই করতে পারছি না।', 'অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।'); return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true }; }
+    add(settings.cash_on_delivery_enabled === true ? 'জি, ওয়েবসাইটের সেটিংস অনুযায়ী ক্যাশ অন ডেলিভারি চালু আছে।' : 'দুঃখিত, বর্তমানে ক্যাশ অন ডেলিভারি চালু নেই।', 'আপনি চাইলে পছন্দের পণ্যটি জানাতে পারেন।');
     return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
   if (hairFallConcern) {

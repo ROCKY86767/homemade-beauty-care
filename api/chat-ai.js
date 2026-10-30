@@ -281,7 +281,9 @@ export default async function handler(req, res) {
       { headers },
       SUPABASE_TIMEOUT_MS
     );
-    const settingsRows = settingsResponse.ok ? await settingsResponse.json() : [];\n    const settingsAvailable = Array.isArray(settingsRows) && settingsRows.length > 0;\n    const siteSettings = settingsAvailable ? settingsRows[0] : {};
+    const settingsRows = settingsResponse.ok ? await settingsResponse.json() : [];
+    const settingsAvailable = Array.isArray(settingsRows) && settingsRows.length > 0;
+    const siteSettings = settingsAvailable ? settingsRows[0] : {};
     const origin = 'https://homemade-beauty-care.vercel.app';
 
     const productContext = (Array.isArray(products) ? products : []).map((p) => ({

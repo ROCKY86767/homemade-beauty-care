@@ -152,7 +152,7 @@ export default function HairPackLandingPage() {
           </div>
           <div className="rounded-2xl border border-[#e3dfce] bg-[#fffdf7] p-5 shadow-[0_10px_28px_rgba(40,58,39,.07)] sm:p-7">
             <div className="mb-3 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaf0e2] text-[#315b32]"><Sparkles size={20} /></span><div><h3 className="text-base font-bold text-[#263b29]">হেয়ার প্যাকের উপকারিতা</h3><p className="text-xs text-[#78806f]">Admin Panel-এ দেওয়া সব উপকারিতা</p></div></div>
-            <div className="grid gap-2.5 sm:grid-cols-2">{benefits.map((item, index) => <div key={item + index} className="flex items-start gap-2.5 rounded-xl bg-[#f5f6ef] px-3 py-3"><span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e2eadb] text-[#315b32]"><Check size={14} /></span><p className="text-sm leading-6 text-[#40523d]">{item}</p></div>)}</div>
+            <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">{benefits.map((item, index) => <div key={item + index} className="flex min-w-0 items-start gap-2 rounded-lg px-1.5 py-1.5"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#e2eadb] text-[11px] font-extrabold tabular-nums text-[#315b32]">{index + 1}</span><p className="text-[13px] leading-5 text-[#40523d]">{item}</p></div>)}</div>
           </div>
         </div>
       </section>}

@@ -71,6 +71,28 @@ function buildFallbackResponse(question, productContext, settings) {
   const money = (value) => value === null || value === undefined || value === '' ? null : '৳' + value;
   const romanHairFall = /\b(?:cul|chul)\b.*\b(?:pore|porche|jhore|jhorche)\b|\b(?:hair\s*fall|hairfall|hair\s*loss)\b/i.test(q);
   const hairFallConcern = romanHairFall || has('চুল পড়ে', 'চুল পড়ে', 'চুল ঝরে', 'চুল ঝরছে', 'অনেক চুল', 'চুল পড়া', 'চুল পড়া', 'hair fall', 'hairfall', 'hair loss');
+  const offerIntent = /\\b(?:offer|offers|discount|sale|promo|promotion|deal)\\b/i.test(q) || has('অফার', 'ছাড়', 'ছাড়', 'ডিসকাউন্ট', 'কম্বো', 'কোনো অফার', 'কোন অফার');
+  if (offerIntent) {
+    const offerParts = [];
+    if (settings.combo_offer_enabled === true && settings.combo_offer_title && settings.combo_offer_price !== null && settings.combo_offer_price !== undefined && settings.combo_offer_price !== '') {
+      offerParts.push(String(settings.combo_offer_title));
+      if (settings.combo_offer_description) offerParts.push(String(settings.combo_offer_description));
+      if (settings.combo_offer_original_price) offerParts.push('আগের মূল্য ৳' + settings.combo_offer_original_price + '।');
+      offerParts.push('অফার মূল্য ৳' + settings.combo_offer_price + '।');
+      if (settings.combo_offer_button_link) offerParts.push('বিস্তারিত: ' + settings.combo_offer_button_link);
+      add('জি, বর্তমানে আমাদের একটি Combo Offer চালু আছে।', offerParts.join(' '), 'আপনি চাইলে Combo Offer-টি অর্ডার করতে সাহায্য করতে পারি।');
+    } else {
+      const saleProducts = (Array.isArray(productContext) ? productContext : [])
+        .filter((product) => product.on_sale === true && Number(product.stock || 0) > 0 && Number(product.old_price || 0) > Number(product.price || 0))
+        .slice(0, 3);
+      if (saleProducts.length) {
+        add('জি, বর্তমানে কিছু পণ্যে অফার চলছে:', saleProducts.map((p) => (p.name_bn || p.name_en) + ' — ৳' + p.price + ' (আগের মূল্য ৳' + p.old_price + ')').join('। '), 'কোন পণ্যটির অফার সম্পর্কে জানতে চান?');
+      } else {
+        add('এই মুহূর্তে ডেটাবেসে কোনো সক্রিয় অফারের তথ্য পাওয়া যায়নি।', 'নতুন অফার চালু হলে ওয়েবসাইটে আপডেট করা হবে; চাইলে নির্দিষ্ট পণ্যের দাম জানাতে পারি।');
+      }
+    }
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
   const isGreeting = has('হ্যালো', 'হ্যালো', 'hello', 'hi', 'আসসালামু', 'assalamu', 'নমস্কার');
   if (isGreeting) {
     add('আসসালামু আলাইকুম! Homemade Beauty Care-এ আপনাকে স্বাগতম।', 'চুলের যত্ন নাকি ত্বকের যত্নের পণ্য খুঁজছেন?');
@@ -271,6 +293,14 @@ export default async function handler(req, res) {
       combo_offer_button_text: siteSettings.combo_offer_button_text,
       combo_offer_button_link: siteSettings.combo_offer_button_link,
       currency: siteSettings.currency,
+      combo_offer_enabled: siteSettings.combo_offer_enabled,
+      combo_offer_title: siteSettings.combo_offer_title,
+      combo_offer_description: siteSettings.combo_offer_description,
+      combo_offer_original_price: siteSettings.combo_offer_original_price,
+      combo_offer_price: siteSettings.combo_offer_price,
+      combo_offer_button_link: siteSettings.combo_offer_button_link,
+      cash_on_delivery_enabled: siteSettings.cod_enabled,
+
     };
 
     const systemPrompt = [

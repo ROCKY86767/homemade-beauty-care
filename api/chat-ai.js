@@ -69,6 +69,8 @@ function buildFallbackResponse(question, productContext, settings) {
   const replies = [];
   const add = (...parts) => parts.filter(Boolean).forEach((part) => replies.push(String(part).slice(0, 600)));
   const money = (value) => value === null || value === undefined || value === '' ? null : '৳' + value;
+  const romanHairFall = /\\b(cul|chul|hair\\s*fall|hairfall|hair\\s*loss|jhore|jhorche|porche|pore)\\b/i.test(q);
+  const hairFallConcern = romanHairFall || has('চুল পড়ে', 'চুল পড়ে', 'চুল ঝরে', 'চুল ঝরছে', 'অনেক চুল', 'চুল পড়া', 'চুল পড়া', 'hair fall', 'hairfall', 'hair loss');
   const isGreeting = has('হ্যালো', 'হ্যালো', 'hello', 'hi', 'আসসালামু', 'assalamu', 'নমস্কার');
   if (isGreeting) {
     add('আসসালামু আলাইকুম! Homemade Beauty Care-এ আপনাকে স্বাগতম।', 'চুলের যত্ন নাকি ত্বকের যত্নের পণ্য খুঁজছেন?');
@@ -84,6 +86,30 @@ function buildFallbackResponse(question, productContext, settings) {
   if (has('ক্যাশ অন ডেলিভারি', 'cash on delivery', 'cod', 'হাতে পেয়ে', 'পণ্য পেয়ে টাকা')) {
     add(settings.cash_on_delivery_enabled === true ? 'জি, ওয়েবসাইটের সেটিংস অনুযায়ী ক্যাশ অন ডেলিভারি চালু আছে।' : 'ক্যাশ অন ডেলিভারি চালু আছে কি না, এখন নিশ্চিত করতে পারছি না।', 'আপনি চাইলে পছন্দের পণ্যটি জানাতে পারেন, আমি তথ্য খুঁজে দিতে চেষ্টা করব।');
     return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  if (hairFallConcern) {
+    const hairProducts = (Array.isArray(productContext) ? productContext : [])
+      .filter((product) => Number(product.stock || 0) > 0)
+      .map((product) => {
+        const searchable = [product.name_bn, product.name_en, product.description, product.benefits, product.ingredients, product.how_to_use, product.suitable_for, product.slug].filter(Boolean).join(' ').toLowerCase();
+        const relevant = /hair|চুল|হেয়ার|হেয়ার|hair-care|hair-oil|hair-pack/.test(searchable);
+        const supportsConcern = /fall|loss|ঝরা|পড়া|পড়া|মজবুত|গোড়া|গোড়া|scalp|স্ক্যাল্প/.test(searchable);
+        return { product, score: relevant ? (supportsConcern ? 3 : 1) : 0 };
+      })
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2);
+    if (hairProducts.length) {
+      const suggestions = hairProducts.map(({ product }) => {
+        const name = product.name_bn || product.name_en || 'পণ্য';
+        const price = money(product.price);
+        return name + (price ? ' — ' + price : '') + (product.link ? '। বিস্তারিত: ' + product.link : '');
+      });
+      add('বুঝতে পারছি, আপনার অনেক চুল পড়ছে—এটা নিশ্চয়ই চিন্তার বিষয়।', 'ক্যাটালগে চুলের যত্নের যে পণ্যগুলো আছে, সেগুলো দেখতে পারেন: ' + suggestions.join(' | '), 'চুল পড়া কতদিন ধরে হচ্ছে—সম্প্রতি, নাকি অনেক দিন ধরে?');
+      return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+    }
+    add('বুঝতে পারছি, আপনার অনেক চুল পড়ছে—এটা নিশ্চয়ই চিন্তার বিষয়।', 'চুল পড়ার কারণ শুধু চ্যাটে নিশ্চিত করা সম্ভব নয়; প্রয়োজনে চর্মরোগ বিশেষজ্ঞের পরামর্শ নিন।', 'চুল পড়া কতদিন ধরে হচ্ছে—সম্প্রতি, নাকি অনেক দিন ধরে?');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
   const queryWords = q.split(/[^\p{L}\p{N}]+/u).filter((word) => word.length > 2);
   const scored = (Array.isArray(productContext) ? productContext : []).map((product) => {

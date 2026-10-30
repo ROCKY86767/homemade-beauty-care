@@ -159,7 +159,8 @@ function buildFallbackResponse(question, productContext, settings, history = [])
     add('আসসালামু আলাইকুম! Homemade Beauty Care-এ আপনাকে স্বাগতম।', 'চুলের যত্ন নাকি ত্বকের যত্নের পণ্য খুঁজছেন?');
     return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
-  const romanDeliveryIntent = /\b(?:delivery|courier)\b.*\b(?:charge|koto|cost|fee)\b|\b(?:dhaka|inside|outside)\b.*\b(?:delivery|charge)\b/i.test(q) || /\b(?:delivery|courier)\s*(?:koto|charge|fee)\b/i.test(q);\n  if (romanDeliveryIntent || has('ডেলিভারি চার্জ', 'delivery charge', 'ডেলিভারি কত', 'কুরিয়ার চার্জ', 'ঢাকার ভিতর', 'ঢাকার বাইরে', 'ডেলিভারি কত টাকা', 'ডেলিভারি খরচ')) {
+  const romanDeliveryIntent = /\b(?:delivery|courier)\b.*\b(?:charge|koto|cost|fee)\b|\b(?:dhaka|inside|outside)\b.*\b(?:delivery|charge)\b/i.test(q) || /\b(?:delivery|courier)\s*(?:koto|charge|fee)\b/i.test(q);
+  if (romanDeliveryIntent || has('ডেলিভারি চার্জ', 'delivery charge', 'ডেলিভারি কত', 'কুরিয়ার চার্জ', 'ঢাকার ভিতর', 'ঢাকার বাইরে', 'ডেলিভারি কত টাকা', 'ডেলিভারি খরচ')) {
     const inside = settings.delivery_inside_dhaka;
     const outside = settings.delivery_outside_dhaka;
     if (settings.settings_available !== true) { add('ডেলিভারি চার্জের বর্তমান তথ্য যাচাই করা যাচ্ছে না।', 'ভুল তথ্য না দিয়ে অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।'); return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true }; }
@@ -271,7 +272,8 @@ export default async function handler(req, res) {
       { headers },
       SUPABASE_TIMEOUT_MS
     );
-    if (productsResponse.ok) { products = await productsResponse.json(); productsAvailable = Array.isArray(products); }\n    else console.warn('Product catalog unavailable', { status: productsResponse.status });
+    if (productsResponse.ok) { products = await productsResponse.json(); productsAvailable = Array.isArray(products); }
+    else console.warn('Product catalog unavailable', { status: productsResponse.status });
 
     stage = 'site settings';
     const settingsResponse = await fetchWithTimeout(
@@ -352,7 +354,8 @@ export default async function handler(req, res) {
       combo_offer_button_text: siteSettings.combo_offer_button_text,
       combo_offer_button_link: siteSettings.combo_offer_button_link,
       currency: siteSettings.currency,
-      settings_available: settingsAvailable,\n      products_available: productsAvailable,
+      settings_available: settingsAvailable,
+      products_available: productsAvailable,
     };
 
     // Approved, static FAQ answers are served directly from the database before calling Gemini.
@@ -382,7 +385,9 @@ export default async function handler(req, res) {
             .filter((part) => typeof part === 'string' && part.trim())
             .slice(0, 3)
             .map((part) => part.trim().slice(0, 600));
-          if (savedReplies.length) {\n            await fetchWithTimeout(baseUrl + '/rest/v1/rpc/increment_ai_reply_knowledge_use', { method: 'POST', headers, body: JSON.stringify({ p_id: matchedKnowledge.id }) }, 1200).catch(() => null);\n            console.info('Approved AI knowledge matched', { category: matchedKnowledge.category });
+          if (savedReplies.length) {
+            await fetchWithTimeout(baseUrl + '/rest/v1/rpc/increment_ai_reply_knowledge_use', { method: 'POST', headers, body: JSON.stringify({ p_id: matchedKnowledge.id }) }, 1200).catch(() => null);
+            console.info('Approved AI knowledge matched', { category: matchedKnowledge.category });
             return res.status(200).json({
               reply: savedReplies.join(' '), replies: savedReplies,
               orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false,
@@ -409,7 +414,8 @@ export default async function handler(req, res) {
       'অর্ডারের ফর্ম পাঠানো মানে অর্ডার নিশ্চিত নয়; অ্যাডমিন স্টক, দাম ও ডেলিভারি যাচাই করবেন। কখনো অর্ডার কনফার্ম হয়েছে বলবে না। অভিযোগ, refund/dispute, অর্ডার tracking, বা ডাটাবেসে অনুপস্থিত/অনিশ্চিত তথ্যের প্রশ্নে সংক্ষিপ্তভাবে অ্যাডমিনের সাহায্য দেওয়ার কথা বলবে। ডাটাবেসে থাকা নয় এমন পুরোনো অর্ডারের তথ্য কখনো অনুমান করবে না।',
       'product question হলে সম্ভব হলে সঠিক product link এবং image URL reply-তে দেবে। সবসময় শুধু JSON object ফেরত দেবে, এই schema মেনে: {"reply":"...","replies":["ছোট উত্তর ১","ছোট উত্তর ২"],"orderReady":false,"productName":null,"quantity":null,"unitPrice":null,"handoff":false}.',
       'LIVE PRODUCT DATA (question-relevant products prioritized): ' + JSON.stringify(modelProductContext).slice(0, 14000),
-      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),\n      'DATA AVAILABILITY: products_available=' + productsAvailable + ', settings_available=' + settingsAvailable + '. If required live data is unavailable, do not invent it; set handoff=true and ask Admin to verify.',
+      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
+      'DATA AVAILABILITY: products_available=' + productsAvailable + ', settings_available=' + settingsAvailable + '. If required live data is unavailable, do not invent it; set handoff=true and ask Admin to verify.',
     ].join('\n\n');
 
     let raw = '';

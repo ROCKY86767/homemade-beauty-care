@@ -77,8 +77,8 @@ function buildFallbackResponse(question, productContext, settings, history = [])
     return names.some((name) => conversationText.includes(name)) ||
       (/hair\s*pack|hairpack|হেয়ার প্যাক|হেয়ার প্যাক|হেয়ারপ্যাক|হেয়ারপ্যাক/.test(conversationText) && /hair|চুল|হেয়ার|হেয়ার/.test([product.name_bn, product.name_en, product.slug].join(' ').toLowerCase()));
   }) || ((Array.isArray(productContext) ? productContext.length : 0) === 1 ? productContext[0] : null);
-  const priceIntent = !/\b(?:offer|discount|delivery|courier|shipping|charge)\b/i.test(q) && (/\b(?:price|dam|daam|koto|how much|cost)\b/i.test(q) || has('দাম', 'মূল্য', 'কত টাকা', 'কত দাম', 'দাম কত'));
-  const stockIntent = !/\b(?:offer|discount)\b/i.test(q) && (/\b(?:stock|available|availability|pabo)\b/i.test(q) || has('স্টক', 'পাওয়া যাবে', 'পাওয়া যাবে', 'আছে কি', 'আছে নাকি'));
+  const priceIntent = !(/\b(?:offer|discount|delivery|courier|shipping|charge)\b/i.test(q) || /অফার|ডিসকাউন্ট|ডেলিভারি|কুরিয়ার|কুরিয়ার|চার্জ|ছাড়|ছাড়/.test(q)) && (/\b(?:price|dam|daam|koto|how much|cost)\b/i.test(q) || has('দাম', 'মূল্য', 'কত টাকা', 'কত দাম', 'দাম কত'));
+  const stockIntent = !(/\b(?:offer|discount)\b/i.test(q) || /অফার|ডিসকাউন্ট|ছাড়|ছাড়/.test(q)) && (/\b(?:stock|available|availability|pabo)\b/i.test(q) || has('স্টক', 'পাওয়া যাবে', 'পাওয়া যাবে', 'আছে কি', 'আছে নাকি'));
   const usageIntent = /\b(?:how to use|use korbo|kivabe use|kibhabe use|use korar niyom)\b/i.test(q) || has('ব্যবহার', 'কিভাবে লাগাব', 'কীভাবে লাগাব', 'ব্যবহারের নিয়ম', 'ব্যবহারের নিয়ম');
   const ingredientIntent = /\b(?:ingredient|upadan|ki diye|ki ki diye)\b/i.test(q) || has('উপাদান', 'কি দিয়ে তৈরি', 'কী দিয়ে তৈরি', 'কী কী উপাদান');
   const benefitIntent = /\b(?:benefit|upokar|kaj kore|ki kaj)\b/i.test(q) || has('উপকার', 'কী কাজে লাগে', 'কি কাজে লাগে', 'কাজ কী');
@@ -344,7 +344,7 @@ export default async function handler(req, res) {
       on_sale: p.is_on_sale,
       size: p.size_bn,
       description: p.short_description_bn || p.description_bn,
-      benefits: p.benefits_bn,
+      benefits: String(p.benefits_bn || '').split(/\r?\n/).filter((line) => !/(মাসে|ইঞ্চি|মিনিমাম|গ্যারান্টি|নিশ্চিত ফল)/i.test(line)).join('\n'),
       ingredients: p.ingredients_bn,
       how_to_use: p.how_to_use_bn,
       suitable_for: p.who_is_it_for_bn,

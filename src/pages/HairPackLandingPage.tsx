@@ -137,7 +137,25 @@ export default function HairPackLandingPage() {
         <div className="px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><ShoppingBag size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">{landingSettings?.trust_three_title || 'সহজ অর্ডার'}</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">{landingSettings?.trust_three_description || 'অনলাইনেই'}</p></div>
       </div></section>}
 
-      {landingSettings?.show_benefits !== false && <section id="hairpack-details" className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9"><div className="mx-auto max-w-2xl text-center"><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">WHY CHOOSE THIS</p><h2 className="hp-serif mt-2 text-2xl font-semibold text-[#263b29] sm:text-3xl">কেনো আমাদেরকে বেছে নেবেন?</h2><p className="mt-2 text-sm leading-6 text-[#687461]">আমাদের হেয়ার প্যাকের উপকারিতাগুলো এক নজরে দেখে নিন।</p></div><div className="mx-auto mt-5 grid max-w-4xl gap-3 sm:grid-cols-2">{benefits.map(item => <div key={item} className="flex items-start gap-3 rounded-xl border border-[#e6e4d7] bg-[#fffdf7] p-3.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Check size={15} /></span><p className="pt-0.5 text-sm leading-6 text-[#40523d]">{item}</p></div>)}</div></section>}
+      {landingSettings?.show_benefits !== false && <section id="hairpack-details" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-11">
+        <div className="mx-auto mb-5 max-w-2xl text-center">
+          <p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">WHY CHOOSE US</p>
+          <h2 className="hp-serif mt-2 text-2xl font-semibold text-[#263b29] sm:text-3xl">কেনো আমাদেরকে বেছে নেবেন?</h2>
+        </div>
+        <div className="mx-auto grid max-w-5xl items-stretch gap-4 md:grid-cols-2">
+          <div className="relative overflow-hidden rounded-2xl border border-[#e3dfce] bg-gradient-to-br from-[#fffdf7] via-[#fffdf7] to-[#edf1e5] p-5 shadow-[0_10px_28px_rgba(40,58,39,.07)] sm:p-7">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e6eddf] text-[#315b32]"><Leaf size={22} /></div>
+            <p className="text-[10px] font-extrabold tracking-[.16em] text-[#a17c39]">GHOROYA NATURAL CARE</p>
+            <h3 className="hp-serif mt-2 text-xl font-semibold leading-snug text-[#263b29] sm:text-2xl">প্রকৃতির ছোঁয়ায় চুলের যত্ন</h3>
+            <p className="mt-3 text-sm leading-7 text-[#586650]">ঘরোয়া পদ্ধতিতে তৈরি প্রাকৃতিক হেয়ার প্যাক, যা চুলকে দেয় পুষ্টি, কোমলতা আর স্বাভাবিক উজ্জ্বলতা। বাংলাদেশের আবহাওয়া আর চুলের কথা মাথায় রেখে বানানো।</p>
+            <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-[#e8eee1] px-3 py-1.5 text-[11px] font-semibold text-[#426044]">ঘরোয়া যত্ন</span><span className="rounded-full bg-[#f3ecd9] px-3 py-1.5 text-[11px] font-semibold text-[#8a6a34]">প্রাকৃতিক উপাদান</span></div>
+          </div>
+          <div className="rounded-2xl border border-[#e3dfce] bg-[#fffdf7] p-5 shadow-[0_10px_28px_rgba(40,58,39,.07)] sm:p-7">
+            <div className="mb-3 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaf0e2] text-[#315b32]"><Sparkles size={20} /></span><div><h3 className="text-base font-bold text-[#263b29]">হেয়ার প্যাকের উপকারিতা</h3><p className="text-xs text-[#78806f]">Admin Panel-এ দেওয়া সব উপকারিতা</p></div></div>
+            <div className="grid gap-2.5 sm:grid-cols-2">{benefits.map((item, index) => <div key={item + index} className="flex items-start gap-2.5 rounded-xl bg-[#f5f6ef] px-3 py-3"><span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e2eadb] text-[#315b32]"><Check size={14} /></span><p className="text-sm leading-6 text-[#40523d]">{item}</p></div>)}</div>
+          </div>
+        </div>
+      </section>}
 
       {landingSettings?.show_product_info !== false && <section className="bg-[#f0f1e7] px-4 py-7 sm:py-9"><div className="mx-auto max-w-4xl"><div className="mb-4 text-center"><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">PRODUCT DETAILS</p><h2 className="hp-serif mt-1.5 text-2xl font-semibold text-[#263b29] sm:text-3xl">পণ্য সম্পর্কে জানুন</h2></div><div className="divide-y divide-[#e2e2d5] overflow-hidden rounded-2xl border border-[#e2e2d5] bg-[#fffdf7]">
         {product.ingredients_bn && <details className="px-4 py-3.5"><summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-[#315b32]"><span className="flex items-center gap-2"><Flower2 size={17} /> উপাদান</span><ChevronDown size={17} className="hp-chevron transition-transform" /></summary><p className="whitespace-pre-line pl-7 pt-2 text-sm leading-6 text-[#66715f]">{product.ingredients_bn}</p></details>}

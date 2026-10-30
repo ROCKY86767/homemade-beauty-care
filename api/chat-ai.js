@@ -315,21 +315,23 @@ export default async function handler(req, res) {
     stage = 'product catalog';
     let products = [];
     let productsAvailable = false;
-    const productsResponse = await fetchWithTimeout(
+    let productsResponse = null;
+    try { productsResponse = await fetchWithTimeout(
       baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&is_active=eq.true&order=created_at.desc&limit=100',
       { headers },
       SUPABASE_TIMEOUT_MS
-    );
-    if (productsResponse.ok) { products = await productsResponse.json(); productsAvailable = Array.isArray(products); }
-    else console.warn('Product catalog unavailable', { status: productsResponse.status });
+    ); } catch (catalogError) { console.warn('Product catalog request failed', { message: String(catalogError && catalogError.message || catalogError).slice(0, 160) }); }
+    if (productsResponse && productsResponse.ok) { products = await productsResponse.json(); productsAvailable = Array.isArray(products); }
+    else console.warn('Product catalog unavailable', { status: productsResponse && productsResponse.status });
 
     stage = 'site settings';
-    const settingsResponse = await fetchWithTimeout(
+    let settingsResponse = null;
+    try { settingsResponse = await fetchWithTimeout(
       baseUrl + '/rest/v1/site_settings?select=brand_name,brand_tagline_bn,phone,whatsapp_number,email,address_bn,delivery_inside_dhaka,delivery_outside_dhaka,free_delivery_threshold,free_delivery_enabled,free_delivery_minimum,cod_enabled,online_payment_enabled,announcement_bn,combo_offer_enabled,combo_offer_title,combo_offer_description,combo_offer_original_price,combo_offer_price,combo_offer_image_url,combo_offer_button_text,combo_offer_button_link,currency&id=eq.1&limit=1',
       { headers },
       SUPABASE_TIMEOUT_MS
-    );
-    const settingsRows = settingsResponse.ok ? await settingsResponse.json() : [];
+    ); } catch (settingsError) { console.warn('Site settings request failed', { message: String(settingsError && settingsError.message || settingsError).slice(0, 160) }); }
+    const settingsRows = settingsResponse && settingsResponse.ok ? await settingsResponse.json() : [];
     const settingsAvailable = Array.isArray(settingsRows) && settingsRows.length > 0;
     const siteSettings = settingsAvailable ? settingsRows[0] : {};
     const origin = 'https://homemade-beauty-care.vercel.app';
@@ -413,6 +415,7 @@ export default async function handler(req, res) {
       'সবচেয়ে গুরুত্বপূর্ণ নিয়ম: সর্বশেষ CUSTOMER MESSAGE-টির সরাসরি উত্তর দেবে। আগের chat শুধু context; আগের প্রশ্নের উত্তর আবার দেবে না, প্রসঙ্গ হারাবে না, এবং customer যা জিজ্ঞেস করেছে তার সঙ্গে উত্তর মিলিয়ে নেবে। প্রশ্ন বুঝতে না পারলে একটি ছোট clarification প্রশ্ন করবে।\nডাটাবেসের LIVE PRODUCT DATA ও LIVE BUSINESS SETTINGS-ই পণ্য, দাম, স্টক, সাইজ, উপাদান, উপকারিতা, ব্যবহারবিধি, ডেলিভারি চার্জ, ফ্রি ডেলিভারি, পেমেন্ট, যোগাযোগ, ঠিকানা ও অফারের একমাত্র নির্ভরযোগ্য উৎস। কোনো তথ্য বানাবে না বা পুরোনো/অনুমান করা তথ্য বলবে না। ডাটাবেসে কোনো তথ্য null/ফাঁকা/অনুপস্থিত হলে নিশ্চিত তথ্য নেই বলবে এবং অ্যাডমিনের সাহায্য অফার করবে। ডাটাবেসে থাকা বর্তমান তথ্য থেকেই উত্তর দেবে।',
       'ডেলিভারি প্রশ্নে ঢাকার ভিতর ও ঢাকার বাইরে আলাদা চার্জ SETTINGS থেকে জানাবে। free_delivery_enabled true না হলে ফ্রি ডেলিভারি আছে বলবে না, threshold/minimum দিয়ে নিজে থেকে ছাড় তৈরি করবে না। cash_on_delivery_enabled true হলে ক্যাশ অন ডেলিভারি আছে বলতে পারবে; online_payment_enabled false হলে অনলাইন পেমেন্ট চালু আছে বলবে না। ডেলিভারি সময় বা নির্দিষ্ট কুরিয়ার সেটিংসে নেই, তাই সময়/কুরিয়ার বানাবে না; জেলা/এলাকা অনুযায়ী নিশ্চিত না হলে অ্যাডমিনের সাহায্য দেবে।',
       'সেলস ও অর্ডার কনভার্সন (গুরুত্বপূর্ণ): তুমি শুধু তথ্য দেওয়ার bot নও—ভদ্র, সহায়ক ও ফলপ্রসূ sales assistant। customer-এর প্রয়োজন/চুল বা ত্বকের concern বুঝে catalog-এ থাকা সবচেয়ে উপযুক্ত পণ্যটি প্রস্তাব করো; database-এ থাকা বাস্তব উপকারিতা, উপাদান, ব্যবহারবিধি, দাম ও প্রাসঙ্গিক delivery/COD তথ্য দিয়ে কেন এটি তার জন্য মানানসই হতে পারে বোঝাও। customer-এর প্রশ্নের উত্তর দেওয়ার পর কথোপকথন স্বাভাবিকভাবে অর্ডারের দিকে এগিয়ে নাও: যেমন “আপনি চাইলে এই পণ্যটি অর্ডার করে দিতে পারি—কয়টি নিতে চান?” অথবা পণ্যের পরিমাণ জানা থাকলে “আপনার জন্য অর্ডার ফর্মটি খুলে দিই?” Customer ইতিবাচক আগ্রহ দেখালে অপ্রয়োজনীয় বিক্রির কথা না বলে product ও quantity নিশ্চিত করে orderReady=true দিয়ে অর্ডার ফর্ম দেখাও। customer দাম/ডেলিভারি/ব্যবহার নিয়ে দ্বিধায় থাকলে সেই আপত্তির সরাসরি উত্তর দাও, তারপর নরমভাবে অর্ডারের প্রস্তাব দাও। প্রতিটি প্রাসঙ্গিক উত্তরে একটি ছোট, সহজ next step রাখবে; তবে customer শুধু তথ্য চাইলে, অভিযোগ করলে বা অর্ডার না করতে চাইলে জোর করবে না। একসঙ্গে অনেক প্রশ্ন করবে না। কখনো মিথ্যা scarcity, discount, guarantee, review, medical claim, নিশ্চিত ফলাফল বা ভয় দেখিয়ে বিক্রি করবে না; database-এর বাইরে কোনো দাবি করবে না.',
+      'পণ্যের উপকারিতা catalog-এ লেখা থাকলেও নিশ্চিত চিকিৎসা-ফল, রোগ সারানো বা নির্দিষ্ট সময়ে চুল গজানোর প্রতিশ্রুতি দেবে না। নির্দিষ্ট growth claim বা guarantee বলবে না; প্রয়োজনে বিশেষজ্ঞের পরামর্শ নিতে বলবে.',
       'Combo offer শুধু combo_offer_enabled true হলে উল্লেখ করবে; title/price/description ডাটাবেস থেকে হুবহু তথ্য অনুযায়ী বলবে। Offer button link থাকলে সেটি ব্যবহার করতে পারো। কোনো product/offer stock বা price সম্পর্কে অনিশ্চিত হলে বানিয়ে বলবে না।',
       'অর্ডার নিয়ম: “order nin”, “অর্ডার নেন”, “order korbo” মানে নতুন অর্ডার করতে চাওয়া; tracking নয়। কথোপকথনে পণ্য ও অর্ডার করার ইচ্ছা আগেই বলা থাকলে সেটা মনে রাখবে। পণ্য জানা কিন্তু quantity না জানা থাকলে শুধু পরিমাণ জিজ্ঞেস করবে। quantity জানা থাকলে আবার জিজ্ঞেস করবে না।',
       'orderReady=true কেবল তখনই হবে যখন customer-এর অর্ডার করার ইচ্ছা আছে এবং নির্দিষ্ট পণ্য ও পরিমাণ কথোপকথন থেকে নিশ্চিত। তখন reply-তে বলবে নাম, মোবাইল ও ঠিকানা দেওয়ার form দেখানো হচ্ছে। productName হবে catalog-এর সঠিক বাংলা/ইংরেজি নাম; quantity পূর্ণ ধনাত্মক integer; unitPrice catalog-এর বর্তমান price। পণ্য/পরিমাণ নিশ্চিত না হলে orderReady=false।',

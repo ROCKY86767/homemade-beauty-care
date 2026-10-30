@@ -294,7 +294,7 @@ export default async function handler(req, res) {
     const latestMessage = history[history.length - 1];
     // Answer return/refund questions from the published Returns & Refunds policy.
     const latestQuestion = String(latestMessage.message || '').toLowerCase();
-    const refundIntent = /(?:refund|return|money\\s*back|tk\\s*ferot|taka\\s*ferot|taka\\s*back|tk\\s*back|refund\\s*pabo|return\\s*niben)/i.test(latestQuestion)
+    const refundIntent = /(?:refund|return|money\s*back|tk\s*ferot|taka\s*ferot|taka\s*back|tk\s*back|refund\s*pabo|return\s*niben)/i.test(latestQuestion)
       || /রিফান্ড|রিটার্ন|টাকা ফেরত|টাকা ফেরত দেন|টাকা ফেরত পাব|পণ্য ফেরত|ফেরত পাব|কাজ না করলে|কাজ না করে|ফল না পেলে|ফলাফল না পেলে|কাজ না করলে টাকা|পছন্দ না হলে/.test(latestQuestion);
     if (refundIntent) {
       const replies = [
@@ -325,7 +325,7 @@ export default async function handler(req, res) {
         const normalize = (value) => String(value || '').toLowerCase()
           .normalize('NFKC')
           .replace(/[?؟!,.،؛:;'"“”()\\[\\]{}]/g, ' ')
-          .replace(/\\s+/g, ' ').trim();
+          .replace(/\s+/g, ' ').trim();
         const normalizedQuestion = normalize(latestMessage.message);
         const matchedKnowledge = (Array.isArray(knowledgeRows) ? knowledgeRows : []).find((row) =>
           Array.isArray(row.question_patterns) && row.question_patterns.some((pattern) => {

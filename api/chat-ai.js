@@ -173,6 +173,36 @@ function buildFallbackResponse(question, productContext, settings, history = [])
     add(settings.cash_on_delivery_enabled === true ? 'জি, ওয়েবসাইটের সেটিংস অনুযায়ী ক্যাশ অন ডেলিভারি চালু আছে।' : 'দুঃখিত, বর্তমানে ক্যাশ অন ডেলিভারি চালু নেই।', 'আপনি চাইলে পছন্দের পণ্যটি জানাতে পারেন।');
     return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
+  const contactIntent = /\b(?:phone|contact|whatsapp|number|email|address|location)\b/i.test(q) || has('ফোন নম্বর', 'মোবাইল নম্বর', 'যোগাযোগ', 'হোয়াটসঅ্যাপ', 'হোয়াটসঅ্যাপ', 'ঠিকানা', 'ইমেইল');
+  if (contactIntent) {
+    if (settings.settings_available !== true) { add('যোগাযোগের তথ্য এখন যাচাই করা যাচ্ছে না।', 'অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।'); return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true }; }
+    const contacts = [];
+    if (settings.contact_phone) contacts.push('ফোন: ' + settings.contact_phone);
+    if (settings.whatsapp_number) contacts.push('WhatsApp: ' + settings.whatsapp_number);
+    if (settings.contact_email) contacts.push('ইমেইল: ' + settings.contact_email);
+    if (settings.business_address) contacts.push('ঠিকানা: ' + settings.business_address);
+    if (contacts.length) { add('আমাদের যোগাযোগের তথ্য:', contacts.join('। ')); return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false }; }
+    add('যোগাযোগের তথ্য এখন পাওয়া যাচ্ছে না।', 'অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true };
+  }
+  const freeDeliveryIntent = /\b(?:free delivery|free shipping|delivery free)\b/i.test(q) || has('ফ্রি ডেলিভারি', 'ডেলিভারি ফ্রি', 'ফ্রি চার্জ', 'ফ্রি কুরিয়ার');
+  if (freeDeliveryIntent) {
+    if (settings.settings_available !== true) { add('ফ্রি ডেলিভারির বর্তমান শর্ত যাচাই করা যাচ্ছে না।', 'অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।'); return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true }; }
+    if (settings.free_delivery_enabled === true) {
+      const threshold = settings.free_delivery_threshold || settings.free_delivery_minimum;
+      add('জি, ফ্রি ডেলিভারি সুবিধা চালু আছে।', threshold ? 'ন্যূনতম অর্ডার ৳' + threshold + ' হলে এই সুবিধা পাওয়া যাবে।' : 'অর্ডারের শর্তটি অ্যাডমিনের কাছে নিশ্চিত করে নিতে হবে।');
+      return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: !threshold };
+    }
+    add('দুঃখিত, বর্তমানে ফ্রি ডেলিভারি চালু নেই।', 'ডেলিভারি চার্জ ঢাকার ভিতরে ও বাইরে আলাদা।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
+  const onlinePaymentIntent = /\b(?:online payment|bkash|bKash|nagad|rocket|card payment)\b/i.test(q) || has('অনলাইন পেমেন্ট', 'বিকাশ', 'নগদ', 'রকেট', 'কার্ডে পেমেন্ট');
+  if (onlinePaymentIntent) {
+    if (settings.settings_available !== true) { add('পেমেন্টের বর্তমান ব্যবস্থা যাচাই করা যাচ্ছে না।', 'অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।'); return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true }; }
+    if (settings.online_payment_enabled === true) add('জি, ওয়েবসাইটে অনলাইন পেমেন্ট সুবিধা চালু আছে।', 'নির্দিষ্ট পেমেন্ট মাধ্যমটি অর্ডারের সময় যাচাই করে নেবেন।');
+    else add('বর্তমানে অনলাইন পেমেন্ট চালু নেই।', settings.cash_on_delivery_enabled === true ? 'ক্যাশ অন ডেলিভারি সুবিধা চালু আছে।' : 'পেমেন্টের বিকল্পটি অ্যাডমিনের কাছে নিশ্চিত করে নিতে হবে।');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
   if (hairFallConcern) {
     const hairProducts = (Array.isArray(productContext) ? productContext : [])
       .filter((product) => Number(product.stock || 0) > 0)

@@ -58,8 +58,10 @@ export default function HairPackLandingPage() {
   const benefits = useMemo(() => {
     const source = product?.benefits_bn?.trim();
     if (!source) return fallbackBenefits;
-    const items = source.split(/\n|•|।(?=\s)|,(?=\s)/).map(v => v.trim()).filter(Boolean);
-    return items.length ? items.slice(0, 4) : fallbackBenefits;
+    return source
+      .split(/\\r?\\n|•|▪|✓|;|(?<=[.!?।])\\s+/)
+      .map(item => item.replace(/^[-*\\d.)\\s]+/, '').trim())
+      .filter(Boolean);
   }, [product?.benefits_bn]);
 
   const buyNow = () => {
@@ -135,7 +137,7 @@ export default function HairPackLandingPage() {
         <div className="px-2 py-3 text-center sm:px-4"><span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><ShoppingBag size={16} /></span><p className="mt-1.5 text-[10px] font-bold text-[#263b29] sm:text-xs">{landingSettings?.trust_three_title || 'সহজ অর্ডার'}</p><p className="text-[9px] text-[#78806f] sm:text-[11px]">{landingSettings?.trust_three_description || 'অনলাইনেই'}</p></div>
       </div></section>}
 
-      {landingSettings?.show_benefits !== false && <section id="hairpack-details" className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9"><div className="mx-auto max-w-2xl text-center"><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">WHY CHOOSE THIS</p><h2 className="hp-serif mt-2 text-2xl font-semibold text-[#263b29] sm:text-3xl">{landingSettings?.benefits_heading || 'কেনো আমাদেরকে বেছে নেবেন?'}</h2><p className="mt-2 text-sm leading-6 text-[#687461]">{landingSettings?.benefits_description || 'ঘরোয়া হেয়ার প্যাকের যত্নে চুল নরম, মসৃণ ও উজ্জ্বল রাখতে এবং চুলের পরিচর্যার রুটিনকে আরও সহজ করতে পাশে থাকি। ফলাফল চুলের ধরন ও নিয়মিত ব্যবহারের ওপর ভিন্ন হতে পারে।'}</p></div><div className="mx-auto mt-5 grid max-w-4xl gap-3 sm:grid-cols-2">{benefits.map(item => <div key={item} className="flex items-start gap-3 rounded-xl border border-[#e6e4d7] bg-[#fffdf7] p-3.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Check size={15} /></span><p className="pt-0.5 text-sm leading-6 text-[#40523d]">{item}</p></div>)}</div></section>}
+      {landingSettings?.show_benefits !== false && <section id="hairpack-details" className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9"><div className="mx-auto max-w-2xl text-center"><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">WHY CHOOSE THIS</p><h2 className="hp-serif mt-2 text-2xl font-semibold text-[#263b29] sm:text-3xl">কেনো আমাদেরকে বেছে নেবেন?</h2><p className="mt-2 text-sm leading-6 text-[#687461]">আমাদের হেয়ার প্যাকের উপকারিতাগুলো এক নজরে দেখে নিন।</p></div><div className="mx-auto mt-5 grid max-w-4xl gap-3 sm:grid-cols-2">{benefits.map(item => <div key={item} className="flex items-start gap-3 rounded-xl border border-[#e6e4d7] bg-[#fffdf7] p-3.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eaf0e2] text-[#315b32]"><Check size={15} /></span><p className="pt-0.5 text-sm leading-6 text-[#40523d]">{item}</p></div>)}</div></section>}
 
       {landingSettings?.show_product_info !== false && <section className="bg-[#f0f1e7] px-4 py-7 sm:py-9"><div className="mx-auto max-w-4xl"><div className="mb-4 text-center"><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">PRODUCT DETAILS</p><h2 className="hp-serif mt-1.5 text-2xl font-semibold text-[#263b29] sm:text-3xl">পণ্য সম্পর্কে জানুন</h2></div><div className="divide-y divide-[#e2e2d5] overflow-hidden rounded-2xl border border-[#e2e2d5] bg-[#fffdf7]">
         {product.ingredients_bn && <details className="px-4 py-3.5"><summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-[#315b32]"><span className="flex items-center gap-2"><Flower2 size={17} /> উপাদান</span><ChevronDown size={17} className="hp-chevron transition-transform" /></summary><p className="whitespace-pre-line pl-7 pt-2 text-sm leading-6 text-[#66715f]">{product.ingredients_bn}</p></details>}

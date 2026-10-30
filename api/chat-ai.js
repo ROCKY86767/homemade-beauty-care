@@ -73,6 +73,10 @@ function buildFallbackResponse(question, productContext, settings) {
   const hairFallConcern = romanHairFall || has('চুল পড়ে', 'চুল পড়ে', 'চুল ঝরে', 'চুল ঝরছে', 'অনেক চুল', 'চুল পড়া', 'চুল পড়া', 'hair fall', 'hairfall', 'hair loss');
   const offerIntent = /\\b(?:offer|offers|discount|sale|promo|promotion|deal)\\b/i.test(q) || has('অফার', 'ছাড়', 'ছাড়', 'ডিসকাউন্ট', 'কম্বো', 'কোনো অফার', 'কোন অফার');
   if (offerIntent) {
+    if (settings.settings_available !== true) {
+      add('অফারের বর্তমান তথ্য ডেটাবেস থেকে যাচাই করা যাচ্ছে না।', 'ভুল তথ্য না দিয়ে অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।');
+      return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true };
+    }
     const offerParts = [];
     if (settings.combo_offer_enabled === true && settings.combo_offer_title && settings.combo_offer_price !== null && settings.combo_offer_price !== undefined && settings.combo_offer_price !== '') {
       offerParts.push(String(settings.combo_offer_title));
@@ -293,6 +297,7 @@ export default async function handler(req, res) {
       combo_offer_button_text: siteSettings.combo_offer_button_text,
       combo_offer_button_link: siteSettings.combo_offer_button_link,
       currency: siteSettings.currency,
+      settings_available: true,
     };
 
     // Approved, static FAQ answers are served directly from the database before calling Gemini.

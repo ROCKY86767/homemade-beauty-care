@@ -71,7 +71,7 @@ function buildFallbackResponse(question, productContext, settings) {
   const money = (value) => value === null || value === undefined || value === '' ? null : '৳' + value;
   const romanHairFall = /\b(?:cul|chul)\b.*\b(?:pore|porche|jhore|jhorche)\b|\b(?:hair\s*fall|hairfall|hair\s*loss)\b/i.test(q);
   const hairFallConcern = romanHairFall || has('চুল পড়ে', 'চুল পড়ে', 'চুল ঝরে', 'চুল ঝরছে', 'অনেক চুল', 'চুল পড়া', 'চুল পড়া', 'hair fall', 'hairfall', 'hair loss');
-  const offerIntent = /\\b(?:offer|offers|discount|sale|promo|promotion|deal)\\b/i.test(q) || has('অফার', 'ছাড়', 'ছাড়', 'ডিসকাউন্ট', 'কম্বো', 'কোনো অফার', 'কোন অফার');
+  const offerIntent = /\b(?:offer|offers|discount|sale|promo|promotion|deal)\b/i.test(q) || has('অফার', 'ছাড়', 'ছাড়', 'ডিসকাউন্ট', 'কম্বো', 'kono offer', 'kon offer', 'offer ache', 'offer ase', 'offer ase naki', 'kono discount');
   if (offerIntent) {
     if (settings.settings_available !== true) {
       add('অফারের বর্তমান তথ্য ডেটাবেস থেকে যাচাই করা যাচ্ছে না।', 'ভুল তথ্য না দিয়ে অ্যাডমিনের কাছে নিশ্চিত করার অনুরোধ পাঠাচ্ছি।');
@@ -102,14 +102,14 @@ function buildFallbackResponse(question, productContext, settings) {
     add('আসসালামু আলাইকুম! Homemade Beauty Care-এ আপনাকে স্বাগতম।', 'চুলের যত্ন নাকি ত্বকের যত্নের পণ্য খুঁজছেন?');
     return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
-  if (has('ডেলিভারি চার্জ', 'delivery charge', 'ডেলিভারি কত', 'কুরিয়ার চার্জ', 'ঢাকার ভিতর', 'ঢাকার বাইরে')) {
+  const romanDeliveryIntent = /\b(?:delivery|courier)\b.*\b(?:charge|koto|cost|fee)\b|\b(?:dhaka|inside|outside)\b.*\b(?:delivery|charge)\b/i.test(q) || /\b(?:delivery|courier)\s*(?:koto|charge|fee)\b/i.test(q);\n  if (romanDeliveryIntent || has('ডেলিভারি চার্জ', 'delivery charge', 'ডেলিভারি কত', 'কুরিয়ার চার্জ', 'ঢাকার ভিতর', 'ঢাকার বাইরে', 'ডেলিভারি কত টাকা', 'ডেলিভারি খরচ')) {
     const inside = settings.delivery_inside_dhaka;
     const outside = settings.delivery_outside_dhaka;
     add('ডেলিভারি চার্জের তথ্য:', inside !== null && inside !== undefined ? 'ঢাকার ভিতরে ' + money(inside) + '.' : 'ঢাকার ভিতরের চার্জটি এখন নিশ্চিত করতে পারছি না.', outside !== null && outside !== undefined ? 'ঢাকার বাইরে ' + money(outside) + '.' : 'ঢাকার বাইরের চার্জটি এখন নিশ্চিত করতে পারছি না.');
     add('আপনার ডেলিভারি এলাকা জানালে টিম সঠিক চার্জ নিশ্চিত করতে পারবে।');
     return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
-  if (has('ক্যাশ অন ডেলিভারি', 'cash on delivery', 'cod', 'হাতে পেয়ে', 'পণ্য পেয়ে টাকা')) {
+  if (/\b(?:cash on delivery|cod|cash delivery|product pawar por payment)\b/i.test(q) || has('ক্যাশ অন ডেলিভারি', 'হাতে পেয়ে', 'পণ্য পেয়ে টাকা', 'পণ্য হাতে পেয়ে টাকা')) {
     add(settings.cash_on_delivery_enabled === true ? 'জি, ওয়েবসাইটের সেটিংস অনুযায়ী ক্যাশ অন ডেলিভারি চালু আছে।' : 'ক্যাশ অন ডেলিভারি চালু আছে কি না, এখন নিশ্চিত করতে পারছি না।', 'আপনি চাইলে পছন্দের পণ্যটি জানাতে পারেন, আমি তথ্য খুঁজে দিতে চেষ্টা করব।');
     return { reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
@@ -205,13 +205,14 @@ export default async function handler(req, res) {
     }
 
     stage = 'product catalog';
+    let products = [];
+    let productsAvailable = false;
     const productsResponse = await fetchWithTimeout(
       baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&is_active=eq.true&order=created_at.desc&limit=100',
       { headers },
       SUPABASE_TIMEOUT_MS
     );
-    if (!productsResponse.ok) return res.status(200).json(buildFallbackResponse(latestMessage.message, [], {}));
-    const products = await productsResponse.json();
+    if (productsResponse.ok) { products = await productsResponse.json(); productsAvailable = Array.isArray(products); }\n    else console.warn('Product catalog unavailable', { status: productsResponse.status });
 
     stage = 'site settings';
     const settingsResponse = await fetchWithTimeout(
@@ -219,12 +220,7 @@ export default async function handler(req, res) {
       { headers },
       SUPABASE_TIMEOUT_MS
     );
-    if (!settingsResponse.ok) return res.status(200).json(buildFallbackResponse(latestMessage.message, [], {}));
-    const settingsRows = await settingsResponse.json();
-    if (!Array.isArray(settingsRows) || settingsRows.length === 0) {
-      return res.status(200).json(buildFallbackResponse(latestMessage.message, [], {}));
-    }
-    const siteSettings = settingsRows[0];
+    const settingsRows = settingsResponse.ok ? await settingsResponse.json() : [];\n    const settingsAvailable = Array.isArray(settingsRows) && settingsRows.length > 0;\n    const siteSettings = settingsAvailable ? settingsRows[0] : {};
     const origin = 'https://homemade-beauty-care.vercel.app';
 
     const productContext = (Array.isArray(products) ? products : []).map((p) => ({
@@ -297,7 +293,7 @@ export default async function handler(req, res) {
       combo_offer_button_text: siteSettings.combo_offer_button_text,
       combo_offer_button_link: siteSettings.combo_offer_button_link,
       currency: siteSettings.currency,
-      settings_available: true,
+      settings_available: settingsAvailable,\n      products_available: productsAvailable,
     };
 
     // Approved, static FAQ answers are served directly from the database before calling Gemini.
@@ -305,7 +301,7 @@ export default async function handler(req, res) {
     stage = 'approved AI knowledge';
     try {
       const knowledgeResponse = await fetchWithTimeout(
-        baseUrl + '/rest/v1/ai_reply_knowledge?select=title,question_patterns,replies,category&approved=eq.true&is_active=eq.true&category=eq.general&limit=100',
+        baseUrl + '/rest/v1/ai_reply_knowledge?select=id,title,question_patterns,replies,category&approved=eq.true&is_active=eq.true&category=eq.general&limit=100',
         { headers },
         2500
       );
@@ -327,8 +323,7 @@ export default async function handler(req, res) {
             .filter((part) => typeof part === 'string' && part.trim())
             .slice(0, 3)
             .map((part) => part.trim().slice(0, 600));
-          if (savedReplies.length) {
-            console.info('Approved AI knowledge matched', { category: matchedKnowledge.category });
+          if (savedReplies.length) {\n            await fetchWithTimeout(baseUrl + '/rest/v1/rpc/increment_ai_reply_knowledge_use', { method: 'POST', headers, body: JSON.stringify({ p_id: matchedKnowledge.id }) }, 1200).catch(() => null);\n            console.info('Approved AI knowledge matched', { category: matchedKnowledge.category });
             return res.status(200).json({
               reply: savedReplies.join(' '), replies: savedReplies,
               orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false,
@@ -355,7 +350,7 @@ export default async function handler(req, res) {
       'অর্ডারের ফর্ম পাঠানো মানে অর্ডার নিশ্চিত নয়; অ্যাডমিন স্টক, দাম ও ডেলিভারি যাচাই করবেন। কখনো অর্ডার কনফার্ম হয়েছে বলবে না। অভিযোগ, refund/dispute, অর্ডার tracking, বা ডাটাবেসে অনুপস্থিত/অনিশ্চিত তথ্যের প্রশ্নে সংক্ষিপ্তভাবে অ্যাডমিনের সাহায্য দেওয়ার কথা বলবে। ডাটাবেসে থাকা নয় এমন পুরোনো অর্ডারের তথ্য কখনো অনুমান করবে না।',
       'product question হলে সম্ভব হলে সঠিক product link এবং image URL reply-তে দেবে। সবসময় শুধু JSON object ফেরত দেবে, এই schema মেনে: {"reply":"...","replies":["ছোট উত্তর ১","ছোট উত্তর ২"],"orderReady":false,"productName":null,"quantity":null,"unitPrice":null,"handoff":false}.',
       'LIVE PRODUCT DATA (question-relevant products prioritized): ' + JSON.stringify(modelProductContext).slice(0, 14000),
-      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
+      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),\n      'DATA AVAILABILITY: products_available=' + productsAvailable + ', settings_available=' + settingsAvailable + '. If required live data is unavailable, do not invent it; set handoff=true and ask Admin to verify.',
     ].join('\n\n');
 
     let raw = '';

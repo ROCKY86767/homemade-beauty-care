@@ -1,3 +1,5 @@
+import { PUBLIC_PAGE_KNOWLEDGE } from './site-knowledge.js';
+
 export const config = { maxDuration: 60 };
 
 const SUPABASE_TIMEOUT_MS = 5000;
@@ -377,6 +379,36 @@ export default async function handler(req, res) {
     const settingsRows = settingsResponse && settingsResponse.ok ? await settingsResponse.json() : [];
     const settingsAvailable = Array.isArray(settingsRows) && settingsRows.length > 0;
     const siteSettings = settingsAvailable ? settingsRows[0] : {};
+
+    // Load customer-visible Hairpack landing page controls; never read admin/private tables.
+    let landingPageContext = {};
+    try {
+      const landingResponse = await fetchWithTimeout(
+        baseUrl + '/rest/v1/hairpack_landing_page_settings?select=*&id=eq.1&limit=1',
+        { headers },
+        2500
+      );
+      if (landingResponse.ok) {
+        const landingRows = await landingResponse.json();
+        if (Array.isArray(landingRows) && landingRows[0]) {
+          const row = landingRows[0];
+          const allowedKeys = [
+            'is_enabled','hero_eyebrow','hero_title','hero_description','primary_button_text','secondary_button_text',
+            'show_benefits','show_how_to_use','show_editorial_reviews','show_faq','show_whatsapp','show_sticky_order_bar',
+            'reviews_heading','reviews_description','benefits_heading','how_to_use_heading','show_trust_strip',
+            'show_product_info','show_contact_section','show_order_section','benefits_description','how_to_use_description',
+            'order_heading','order_description','contact_heading','contact_description','trust_one_title','trust_one_description',
+            'trust_two_title','trust_two_description','trust_three_title','trust_three_description'
+          ];
+          landingPageContext = Object.fromEntries(allowedKeys.filter((key) => row[key] !== undefined).map((key) => [key, row[key]]));
+        }
+      } else {
+        console.warn('Public landing page settings unavailable', { status: landingResponse.status });
+      }
+    } catch (landingError) {
+      console.warn('Public landing page settings request failed', { message: String(landingError && landingError.message || landingError).slice(0, 160) });
+    }
+    const publicPageContext = PUBLIC_PAGE_KNOWLEDGE.map((page) => ({ page: page.page, url: page.url, content: page.content }));
     const origin = 'https://homemade-beauty-care.vercel.app';
 
     const productContext = (Array.isArray(products) ? products : []).map((p) => ({
@@ -465,7 +497,10 @@ export default async function handler(req, res) {
       'অর্ডারের ফর্ম পাঠানো মানে অর্ডার নিশ্চিত নয়; অ্যাডমিন স্টক, দাম ও ডেলিভারি যাচাই করবেন। কখনো অর্ডার কনফার্ম হয়েছে বলবে না। অভিযোগ, refund/dispute, অর্ডার tracking, বা ডাটাবেসে অনুপস্থিত/অনিশ্চিত তথ্যের প্রশ্নে সংক্ষিপ্তভাবে অ্যাডমিনের সাহায্য দেওয়ার কথা বলবে। ডাটাবেসে থাকা নয় এমন পুরোনো অর্ডারের তথ্য কখনো অনুমান করবে না।',
       'product question হলে সম্ভব হলে সঠিক product link এবং image URL reply-তে দেবে। সবসময় শুধু JSON object ফেরত দেবে, এই schema মেনে: {"reply":"...","replies":["ছোট উত্তর ১","ছোট উত্তর ২"],"orderReady":false,"productName":null,"quantity":null,"unitPrice":null,"handoff":false}.',
       'LIVE PRODUCT DATA (question-relevant products prioritized): ' + JSON.stringify(modelProductContext).slice(0, 14000),
-      'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
+      'PUBLIC WEBSITE PAGE KNOWLEDGE: ' + JSON.stringify(publicPageContext).slice(0, 14000),
+      'LIVE HAIRPACK LANDING PAGE ADMIN-CONTROLLED PUBLIC CONTENT: ' + JSON.stringify(landingPageContext).slice(0, 5000),
+      'ওয়েবসাইটের প্রকাশ্য পেজ-সংক্রান্ত প্রশ্নে PUBLIC WEBSITE PAGE KNOWLEDGE ব্যবহার করবে এবং প্রাসঙ্গিক পেজের URL দিতে পারো। Returns & Refunds, Delivery Information, Privacy Policy, About, Contact, Home, Shop, Offers ও Hairpack Landing Page-এর তথ্য এখানে দেওয়া আছে। Policy-র উত্তর পেজের নিয়ম অনুযায়ী দেবে; নিজের থেকে refund/return promise বা policy তৈরি করবে না। পেজ knowledge এবং live database-এ কোনো বিরোধ হলে পরিবর্তনশীল দাম/স্টক/অফারের জন্য live database, আর policy wording-এর জন্য প্রকাশিত policy page অনুসরণ করবে। Admin/private page, customer personal data, private orders বা secret settings প্রকাশ করবে না।
+      ' + 'LIVE BUSINESS SETTINGS: ' + JSON.stringify(publicBusinessContext).slice(0, 5000),
       'DATA AVAILABILITY: products_available=' + productsAvailable + ', settings_available=' + settingsAvailable + '. If required live data is unavailable, do not invent it; set handoff=true and ask Admin to verify.',
     ].join('\n\n');
 

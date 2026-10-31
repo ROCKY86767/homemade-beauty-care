@@ -109,6 +109,8 @@ export default function Footer() {
 <img
   src={settings?.logo_url || "/new-homemade-logo.png"}
   alt="Homemade Beauty Care"
+  width={56}
+  height={56}
   className="h-14 w-14 rounded-md object-contain"
   style={{ borderRadius: '6px' }}
 />

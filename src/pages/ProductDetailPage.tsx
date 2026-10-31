@@ -51,16 +51,31 @@ export default function ProductDetailPage() {
   }, [location.hash, slug]);
 
   useEffect(() => {
-    if (!slug) return;
-    (async () => {
-      setLoading(true);
-      const { data: prod } = await supabase
-        .from('products')
-        .select('*, category:categories(*)')
-        .eq('slug', slug)
-        .maybeSingle();
+    if (!slug) {
+      setProduct(null);
+      setLoading(false);
+      return;
+    }
 
-      if (prod) {
+    let active = true;
+    const loadProduct = async () => {
+      setLoading(true);
+      setProduct(null);
+      setReviews([]);
+      setRelated([]);
+
+      try {
+        const { data: prod, error: productError } = await supabase
+          .from('products')
+          .select('*, category:categories(*)')
+          .eq('slug', slug)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (productError) throw productError;
+        if (!active) return;
+        if (!prod) return;
+
         setProduct(prod);
         setActiveImage(0);
         setQuantity(1);
@@ -80,7 +95,7 @@ export default function ProductDetailPage() {
           console.error('Meta Pixel ViewContent error:', error);
         }
 
-        const [{ data: reviewData }, { data: relatedData }] = await Promise.all([
+        const [reviewResult, relatedResult] = await Promise.all([
           supabase.from('reviews').select('*').eq('product_id', prod.id).eq('is_approved', true).order('sort_order'),
           supabase.from('products').select('*, category:categories(*)')
             .neq('id', prod.id)
@@ -88,11 +103,28 @@ export default function ProductDetailPage() {
             .eq('is_active', true)
             .limit(4),
         ]);
-        setReviews(reviewData || []);
-        setRelated(relatedData || []);
+
+        if (!active) return;
+        if (reviewResult.error) console.error('Product reviews load error:', reviewResult.error);
+        if (relatedResult.error) console.error('Related products load error:', relatedResult.error);
+        setReviews(reviewResult.data || []);
+        setRelated(relatedResult.data || []);
+      } catch (error) {
+        if (active) {
+          console.error('Product detail load error:', error);
+          setProduct(null);
+          setReviews([]);
+          setRelated([]);
+        }
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
-    })();
+    };
+
+    void loadProduct();
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   if (loading) {

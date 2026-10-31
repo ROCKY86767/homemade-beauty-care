@@ -33,27 +33,65 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   const [onlyDiscount, setOnlyDiscount] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    let active = true;
+
+    const loadShopData = async () => {
       setLoading(true);
-      let productQuery = supabase.from('products').select('*, category:categories(*)');
 
-      if (categorySlug) {
-        const { data: cat } = await supabase.from('categories').select('id').eq('slug', categorySlug).maybeSingle();
-        if (cat) productQuery = productQuery.eq('category_id', cat.id);
+      try {
+        let productQuery = supabase
+          .from('products')
+          .select('*, category:categories(*)')
+          .eq('is_active', true);
+
+        if (categorySlug) {
+          const { data: category, error: categoryError } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', categorySlug)
+            .maybeSingle();
+
+          if (categoryError) throw categoryError;
+          if (!category) {
+            if (active) {
+              setProducts([]);
+              setCategories([]);
+            }
+            return;
+          }
+          productQuery = productQuery.eq('category_id', category.id);
+        }
+
+        if (isOffers) productQuery = productQuery.eq('is_on_sale', true);
+        if (isNewArrivals) productQuery = productQuery.eq('is_new', true);
+        if (query) productQuery = productQuery.or(`name_bn.ilike.%${query}%,name_en.ilike.%${query}%`);
+
+        const [productResult, categoryResult] = await Promise.all([
+          productQuery,
+          supabase.from('categories').select('*').eq('is_active', true).order('sort_order'),
+        ]);
+
+        if (productResult.error) throw productResult.error;
+        if (categoryResult.error) console.error('Shop categories load error:', categoryResult.error);
+        if (!active) return;
+
+        setProducts(productResult.data || []);
+        setCategories(categoryResult.data || []);
+      } catch (error) {
+        if (active) {
+          console.error('Shop data loading error:', error);
+          setProducts([]);
+          setCategories([]);
+        }
+      } finally {
+        if (active) setLoading(false);
       }
-      if (isOffers) productQuery = productQuery.eq('is_on_sale', true);
-      if (isNewArrivals) productQuery = productQuery.eq('is_new', true);
-      if (query) productQuery = productQuery.or(`name_bn.ilike.%${query}%,name_en.ilike.%${query}%`);
+    };
 
-      const [{ data: productData }, { data: catData }] = await Promise.all([
-        productQuery,
-        supabase.from('categories').select('*').eq('is_active', true).order('sort_order'),
-      ]);
-
-      setProducts(productData || []);
-      setCategories(catData || []);
-      setLoading(false);
-    })();
+    void loadShopData();
+    return () => {
+      active = false;
+    };
   }, [categorySlug, isOffers, isNewArrivals, query]);
 
   const filtered = useMemo(() => {

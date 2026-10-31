@@ -115,6 +115,8 @@ function AppContent() {
           <img
             src={siteSettings?.logo_url || '/new-homemade-logo.png'}
             alt={siteSettings?.brand_name || 'Homemade Beauty Care'}
+            width={80}
+            height={80}
             className="mx-auto h-20 w-20 object-contain"
           />
           <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-primary">Maintenance Mode</p>

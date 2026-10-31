@@ -251,7 +251,7 @@ export default function HomePage() { // centralized storefront settings
   }, [loading]);
 
   useEffect(() => {
-    getSettings().then(setSettings);
+    const settingsPromise = getSettings().then(setSettings);
 
     const loadHomePageData = async () => {
       try {
@@ -406,6 +406,7 @@ export default function HomePage() { // centralized storefront settings
           return true;
         });
         setEditorialReviews(uniqueEditorialReviews);
+        await settingsPromise;
       } catch (error) {
         console.error('Homepage data loading error:', error);
       } finally {
@@ -640,7 +641,7 @@ export default function HomePage() { // centralized storefront settings
                   width="480"
                   height="600"
                   decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="h-full w-full aspect-[4/5] object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                 />
 
@@ -692,7 +693,7 @@ export default function HomePage() { // centralized storefront settings
                   <article key={`${copy}-${item.id}`} className="w-[58vw] max-w-[220px] shrink-0 overflow-hidden rounded-2xl border border-[#E3E5D9] bg-white shadow-md shadow-[#263A2D]/5 sm:w-[220px]">
                     <div className="relative aspect-[4/5] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
-                        ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-contain" /><button type="button" onClick={() => openReviewMedia(item.media_urls[0], true)} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
+                        ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full aspect-[4/5] object-contain" /><button type="button" onClick={() => openReviewMedia(item.media_urls[0], true)} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
                         : <button type="button" onClick={() => openReviewMedia(item.media_urls[0], false)} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={item.media_urls[0]} alt={item.title || 'Homepage review'} width="440" height="550" loading="lazy" decoding="async" className="h-full w-full object-contain" /></button>)}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-3 text-white">
@@ -1106,7 +1107,7 @@ export default function HomePage() { // centralized storefront settings
                   "{review.review_bn}"
                 </p>
 
-                {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mb-4 grid grid-cols-2 gap-2">{review.media_urls.map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <div key={url} className="relative overflow-hidden rounded-xl bg-black"><video src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full object-cover" /><button type="button" onClick={() => openReviewMedia(url, true)} className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-xs text-white" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶</button></div> : <button key={url} type="button" onClick={() => openReviewMedia(url, false)} className="block overflow-hidden rounded-xl bg-white text-left"><img src={url} alt="Customer review" width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition duration-300 hover:scale-[1.03]" /></button>)}</div>}
+                {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mb-4 grid grid-cols-2 gap-2">{review.media_urls.map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <div key={url} className="relative overflow-hidden rounded-xl bg-black"><video src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full object-cover" /><button type="button" onClick={() => openReviewMedia(url, true)} className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-xs text-white" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶</button></div> : <button key={url} type="button" onClick={() => openReviewMedia(url, false)} className="block overflow-hidden rounded-xl bg-white text-left"><img src={url} alt="Customer review" width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition-transform duration-300 hover:scale-[1.03]" /></button>)}</div>}
 
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
                   <svg
@@ -1143,7 +1144,7 @@ export default function HomePage() { // centralized storefront settings
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Review media full screen" onClick={closeReviewMedia}>
           <button type="button" onClick={() => setFullscreenReviewMedia(null)} className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-3xl text-white hover:bg-white/25" aria-label="বন্ধ করুন">×</button>
           {fullscreenReviewMedia.isVideo
-            ? <video src={fullscreenReviewMedia.url} controls autoPlay playsInline className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
+            ? <video src={fullscreenReviewMedia.url} controls autoPlay playsInline className="aspect-[4/5] max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
             : <img src={fullscreenReviewMedia.url} alt="Review full screen" width="1200" height="1500" className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />}
         </div>
       )}

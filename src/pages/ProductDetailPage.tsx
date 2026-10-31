@@ -295,7 +295,9 @@ export default function ProductDetailPage() {
               <img
                 src={gallery[activeImage]}
                 alt={product.name_bn}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025]"
+                width="900"
+                height="900"
+                className="h-full w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-[1.025]"
                 fetchPriority="high"
               />
               <button type="button" onClick={() => setImageZoomOpen(true)} aria-label="পণ্যের ছবি বড় করে দেখুন" title="ছবি বড় করে দেখুন" className="absolute bottom-3 right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-ink shadow-md transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
@@ -317,7 +319,7 @@ export default function ProductDetailPage() {
                       idx === activeImage ? 'border-primary' : 'border-transparent hover:border-gray-200'
                     }`}
                   >
-                    <img src={img} alt={product.name_bn + " ছবি " + (idx + 1)} loading="lazy" className="h-full w-full object-cover" />
+                    <img src={img} alt={product.name_bn + " ছবি " + (idx + 1)} width="300" height="300" loading="lazy" decoding="async" className="h-full w-full aspect-square object-cover" />
                   </button>
                 ))}
               </div>
@@ -438,7 +440,7 @@ export default function ProductDetailPage() {
                             <span className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('bn-BD')}</span>
                           </div>
                           <p className="mt-3 text-sm leading-7 text-gray-600">{review.review_bn}</p>
-                          {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">{review.media_urls.map((url: string, mediaIndex: number) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={`${url}-${mediaIndex}`} src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full rounded-xl bg-black object-cover" /> : <a key={`${url}-${mediaIndex}`} href={url} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-xl bg-gray-50"><img src={url} alt={`Customer review media ${mediaIndex + 1}`} loading="lazy" className="aspect-[4/5] w-full object-cover transition duration-300 group-hover:scale-[1.03]" /></a>)}</div>}
+                          {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">{review.media_urls.map((url: string, mediaIndex: number) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={`${url}-${mediaIndex}`} src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full rounded-xl bg-black object-cover" /> : <a key={`${url}-${mediaIndex}`} href={url} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-xl bg-gray-50"><img src={url} alt={`Customer review media ${mediaIndex + 1}`} width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" /></a>)}</div>}
                         </div>
                       ))}
                     </div>
@@ -494,7 +496,7 @@ export default function ProductDetailPage() {
       {imageZoomOpen && (
         <div className="fixed inset-0 z-[100] bg-black/80 p-4 flex items-center justify-center" onClick={() => setImageZoomOpen(false)}>
           <button type="button" onClick={() => setImageZoomOpen(false)} className="absolute top-4 right-4 h-11 w-11 rounded-full bg-white/95 flex items-center justify-center text-ink" aria-label="Close image"><X size={22} /></button>
-          <img src={gallery[activeImage]} alt={product.name_bn} className="max-h-[90vh] max-w-[94vw] object-contain rounded-xl" onClick={e => e.stopPropagation()} />
+          <img src={gallery[activeImage]} alt={product.name_bn} width="1200" height="1200" className="aspect-square max-h-[90vh] max-w-[94vw] object-contain rounded-xl" onClick={e => e.stopPropagation()} />
         </div>
       )}
     </div>

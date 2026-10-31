@@ -111,6 +111,8 @@ export default function Header() {
               <img
                 src={settings?.logo_url || '/new-homemade-logo.png'}
                 alt={settings?.brand_name || 'Homemade Beauty Care'}
+                width={80}
+                height={80}
                 className={`object-contain shrink-0 transition-all duration-300 ${scrolled ? "h-9 w-9 sm:h-16 sm:w-16" : "h-10 w-10 sm:h-20 sm:w-20"}`}
               />
 

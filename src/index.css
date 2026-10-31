@@ -14,7 +14,7 @@
 }
 
 @layer components {
-  .btn-primary, .btn-secondary, .btn-accent { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: 9999px; padding: .75rem 2rem; font-weight: 500; transition: all 300ms; }
+  .btn-primary, .btn-secondary, .btn-accent { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: 9999px; padding: .75rem 2rem; font-weight: 500; transition: transform 200ms ease, opacity 200ms ease; }
   .btn-primary { background: #5F7448; color: #fff; }
   .btn-primary:hover { background: #3F5732; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1); }
   .btn-secondary { border: 2px solid #5F7448; color: #5F7448; }
@@ -22,12 +22,12 @@
   .btn-accent { background: #B46F4F; color: #fff; }
   .btn-accent:hover { background: #8F5138; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1); }
   .btn-primary:active, .btn-secondary:active, .btn-accent:active { transform: scale(.95); }
-  .card { border-radius: 1rem; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .05); transition: transform 350ms cubic-bezier(.2,.8,.2,1), box-shadow 350ms ease, border-color 350ms ease; will-change: transform; }
+  .card { border-radius: 1rem; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .05); transition: transform 350ms cubic-bezier(.2,.8,.2,1); will-change: transform; }
   .card:hover { transform: translateY(-5px); box-shadow: 0 18px 45px rgb(38 58 45 / .10); }
-  .card img { transition: transform 700ms cubic-bezier(.2,.8,.2,1), filter 500ms ease; }
+  .card img { transition: transform 700ms cubic-bezier(.2,.8,.2,1), opacity 500ms ease; }
   .card:hover img { transform: scale(1.045); }
   .section-padding { width: 100%; max-width: 80rem; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
-  .input-field { width: 100%; border: 1px solid #DDE3D7; border-radius: .75rem; background: #fff; padding: .75rem 1rem; color: #29332D; outline: none; transition: all 200ms; }
+  .input-field { width: 100%; border: 1px solid #DDE3D7; border-radius: .75rem; background: #fff; padding: .75rem 1rem; color: #29332D; outline: none; transition: transform 200ms ease, opacity 200ms ease; }
   .input-field:focus { border-color: #5F7448; box-shadow: 0 0 0 2px rgb(95 116 72 / .2); }
 }
 
@@ -97,13 +97,13 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 @keyframes shimmer { 0% { background-position:-220% 0; } 100% { background-position:220% 0; } }
 @keyframes revealScale { from { opacity:0; transform:translateY(18px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }
 .animate-reveal-scale { animation:revealScale .7s cubic-bezier(.2,.8,.2,1) both; }
-.premium-hover { transition:transform 350ms cubic-bezier(.2,.8,.2,1),box-shadow 350ms ease,border-color 350ms ease; }
+.premium-hover { transition:transform 350ms cubic-bezier(.2,.8,.2,1),opacity 350ms ease; }
 .premium-hover:hover { transform:translateY(-4px); box-shadow:0 18px 45px rgb(38 58 45 / .10); }
 .glass-soft { background:rgb(255 255 255 / .78); border:1px solid rgb(255 255 255 / .65); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
 .shimmer-on-hover { position:relative; overflow:hidden; }
-.shimmer-on-hover::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(105deg,transparent 35%,rgb(255 255 255 / .18) 50%,transparent 65%); background-size:220% 100%; background-position:-220% 0; transition:background-position .8s ease; }
-.shimmer-on-hover:hover::after { background-position:220% 0; }
-.focus-ring { transition:box-shadow 250ms ease,transform 250ms ease; }
+.shimmer-on-hover::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(105deg,transparent 35%,rgb(255 255 255 / .18) 50%,transparent 65%); transform:translateX(-100%); opacity:0; transition:transform .8s ease,opacity .8s ease; }
+.shimmer-on-hover:hover::after { transform:translateX(100%); opacity:1; }
+.focus-ring { transition:transform 250ms ease,opacity 250ms ease; }
 .focus-ring:focus-visible { outline:none; box-shadow:0 0 0 4px rgb(95 116 72 / .18); }
 
 /* Real scroll-triggered motion: these animations are driven by the viewport, not page-load. */
@@ -163,7 +163,7 @@ img { height: auto; }
   outline-offset: 3px;
 }
 input, select, textarea {
-  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  transition: transform 180ms ease, opacity 180ms ease;
 }
 input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: none;
@@ -566,7 +566,7 @@ img {
   border-radius: 1rem !important;
   background: #fffdf8;
   box-shadow: 0 3px 12px rgba(38, 58, 45, .055);
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  transition: transform .2s ease, opacity .2s ease;
 }
 .homepage-compact .compact-product-grid-section .card:hover {
   transform: translateY(-2px);

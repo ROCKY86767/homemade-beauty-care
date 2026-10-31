@@ -18,7 +18,7 @@ export default function ProductCard({ product, compactActions = false }: Product
   return (
     <div className="group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
       <div className="relative aspect-square overflow-hidden bg-cream">
-        <Link to={`/product/${product.slug}`}>
+        <Link to={`/product/${product.slug}`} className="block h-full w-full aspect-square">
           <img
             src={product.image_url}
             alt={product.name_bn}

@@ -1381,6 +1381,8 @@ export default function CheckoutPage() {
                           .image_url
                       }
                       alt=""
+                      width="56"
+                      height="56"
                       className="h-14 w-14 rounded-lg object-cover shrink-0"
                     />
 

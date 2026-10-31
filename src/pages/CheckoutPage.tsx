@@ -51,6 +51,7 @@ export default function CheckoutPage() {
     subtotal,
     clearCart,
     updateQuantity,
+    syncCartProducts,
   } = useCart();
 
   const navigate = useNavigate();
@@ -647,6 +648,51 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
+      // Re-read live price and stock before order creation; local cart snapshots can be stale.
+      const { data: latestProducts, error: productCheckError } = await supabase
+        .from('products')
+        .select('id, price, stock, is_active')
+        .in('id', items.map(item => item.product.id));
+
+      if (productCheckError) {
+        throw new Error('পণ্যের বর্তমান দাম ও স্টক যাচাই করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      }
+
+      const latestById = new Map((latestProducts || []).map(product => [product.id, product]));
+      const missingOrInactive = items.some(item => {
+        const latest = latestById.get(item.product.id);
+        return !latest || latest.is_active !== true;
+      });
+
+      if (missingOrInactive) {
+        setError('কার্টের একটি বা একাধিক পণ্য আর পাওয়া যাচ্ছে না। কার্ট আপডেট করে আবার চেষ্টা করুন।');
+        submitLockRef.current = false;
+        setSubmitting(false);
+        return;
+      }
+
+      syncCartProducts((latestProducts || []) as Array<Pick<typeof items[number]['product'], 'id' | 'price' | 'stock' | 'is_active'>>);
+
+      const priceChanged = items.some(item => {
+        const latest = latestById.get(item.product.id);
+        return !latest || !Number.isFinite(Number(latest.price)) ||
+          Number(latest.price) !== Number(item.product.price);
+      });
+      const insufficientStock = items.some(item => {
+        const latest = latestById.get(item.product.id);
+        return !latest || !Number.isFinite(Number(latest.stock)) ||
+          Number(latest.stock) < item.quantity;
+      });
+
+      if (priceChanged || insufficientStock) {
+        setError(priceChanged
+          ? 'কার্টের একটি বা একাধিক পণ্যের দাম আপডেট হয়েছে। নতুন দাম দেখে আবার অর্ডার নিশ্চিত করুন।'
+          : 'কার্টের একটি বা একাধিক পণ্যের স্টক কমে গেছে। পরিমাণ ঠিক করে আবার চেষ্টা করুন।');
+        submitLockRef.current = false;
+        setSubmitting(false);
+        return;
+      }
+
       /*
        * Secure checkout
        *

@@ -55,6 +55,8 @@ export default function CheckoutPage() {
 
   const navigate = useNavigate();
   const checkoutEventSent = useRef(false);
+  // Synchronous guard prevents two submit events before React can re-render.
+  const submitLockRef = useRef(false);
   const [isBangla, setIsBangla] = useState(false);
   const t = (english: string, bangla: string) => isBangla ? bangla : english;
 
@@ -640,6 +642,8 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (submitLockRef.current || submitting) return;
+    submitLockRef.current = true;
     setSubmitting(true);
 
     try {
@@ -794,6 +798,7 @@ export default function CheckoutPage() {
           : t('Unable to place the order. Please try again.', 'অর্ডারটি সম্পন্ন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।')
       );
 
+      submitLockRef.current = false;
       setSubmitting(false);
     }
   };

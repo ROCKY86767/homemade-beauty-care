@@ -24,6 +24,7 @@ import {
 import type {
   SiteSettings,
   Coupon,
+  Product,
 } from '@/lib/types';
 
 import SEO from '@/components/SEO';
@@ -671,7 +672,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      syncCartProducts((latestProducts || []) as Array<Pick<typeof items[number]['product'], 'id' | 'price' | 'stock' | 'is_active'>>);
+      syncCartProducts((latestProducts || []) as Array<Pick<Product, 'id' | 'price' | 'stock' | 'is_active'>>);
 
       const priceChanged = items.some(item => {
         const latest = latestById.get(item.product.id);

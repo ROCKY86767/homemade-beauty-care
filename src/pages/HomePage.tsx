@@ -33,6 +33,9 @@ const toWebPImageUrl = (imageUrl: string | null | undefined, width: number) => {
   }
 };
 
+const toWebPImageSrcSet = (imageUrl: string | null | undefined) =>
+  [480, 828, 1280].map((width) => `${toWebPImageUrl(imageUrl, width)} ${width}w`).join(', ');
+
 function HomePageLoadingSkeleton({ banner }: { banner?: Banner }) {
   return (
     <div className="homepage-compact" aria-hidden="true">
@@ -40,7 +43,7 @@ function HomePageLoadingSkeleton({ banner }: { banner?: Banner }) {
         {banner ? (
           <>
             <picture>
-              <source media="(max-width: 639px)" srcSet={toWebPImageUrl(banner.mobile_image_url || banner.desktop_image_url || banner.image_url, 900)} />
+              <source media="(max-width: 639px)" srcSet={toWebPImageSrcSet(banner.mobile_image_url || banner.desktop_image_url || banner.image_url)} sizes="100vw" />
               <img src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1920)} alt={banner.title_bn} width="1920" height="1080" fetchPriority="high" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
             </picture>
             <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
@@ -207,6 +210,7 @@ export default function HomePage() { // centralized storefront settings
     return () => window.removeEventListener('popstate', handleReviewViewerBack);
   }, []);
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [loadedHeroImages, setLoadedHeroImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
@@ -448,7 +452,7 @@ export default function HomePage() { // centralized storefront settings
           {banners.map((banner, idx) => (
             <div
               key={banner.id}
-              className={`absolute inset-0 transition-opacity duration-700 ${
+              className={`absolute inset-0 ${
                 idx === currentBanner
                   ? 'opacity-100'
                   : 'opacity-0 pointer-events-none'
@@ -459,14 +463,17 @@ export default function HomePage() { // centralized storefront settings
                   <picture>
                     <source media="(max-width: 639px)" srcSet={toWebPImageUrl(banner.mobile_image_url || banner.desktop_image_url || banner.image_url, 900)} />
                     <img
-                      src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1920)}
+                      src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1280)}
+                      srcSet={toWebPImageSrcSet(banner.desktop_image_url || banner.image_url || banner.mobile_image_url)}
+                      sizes="100vw"
                       alt={banner.title_bn}
                       width="1920"
                       height="1080"
                       fetchPriority="high"
                       loading="eager"
                       decoding="async"
-                      className="h-full w-full object-cover animate-slow-zoom"
+                      onLoad={() => setLoadedHeroImages((loaded) => loaded.includes(banner.id) ? loaded : [...loaded, banner.id])}
+                      className={`h-full w-full object-cover animate-slow-zoom ${loadedHeroImages.includes(banner.id) ? "hero-image-loaded" : ""}`}
                     />
                   </picture>
                 )}

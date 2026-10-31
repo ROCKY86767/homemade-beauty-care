@@ -92,7 +92,15 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .animate-soft-float { animation:softFloat 4.5s ease-in-out infinite; }
 
 /* Banner stays still. No automatic zoom on page load or carousel changes. */
-.animate-slow-zoom { animation:none!important; transform:none!important; scale:1!important; }
+@keyframes heroSlowZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.055); }
+}
+.animate-slow-zoom { animation: none !important; transform: none !important; }
+.animate-slow-zoom.hero-image-loaded { animation: heroSlowZoom 18s ease-out both; transform-origin: center; }
+@media (max-width: 639px) {
+  .animate-slow-zoom.hero-image-loaded { animation: none !important; transform: none !important; }
+}
 
 @keyframes shimmer { 0% { background-position:-220% 0; } 100% { background-position:220% 0; } }
 @keyframes revealScale { from { opacity:0; transform:translateY(18px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }

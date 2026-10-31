@@ -33,10 +33,21 @@ const toWebPImageUrl = (imageUrl: string | null | undefined, width: number) => {
   }
 };
 
-function HomePageLoadingSkeleton() {
+function HomePageLoadingSkeleton({ banner }: { banner?: Banner }) {
   return (
     <div className="homepage-compact" aria-hidden="true">
-      <div className="mx-3 my-3 h-[520px] animate-pulse rounded-[1.5rem] bg-[#e9e7dc] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]" />
+      <section className="relative mx-3 my-3 h-[520px] overflow-hidden rounded-[1.5rem] bg-[#e9e7dc] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]">
+        {banner ? (
+          <>
+            <picture>
+              <source media="(max-width: 639px)" srcSet={toWebPImageUrl(banner.mobile_image_url || banner.desktop_image_url || banner.image_url, 900)} />
+              <img src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1920)} alt={banner.title_bn} width="1920" height="1080" fetchPriority="high" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            </picture>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
+            <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 lg:px-16"><h1 className="max-w-xl font-display text-3xl font-bold leading-tight text-white drop-shadow-sm sm:text-5xl lg:text-6xl">{banner.title_bn}</h1></div>
+          </>
+        ) : <div className="h-full w-full animate-pulse bg-[#e9e7dc]" />}
+      </section>
       <section className="bg-white py-12 sm:py-20">
         <div className="section-padding">
           <div className="mx-auto mb-9 h-12 max-w-2xl animate-pulse rounded-xl bg-gray-100 sm:mb-12" />
@@ -250,20 +261,28 @@ export default function HomePage() { // centralized storefront settings
          * আলাদা section-এর products বের করা হচ্ছে।
          */
 
+        const bannersPromise = supabase
+          .from('banners')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order')
+          .then((result) => {
+            if (result.error) console.error('Banners load error:', result.error);
+            const now = new Date();
+            const scheduled = (result.data || []).filter((banner: Banner) => {
+              const startAt = banner.start_at ? new Date(banner.start_at) : null;
+              const endAt = banner.end_at ? new Date(banner.end_at) : null;
+              return (!startAt || startAt <= now) && (!endAt || endAt >= now);
+            });
+            setBanners(scheduled);
+            return result;
+          });
+
         const [
-          bannersResult,
           allProductsResult,
           categoriesResult,
           reviewsResult,
         ] = await Promise.all([
-          supabase
-            .from('banners')
-            .select('*')
-            .eq('is_active', true)
-            .order('sort_order'),
-
-          // ⭐ Homepage-এর একটিমাত্র মূল product query
-          // Best Seller / New Arrival / Sale section এখান থেকেই তৈরি হবে।
           supabase
             .from('products')
             .select('id,name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,notes_bn,category_id,subcategory,price,old_price,stock,sku,rating,review_count,is_best_seller,is_new,is_on_sale,is_featured,image_url,gallery,size_bn,created_at,updated_at,is_active')
@@ -284,15 +303,13 @@ export default function HomePage() { // centralized storefront settings
             .limit(6),
         ]);
 
+        await bannersPromise;
+
         /*
          * Error থাকলে console-এ দেখাবে।
          * এতে ভবিষ্যতে Supabase query সমস্যা হলে
          * browser console থেকে সহজে বোঝা যাবে।
          */
-
-        if (bannersResult.error) {
-          console.error('Banners load error:', bannersResult.error);
-        }
 
         if (allProductsResult.error) {
           console.error(
@@ -360,15 +377,6 @@ export default function HomePage() { // centralized storefront settings
           skinCategoryIds.includes(product.category_id)
         );
 
-        const now = new Date();
-        const scheduledBanners = (bannersResult.data || []).filter((banner: Banner) => {
-          const start = banner.start_at ? new Date(banner.start_at) : null;
-          const end = banner.end_at ? new Date(banner.end_at) : null;
-          return (!start || start <= now) && (!end || end >= now);
-        });
-
-        setBanners(scheduledBanners);
-
         // ⭐ সব active products
         setAllProducts(loadedProducts);
 
@@ -428,7 +436,7 @@ export default function HomePage() { // centralized storefront settings
     );
   };
 
-  if (loading) return <HomePageLoadingSkeleton />;
+  if (loading) return <HomePageLoadingSkeleton banner={banners[0]} />;
 
   return (
     <div className="homepage-compact">

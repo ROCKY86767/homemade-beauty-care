@@ -251,7 +251,7 @@ export default function HomePage() { // centralized storefront settings
   }, [loading]);
 
   useEffect(() => {
-    getSettings().then(setSettings);
+    const settingsPromise = getSettings().then(setSettings);
 
     const loadHomePageData = async () => {
       try {
@@ -406,6 +406,7 @@ export default function HomePage() { // centralized storefront settings
           return true;
         });
         setEditorialReviews(uniqueEditorialReviews);
+        await settingsPromise;
       } catch (error) {
         console.error('Homepage data loading error:', error);
       } finally {

@@ -16,6 +16,57 @@ import ProductCard from '@/components/ProductCard';
 import StarRating from '@/components/StarRating';
 import SEO from '@/components/SEO';
 
+
+const toWebPImageUrl = (imageUrl: string | null | undefined, width: number) => {
+  if (!imageUrl) return '';
+  try {
+    const url = new URL(imageUrl);
+    const publicStoragePrefix = '/storage/v1/object/public/';
+    if (!url.pathname.includes(publicStoragePrefix)) return imageUrl;
+    url.pathname = url.pathname.replace(publicStoragePrefix, '/storage/v1/render/image/public/');
+    url.searchParams.set('format', 'webp');
+    url.searchParams.set('quality', '80');
+    url.searchParams.set('width', String(width));
+    return url.toString();
+  } catch {
+    return imageUrl;
+  }
+};
+
+function HomePageLoadingSkeleton() {
+  return (
+    <div className="homepage-compact" aria-hidden="true">
+      <div className="mx-3 my-3 h-[520px] animate-pulse rounded-[1.5rem] bg-[#e9e7dc] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]" />
+      <section className="bg-white py-12 sm:py-20">
+        <div className="section-padding">
+          <div className="mx-auto mb-9 h-12 max-w-2xl animate-pulse rounded-xl bg-gray-100 sm:mb-12" />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+            {Array.from({ length: 4 }).map((_, index) => <div key={index} className="aspect-[4/5] animate-pulse rounded-[1.35rem] bg-[#E8EEDF]" />)}
+          </div>
+        </div>
+      </section>
+      {[0, 1, 2].map((section) => (
+        <section key={section} className="py-10 sm:py-16">
+          <div className="section-padding">
+            <div className="mx-auto mb-10 h-10 max-w-xs animate-pulse rounded-xl bg-gray-100" />
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => <div key={index} className="overflow-hidden rounded-2xl bg-white"><div className="aspect-square animate-pulse bg-[#E8EEDF]" /><div className="space-y-3 p-3"><div className="h-4 animate-pulse rounded bg-gray-100" /><div className="h-4 w-2/3 animate-pulse rounded bg-gray-100" /></div></div>)}
+            </div>
+          </div>
+        </section>
+      ))}
+      <section className="overflow-hidden bg-[#F7F4EA] py-8 sm:py-12">
+        <div className="section-padding">
+          <div className="mb-6 h-8 w-56 animate-pulse rounded bg-gray-100" />
+          <div className="flex gap-4 overflow-hidden">
+            {[0, 1, 2].map(index => <div key={index} className="w-[58vw] max-w-[220px] shrink-0 overflow-hidden rounded-2xl bg-white"><div className="aspect-[4/5] animate-pulse bg-[#E8EEDF]" /><div className="h-24 animate-pulse bg-gray-100" /></div>)}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 const TRUST_FEATURES = [
   {
     icon: Truck,
@@ -377,13 +428,7 @@ export default function HomePage() { // centralized storefront settings
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <HomePageLoadingSkeleton />;
 
   return (
     <div className="homepage-compact">
@@ -403,10 +448,12 @@ export default function HomePage() { // centralized storefront settings
               <div className="absolute inset-0 bg-[#e9e7dc]">
                 {idx === currentBanner && (
                   <picture>
-                    <source media="(max-width: 639px)" srcSet={banner.mobile_image_url || banner.desktop_image_url || banner.image_url || ''} />
+                    <source media="(max-width: 639px)" srcSet={toWebPImageUrl(banner.mobile_image_url || banner.desktop_image_url || banner.image_url, 900)} />
                     <img
-                      src={banner.desktop_image_url || banner.image_url || banner.mobile_image_url || ''}
+                      src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1920)}
                       alt={banner.title_bn}
+                      width="1920"
+                      height="1080"
                       fetchPriority="high"
                       loading="eager"
                       decoding="async"
@@ -583,7 +630,7 @@ export default function HomePage() { // centralized storefront settings
                   src={cat.image_url || ''}
                   alt={cat.name_bn}
                   width="480"
-                  height="360"
+                  height="600"
                   decoding="async"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
@@ -638,7 +685,7 @@ export default function HomePage() { // centralized storefront settings
                     <div className="relative aspect-[4/5] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
                         ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full object-contain" /><button type="button" onClick={() => openReviewMedia(item.media_urls[0], true)} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
-                        : <button type="button" onClick={() => openReviewMedia(item.media_urls[0], false)} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={item.media_urls[0]} alt={item.title || 'Homepage review'} loading="lazy" className="h-full w-full object-contain" /></button>)}
+                        : <button type="button" onClick={() => openReviewMedia(item.media_urls[0], false)} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={item.media_urls[0]} alt={item.title || 'Homepage review'} width="440" height="550" loading="lazy" decoding="async" className="h-full w-full object-contain" /></button>)}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-3 text-white">
                         <div className="mb-1 text-sm text-[#F3C98B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>
@@ -860,6 +907,10 @@ export default function HomePage() { // centralized storefront settings
                 <img
                   src={settings?.combo_offer_image_url || "https://images.pexels.com/photos/17307534/pexels-photo-17307534.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"}
                   alt="Combo Collection"
+                  width="940"
+                  height="650"
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -1018,6 +1069,10 @@ export default function HomePage() { // centralized storefront settings
                     <img
                       src={review.image_url}
                       alt={review.customer_name}
+                      width="48"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
                       className="h-12 w-12 rounded-full object-cover"
                     />
                   )}
@@ -1043,7 +1098,7 @@ export default function HomePage() { // centralized storefront settings
                   "{review.review_bn}"
                 </p>
 
-                {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mb-4 grid grid-cols-2 gap-2">{review.media_urls.map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <div key={url} className="relative overflow-hidden rounded-xl bg-black"><video src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full object-cover" /><button type="button" onClick={() => openReviewMedia(url, true)} className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-xs text-white" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶</button></div> : <button key={url} type="button" onClick={() => openReviewMedia(url, false)} className="block overflow-hidden rounded-xl bg-white text-left"><img src={url} alt="Customer review" loading="lazy" className="aspect-[4/5] w-full object-cover transition duration-300 hover:scale-[1.03]" /></button>)}</div>}
+                {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mb-4 grid grid-cols-2 gap-2">{review.media_urls.map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <div key={url} className="relative overflow-hidden rounded-xl bg-black"><video src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full object-cover" /><button type="button" onClick={() => openReviewMedia(url, true)} className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-xs text-white" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶</button></div> : <button key={url} type="button" onClick={() => openReviewMedia(url, false)} className="block overflow-hidden rounded-xl bg-white text-left"><img src={url} alt="Customer review" width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition duration-300 hover:scale-[1.03]" /></button>)}</div>}
 
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
                   <svg
@@ -1081,7 +1136,7 @@ export default function HomePage() { // centralized storefront settings
           <button type="button" onClick={() => setFullscreenReviewMedia(null)} className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-3xl text-white hover:bg-white/25" aria-label="বন্ধ করুন">×</button>
           {fullscreenReviewMedia.isVideo
             ? <video src={fullscreenReviewMedia.url} controls autoPlay playsInline className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
-            : <img src={fullscreenReviewMedia.url} alt="Review full screen" className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />}
+            : <img src={fullscreenReviewMedia.url} alt="Review full screen" width="1200" height="1500" className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />}
         </div>
       )}
 

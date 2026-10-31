@@ -2,23 +2,10 @@ import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { formatPrice } from '@/lib/format';
-import { getSettings, getDeliveryCharge } from '@/lib/settings';
-import type { SiteSettings } from '@/lib/types';
-import { useEffect, useState } from 'react';
 import SEO from '@/components/SEO';
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, subtotal } = useCart();
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
-
-  useEffect(() => {
-    getSettings().then(setSettings);
-  }, []);
-
-  const deliveryCharge = settings
-    ? getDeliveryCharge(settings, 'ঢাকা', subtotal)
-    : (subtotal > 1000 ? 0 : 60);
-  const grandTotal = subtotal + deliveryCharge;
 
   if (items.length === 0) {
     return (
@@ -124,19 +111,14 @@ export default function CartPage() {
                   <span className="text-gray-500">Subtotal</span>
                   <span className="font-medium text-ink">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Delivery Charge</span>
-                  <span className="font-medium text-ink">
-                    {deliveryCharge === 0 ? 'Free' : formatPrice(deliveryCharge)}
-                  </span>
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-gray-500">ডেলিভারি চার্জ</span>
+                  <span className="text-right text-xs font-medium text-gray-500">ঠিকানা অনুযায়ী Checkout-এ নির্ধারণ হবে</span>
                 </div>
-                {deliveryCharge === 0 && subtotal > 0 && settings && (
-                  <p className="text-xs text-primary">৳{settings.free_delivery_threshold.toLocaleString('en-US')}+ অর্ডারে ফ্রি ডেলিভারি!</p>
-                )}
               </div>
               <div className="flex justify-between pt-4 mb-6">
-                <span className="font-display text-lg font-semibold text-ink">Grand Total</span>
-                <span className="font-display text-2xl font-bold text-primary">{formatPrice(grandTotal)}</span>
+                <span className="font-display text-lg font-semibold text-ink">পণ্যের মোট</span>
+                <span className="font-display text-2xl font-bold text-primary">{formatPrice(subtotal)}</span>
               </div>
               <Link to="/checkout" className="btn-primary w-full">
                 Checkout

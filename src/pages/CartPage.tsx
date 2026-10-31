@@ -36,6 +36,8 @@ export default function CartPage() {
                   <img
                     src={item.product.image_url}
                     alt={item.product.name_bn}
+                    width="96"
+                    height="96"
                     className="h-24 w-24 rounded-xl object-cover"
                   />
                 </Link>

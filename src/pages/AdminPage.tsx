@@ -382,7 +382,7 @@ export default function AdminPage() {
     );
   }
 
-  if (!session) {
+  if (!session || !staffAccess || !staffAccess.is_active || staffAccess.role === 'none') {
     return <AdminLogin />;
   }
 

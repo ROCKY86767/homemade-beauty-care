@@ -7,6 +7,7 @@ interface CartContextType {
   addToCart: (product: Product, quantity?: number) => { success: boolean; message?: string };
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  syncCartProducts: (products: Array<Pick<Product, 'id' | 'price' | 'stock' | 'is_active'>>) => void;
   clearCart: () => void;
   toggleWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
@@ -130,6 +131,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const syncCartProducts = (products: Array<Pick<Product, 'id' | 'price' | 'stock' | 'is_active'>>) => {
+    const latestById = new Map(products.map(product => [product.id, product]));
+    setItems(prev => prev.map(item => {
+      const latest = latestById.get(item.product.id);
+      return latest ? { ...item, product: { ...item.product, ...latest } } : item;
+    }));
+  };
+
   const clearCart = () => setItems([]);
 
   const toggleWishlist = (productId: string) => {
@@ -151,7 +160,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider value={{
-      items, wishlist, addToCart, removeFromCart, updateQuantity, clearCart,
+      items, wishlist, addToCart, removeFromCart, updateQuantity, syncCartProducts, clearCart,
       toggleWishlist, isInWishlist, cartCount, subtotal,
     }}>
       {children}

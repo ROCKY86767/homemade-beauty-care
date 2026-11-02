@@ -2,6 +2,8 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
 const LazyLiveChatCustomer = lazy(() => import('./LiveChatCustomer'));
 
+export { ChatAdminView } from './ChatAdminView';
+
 export default function LiveChat() {
   const [shouldMount, setShouldMount] = useState(false);
   const [openOnMount, setOpenOnMount] = useState(false);

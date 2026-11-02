@@ -284,7 +284,10 @@ export default function HomePage() { // centralized storefront settings
           .eq('is_active', true)
           .order('sort_order')
           .then((result) => {
-            if (result.error) console.error('Banners load error:', result.error);
+            if (result.error) {
+              console.error('Banners load error:', result.error);
+              return result;
+            }
             const now = new Date();
             const scheduled = (result.data || []).filter((banner: Banner) => {
               const startAt = banner.start_at ? new Date(banner.start_at) : null;
@@ -293,6 +296,10 @@ export default function HomePage() { // centralized storefront settings
             });
             setBanners(scheduled);
             return result;
+          })
+          .catch((error) => {
+            console.error('Banners load error:', error);
+            return null;
           });
 
         const [

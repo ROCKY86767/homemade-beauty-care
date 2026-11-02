@@ -65,7 +65,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <main className={`w-full min-w-0 min-h-[100svh] flex-1 ${isHairPackLanding ? '' : 'pb-16 lg:pb-0'}`}>
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
-      {!isHairPackLanding && <Footer hidden={isHomePage && homePageLoading} />}
+      {!isHairPackLanding && <Footer hidden={isHomePage && homePageLoading} waitForSettings={isHomePage} />}
       {!isHairPackLanding && <MobileNav />}
       <LiveChat />
       <WhatsAppButton />

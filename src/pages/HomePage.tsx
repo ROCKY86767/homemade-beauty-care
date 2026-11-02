@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Banner, Product, Category, Review, SiteSettings } from '@/lib/types';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import ProductCard from '@/components/ProductCard';
 import StarRating from '@/components/StarRating';
 import SEO from '@/components/SEO';
@@ -269,6 +269,7 @@ export default function HomePage() { // centralized storefront settings
 
   useEffect(() => {
     getSettings().then(setSettings).catch((error) => console.error('Homepage settings load error:', error));
+    const unsubscribeSettings = subscribeToSettings(setSettings);
 
     const loadHomePageData = async () => {
       try {
@@ -438,6 +439,7 @@ export default function HomePage() { // centralized storefront settings
     };
 
     loadHomePageData();
+    return unsubscribeSettings;
   }, []);
 
   useEffect(() => {

@@ -662,7 +662,7 @@ export default function HomePage() { // centralized storefront settings
                 className="group relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#DDE3D7] bg-[#E8EEDF] shadow-[0_8px_28px_rgba(38,58,45,.07)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(38,58,45,.15)] click-feedback-soft"
               >
                 <img
-                  src={getOptimizedImageUrl(cat.image_url, 360) || cat.image_url || ''}
+                  src={getOptimizedImageUrl(cat.image_url, 560) || cat.image_url || ''}
                   alt={cat.name_bn}
                   width="480"
                   height="600"
@@ -720,7 +720,7 @@ export default function HomePage() { // centralized storefront settings
                     <div className="relative aspect-[4/5] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
                         ? <><video src={item.media_urls[0]} controls preload="none" playsInline className="h-full w-full object-contain" /><button type="button" onClick={() => openReviewMedia(item.media_urls[0], true)} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
-                        : <button type="button" onClick={() => openReviewMedia(item.media_urls[0], false)} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={getOptimizedImageUrl(item.media_urls[0], 480)} alt={item.title || 'Homepage review'} width="440" height="550" loading="lazy" decoding="async" className="h-full w-full object-contain" /></button>)}
+                        : <button type="button" onClick={() => openReviewMedia(item.media_urls[0], false)} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={getOptimizedImageUrl(item.media_urls[0], 440)} alt={item.title || 'Homepage review'} width="440" height="550" loading="lazy" decoding="async" className="h-full w-full object-contain" /></button>)}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-3 text-white">
                         <div className="mb-1 text-sm text-[#F3C98B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>
@@ -1102,7 +1102,7 @@ export default function HomePage() { // centralized storefront settings
                 <div className="flex items-center gap-3 mb-4">
                   {review.image_url && (
                     <img
-                      src={getOptimizedImageUrl(review.image_url, 400)}
+                      src={getOptimizedImageUrl(review.image_url, 96)}
                       alt={review.customer_name}
                       width="48"
                       height="48"
@@ -1133,7 +1133,7 @@ export default function HomePage() { // centralized storefront settings
                   "{review.review_bn}"
                 </p>
 
-                {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mb-4 grid grid-cols-2 gap-2">{review.media_urls.map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <div key={url} className="relative aspect-[4/5] overflow-hidden rounded-xl bg-black"><video src={url} controls preload="none" playsInline className="h-full w-full object-cover" /><button type="button" onClick={() => openReviewMedia(url, true)} className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-xs text-white" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶</button></div> : <button key={url} type="button" onClick={() => openReviewMedia(url, false)} className="block aspect-[4/5] overflow-hidden rounded-xl bg-white text-left"><img src={getOptimizedImageUrl(url, 480)} alt="Customer review" width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition-transform duration-300 hover:scale-[1.03]" /></button>)}</div>}
+                {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mb-4 grid grid-cols-2 gap-2">{review.media_urls.map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <div key={url} className="relative aspect-[4/5] overflow-hidden rounded-xl bg-black"><video src={url} controls preload="none" playsInline className="h-full w-full object-cover" /><button type="button" onClick={() => openReviewMedia(url, true)} className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-xs text-white" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶</button></div> : <button key={url} type="button" onClick={() => openReviewMedia(url, false)} className="block aspect-[4/5] overflow-hidden rounded-xl bg-white text-left"><img src={getOptimizedImageUrl(url, 560)} alt="Customer review" width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition-transform duration-300 hover:scale-[1.03]" /></button>)}</div>}
 
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
                   <svg

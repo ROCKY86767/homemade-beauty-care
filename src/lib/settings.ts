@@ -135,7 +135,7 @@ export async function getSettings(forceRefresh = false): Promise<SiteSettings> {
       if (error) throw error;
       cachedSettings = data || DEFAULT_SETTINGS;
       settingsFetchedAt = Date.now();
-      return cachedSettings;
+      return cachedSettings as SiteSettings;
     })
     .catch((error) => {
       if (cachedSettings) return cachedSettings;

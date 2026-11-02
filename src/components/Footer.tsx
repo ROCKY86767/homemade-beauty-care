@@ -29,13 +29,17 @@ const FOOTER_LINKS = {
   ],
 };
 
-export default function Footer({ hidden = false }: { hidden?: boolean }) {
+export default function Footer({ hidden = false, waitForSettings = false }: { hidden?: boolean; waitForSettings?: boolean }) {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   useEffect(() => {
-    getSettings().then(setSettings);
+    getSettings()
+      .then(setSettings)
+      .catch(error => console.error('Footer settings load error:', error))
+      .finally(() => setSettingsLoaded(true));
   }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
@@ -62,7 +66,7 @@ export default function Footer({ hidden = false }: { hidden?: boolean }) {
   ].filter(s => s.url);
 
   return (
-    <footer className="bg-dark text-white" style={hidden ? { visibility: 'hidden' } : undefined} aria-hidden={hidden}>
+    <footer className="bg-dark text-white" style={hidden || (waitForSettings && !settingsLoaded) ? { visibility: 'hidden' } : undefined} aria-hidden={hidden || (waitForSettings && !settingsLoaded)}>
       {/* Newsletter */}
       {settings?.newsletter_enabled !== false && (
       <div className="border-b border-white/10">

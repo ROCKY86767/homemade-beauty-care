@@ -36,6 +36,20 @@ const toWebPImageUrl = (imageUrl: string | null | undefined, width: number) => {
 const toWebPImageSrcSet = (imageUrl: string | null | undefined) =>
   [480, 828, 1280].map((width) => `${toWebPImageUrl(imageUrl, width)} ${width}w`).join(', ');
 
+const INITIAL_HERO_BANNER: Banner = {
+  id: '28a807e0-305f-49a0-84ce-3c2afa52b63d',
+  title_bn: 'Homemade Beauty Care',
+  small_text_bn: null,
+  description_bn: null,
+  button_text_bn: null,
+  button_link: null,
+  image_url: 'https://ccowyndqzlkpilygpepx.supabase.co/storage/v1/object/public/product-images/banners/1791435015419-ddlob4-Gemini_Generated_Image_4rjnfh4rjnfh4rjn.jpg',
+  desktop_image_url: 'https://ccowyndqzlkpilygpepx.supabase.co/storage/v1/object/public/product-images/banners/1791435015419-ddlob4-Gemini_Generated_Image_4rjnfh4rjnfh4rjn.jpg',
+  mobile_image_url: 'https://ccowyndqzlkpilygpepx.supabase.co/storage/v1/object/public/product-images/banners/1791435030581-5b2u92-Gemini_Generated_Image_wua0t2wua0t2wua0.jpg',
+  sort_order: 1,
+  is_active: true,
+};
+
 function HomePageLoadingSkeleton({ banner }: { banner?: Banner }) {
   return (
     <div className="homepage-compact" aria-hidden="true">
@@ -44,7 +58,7 @@ function HomePageLoadingSkeleton({ banner }: { banner?: Banner }) {
           <>
             <picture>
               <source media="(max-width: 639px)" srcSet={toWebPImageSrcSet(banner.mobile_image_url || banner.desktop_image_url || banner.image_url)} sizes="100vw" />
-              <img src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1920)} alt={banner.title_bn} width="1920" height="1080" fetchPriority="high" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1280)} srcSet={toWebPImageSrcSet(banner.desktop_image_url || banner.image_url || banner.mobile_image_url)} sizes="100vw" alt={banner.title_bn} width="1920" height="1080" fetchPriority="high" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-slow-zoom" />
             </picture>
             <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
             <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 lg:px-16"><h1 className="max-w-xl font-display text-3xl font-bold leading-tight text-white drop-shadow-sm sm:text-5xl lg:text-6xl">{banner.title_bn}</h1></div>
@@ -135,7 +149,7 @@ const HOW_TO_ORDER = [
 ];
 
 export default function HomePage() { // centralized storefront settings
-  const [banners, setBanners] = useState<Banner[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([INITIAL_HERO_BANNER]);
 
   // সব Active Product
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -210,7 +224,6 @@ export default function HomePage() { // centralized storefront settings
     return () => window.removeEventListener('popstate', handleReviewViewerBack);
   }, []);
   const [currentBanner, setCurrentBanner] = useState(0);
-  const [loadedHeroImages, setLoadedHeroImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
@@ -255,7 +268,7 @@ export default function HomePage() { // centralized storefront settings
   }, [loading]);
 
   useEffect(() => {
-    const settingsPromise = getSettings().then(setSettings);
+    getSettings().then(setSettings).catch((error) => console.error('Homepage settings load error:', error));
 
     const loadHomePageData = async () => {
       try {
@@ -307,7 +320,6 @@ export default function HomePage() { // centralized storefront settings
             .limit(6),
         ]);
 
-        await bannersPromise;
 
         /*
          * Error থাকলে console-এ দেখাবে।
@@ -410,7 +422,6 @@ export default function HomePage() { // centralized storefront settings
           return true;
         });
         setEditorialReviews(uniqueEditorialReviews);
-        await settingsPromise;
       } catch (error) {
         console.error('Homepage data loading error:', error);
       } finally {
@@ -461,7 +472,7 @@ export default function HomePage() { // centralized storefront settings
               <div className="absolute inset-0 bg-[#e9e7dc]">
                 {idx === currentBanner && (
                   <picture>
-                    <source media="(max-width: 639px)" srcSet={toWebPImageUrl(banner.mobile_image_url || banner.desktop_image_url || banner.image_url, 900)} />
+                    <source media="(max-width: 639px)" srcSet={toWebPImageSrcSet(banner.mobile_image_url || banner.desktop_image_url || banner.image_url)} sizes="100vw" />
                     <img
                       src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1280)}
                       srcSet={toWebPImageSrcSet(banner.desktop_image_url || banner.image_url || banner.mobile_image_url)}
@@ -472,8 +483,7 @@ export default function HomePage() { // centralized storefront settings
                       fetchPriority="high"
                       loading="eager"
                       decoding="async"
-                      onLoad={() => setLoadedHeroImages((loaded) => loaded.includes(banner.id) ? loaded : [...loaded, banner.id])}
-                      className={`h-full w-full object-cover animate-slow-zoom ${loadedHeroImages.includes(banner.id) ? "hero-image-loaded" : ""}`}
+                      className="h-full w-full object-cover animate-slow-zoom"
                     />
                   </picture>
                 )}
@@ -700,7 +710,7 @@ export default function HomePage() { // centralized storefront settings
                   <article key={`${copy}-${item.id}`} className="w-[58vw] max-w-[220px] shrink-0 overflow-hidden rounded-2xl border border-[#E3E5D9] bg-white shadow-md shadow-[#263A2D]/5 sm:w-[220px]">
                     <div className="relative aspect-[4/5] overflow-hidden bg-[#E9E8DD]">
                       {item.media_urls?.[0] && (/\.(mp4|webm|mov)(\?|$)/i.test(item.media_urls[0])
-                        ? <><video src={item.media_urls[0]} controls preload="metadata" playsInline className="h-full w-full aspect-[4/5] object-contain" /><button type="button" onClick={() => openReviewMedia(item.media_urls[0], true)} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
+                        ? <><video src={item.media_urls[0]} controls preload="none" playsInline className="h-full w-full aspect-[4/5] object-contain" /><button type="button" onClick={() => openReviewMedia(item.media_urls[0], true)} className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow" aria-label="ভিডিও পূর্ণ পর্দায় দেখুন">⛶ Full screen</button></>
                         : <button type="button" onClick={() => openReviewMedia(item.media_urls[0], false)} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={item.media_urls[0]} alt={item.title || 'Homepage review'} width="440" height="550" loading="lazy" decoding="async" className="h-full w-full object-contain" /></button>)}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-3 text-white">
@@ -1151,8 +1161,8 @@ export default function HomePage() { // centralized storefront settings
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Review media full screen" onClick={closeReviewMedia}>
           <button type="button" onClick={() => setFullscreenReviewMedia(null)} className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-3xl text-white hover:bg-white/25" aria-label="বন্ধ করুন">×</button>
           {fullscreenReviewMedia.isVideo
-            ? <video src={fullscreenReviewMedia.url} controls autoPlay playsInline className="aspect-[4/5] max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
-            : <img src={fullscreenReviewMedia.url} alt="Review full screen" width="1200" height="1500" className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />}
+            ? <video src={fullscreenReviewMedia.url} controls preload="none" playsInline className="aspect-[4/5] max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
+            : <img src={fullscreenReviewMedia.url} alt="Review full screen" width="1200" height="1500" loading="lazy" decoding="async" className="max-h-[92vh] max-w-full object-contain" onClick={(event) => event.stopPropagation()} />}
         </div>
       )}
 

@@ -29,7 +29,7 @@ const FOOTER_LINKS = {
   ],
 };
 
-export default function Footer() {
+export default function Footer({ hidden = false }: { hidden?: boolean }) {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -62,7 +62,7 @@ export default function Footer() {
   ].filter(s => s.url);
 
   return (
-    <footer className="bg-dark text-white">
+    <footer className="bg-dark text-white" style={hidden ? { visibility: 'hidden' } : undefined} aria-hidden={hidden}>
       {/* Newsletter */}
       {settings?.newsletter_enabled !== false && (
       <div className="border-b border-white/10">

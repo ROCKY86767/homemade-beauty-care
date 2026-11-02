@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
@@ -47,13 +47,25 @@ function PageLoader() {
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isHairPackLanding = location.pathname === '/hairpack' || location.pathname === '/hair-pack';
+  const isHomePage = location.pathname === '/';
+  const [homePageLoading, setHomePageLoading] = useState(isHomePage);
+
+  useLayoutEffect(() => {
+    setHomePageLoading(isHomePage);
+    if (!isHomePage) return;
+
+    const handleHomePageReady = () => setHomePageLoading(false);
+    window.addEventListener('hbc:homepage-ready', handleHomePageReady);
+    return () => window.removeEventListener('hbc:homepage-ready', handleHomePageReady);
+  }, [isHomePage]);
+
   return (
     <div className="w-full min-w-0 min-h-screen flex flex-col overflow-x-clip">
       {!isHairPackLanding && <Header />}
-      <main className={`w-full min-w-0 flex-1 ${isHairPackLanding ? '' : 'pb-16 lg:pb-0'}`}>
+      <main className={`w-full min-w-0 min-h-[100svh] flex-1 ${isHairPackLanding ? '' : 'pb-16 lg:pb-0'}`}>
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
-      {!isHairPackLanding && <Footer />}
+      {!isHairPackLanding && <Footer hidden={isHomePage && homePageLoading} />}
       {!isHairPackLanding && <MobileNav />}
       <LiveChat />
       <WhatsAppButton />

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Phone, Mail, MapPin, MessageCircle, Youtube } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
 const FOOTER_LINKS = {
@@ -40,6 +40,7 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
       .then(setSettings)
       .catch(error => console.error('Footer settings load error:', error))
       .finally(() => setSettingsLoaded(true));
+    return subscribeToSettings(setSettings);
   }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {

@@ -4,7 +4,7 @@ import { ArrowRight, Check, CheckCircle2, ChevronDown, X, Droplets, Flower2, Hea
 import { supabase } from '@/lib/supabase';
 import type { Product, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import { formatPrice, calculateDiscountPercent } from '@/lib/format';
 import SEO from '@/components/SEO';
 
@@ -50,10 +50,11 @@ export default function HairPackLandingPage() {
     void load();
     const channel = supabase.channel('hairpack-landing-product-live-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter: 'slug=eq.ghorowa-hairpack' }, () => { void refreshProduct(); }).subscribe();
+    const unsubscribeSettings = subscribeToSettings(setSettings);
     const refresh = () => { if (document.visibilityState === 'visible') void refreshProduct(); };
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', refresh);
-    return () => { active = false; window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); void supabase.removeChannel(channel); };
+    return () => { active = false; unsubscribeSettings(); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); void supabase.removeChannel(channel); };
   }, []);
 
   const benefits = useMemo(() => {

@@ -662,7 +662,7 @@ export default function HomePage() { // centralized storefront settings
                 className="group relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#DDE3D7] bg-[#E8EEDF] shadow-[0_8px_28px_rgba(38,58,45,.07)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(38,58,45,.15)] click-feedback-soft"
               >
                 <img
-                  src={getOptimizedImageUrl(cat.image_url, 560) || cat.image_url || ''}
+                  src={getOptimizedImageUrl(cat.image_url, 600) || cat.image_url || ''}
                   alt={cat.name_bn}
                   width="480"
                   height="600"

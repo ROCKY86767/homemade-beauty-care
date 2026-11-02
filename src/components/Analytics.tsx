@@ -223,6 +223,7 @@ export default function Analytics() {
 
   useEffect(() => {
     let active = true;
+    let pendingGaLoad: (() => void) | null = null;
 
     if (!shouldTrack) {
       setGaReady(false);
@@ -253,7 +254,7 @@ export default function Analytics() {
         }
 
         const loadGoogleAnalytics = () => {
-          if (document.querySelector('script[data-ga4]')) return;
+          if (!active || document.querySelector('script[data-ga4]')) return;
           const script = document.createElement('script');
           script.async = true;
           script.dataset.ga4 = 'true';
@@ -264,6 +265,7 @@ export default function Analytics() {
         if (document.readyState === 'complete') {
           loadGoogleAnalytics();
         } else {
+          pendingGaLoad = loadGoogleAnalytics;
           window.addEventListener('load', loadGoogleAnalytics, { once: true });
         }
 
@@ -286,6 +288,7 @@ export default function Analytics() {
 
     return () => {
       active = false;
+      if (pendingGaLoad) window.removeEventListener('load', pendingGaLoad);
     };
   }, [shouldTrack]);
 

@@ -4,7 +4,7 @@ import { Heart, Minus, Plus, ShoppingCart, Zap, Truck, CreditCard, ShieldCheck, 
 import { supabase } from '@/lib/supabase';
 import type { Product, Review, SiteSettings } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import { verifyCustomerPurchasedProduct } from '@/lib/reviewVerification';
 import { formatPrice, calculateDiscount, calculateDiscountPercent } from '@/lib/format';
 import StarRating from '@/components/StarRating';
@@ -41,6 +41,7 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     getSettings().then(setSettings);
+    return subscribeToSettings(setSettings);
   }, []);
   
   useEffect(() => {

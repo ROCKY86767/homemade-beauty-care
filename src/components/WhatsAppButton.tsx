@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
 function normalizeWhatsAppNumber(value: string): string {
@@ -14,6 +14,7 @@ export default function WhatsAppButton() {
 
   useEffect(() => {
     getSettings().then(setSettings);
+    return subscribeToSettings(setSettings);
   }, []);
 
   if (settings?.contact_whatsapp_enabled === false) return null;

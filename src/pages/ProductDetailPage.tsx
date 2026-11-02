@@ -294,7 +294,7 @@ export default function ProductDetailPage() {
           <div>
             <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream group">
               <img
-                src={getOptimizedImageUrl(gallery[activeImage], 1100)}
+                src={getOptimizedImageUrl(gallery[activeImage], 1200)}
                 alt={product.name_bn}
                 width="900"
                 height="900"

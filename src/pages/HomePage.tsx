@@ -594,7 +594,7 @@ export default function HomePage() { // centralized storefront settings
               </div>
             </div>
             <div className="mx-auto flex w-full max-w-[260px] items-center justify-center rounded-[2rem] border border-white/20 bg-white/10 p-7 shadow-2xl backdrop-blur-sm sm:max-w-[300px]">
-              <img src="/new-homemade-logo.png" alt="Homemade Beauty Care logo" width="300" height="300" loading="eager" decoding="async" className="aspect-square w-full rounded-2xl object-contain" />
+              <img src="/new-homemade-logo.png" alt="Homemade Beauty Care logo" width="300" height="300" loading="lazy" decoding="async" className="aspect-square w-full rounded-2xl object-contain" />
             </div>
           </div>
         </section>

@@ -108,7 +108,8 @@ export default function Analytics() {
       }
     };
 
-    void heartbeat();
+    // The pageview request below also upserts live presence, so avoid a second
+    // initial heartbeat request. Keep periodic heartbeats for active visitors.
     const timer = window.setInterval(() => void heartbeat(), 25000);
     document.addEventListener('visibilitychange', heartbeat);
     return () => {

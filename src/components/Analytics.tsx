@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import { useCart } from '@/lib/cart-context';
 
 declare global {
@@ -223,18 +223,8 @@ export default function Analytics() {
   useEffect(() => {
     let active = true;
 
-    if (!shouldTrack) {
-      setGaReady(false);
-      setGaId('');
-      setMetaPixelId('');
-      return () => {
-        active = false;
-      };
-    }
-
-    getSettings().then(async (settings) => {
+    const applySettings = async (settings: Awaited<ReturnType<typeof getSettings>>) => {
       if (!active) return;
-
       const configuredGaId = settings.google_analytics_enabled
         ? settings.google_analytics_id?.trim()
         : '';
@@ -246,7 +236,6 @@ export default function Analytics() {
         };
         window.gtag('js', new Date());
         window.gtag('config', configuredGaId, { send_page_view: false });
-
         if (!document.querySelector('script[data-ga4]')) {
           const script = document.createElement('script');
           script.async = true;
@@ -254,23 +243,39 @@ export default function Analytics() {
           script.dataset.ga4 = 'true';
           document.head.appendChild(script);
         }
-
         setGaId(configuredGaId);
         setGaReady(true);
+      } else {
+        setGaId('');
+        setGaReady(false);
       }
 
       if (settings.meta_pixel_enabled) {
         const { data } = await supabase.rpc('get_public_meta_pixel');
-        if (active && data?.enabled && data.pixel_id) {
-          setMetaPixelId(data.pixel_id);
-        }
+        if (active && data?.enabled && data.pixel_id) setMetaPixelId(data.pixel_id);
+        else if (active) setMetaPixelId('');
+      } else {
+        setMetaPixelId('');
       }
-    }).catch((error) => {
+    };
+
+    if (!shouldTrack) {
+      setGaReady(false);
+      setGaId('');
+      setMetaPixelId('');
+      return () => { active = false; };
+    }
+
+    getSettings().then(applySettings).catch((error) => {
       console.error('Analytics settings could not be loaded:', error);
+    });
+    const unsubscribeSettings = subscribeToSettings((settings) => {
+      void applySettings(settings);
     });
 
     return () => {
       active = false;
+      unsubscribeSettings();
     };
   }, [shouldTrack]);
 

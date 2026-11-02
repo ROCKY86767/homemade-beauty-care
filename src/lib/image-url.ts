@@ -22,6 +22,10 @@ export function getOptimizedImageUrl(
     url.searchParams.set('width', String(Math.max(1, Math.min(2500, Math.round(width)))));
     url.searchParams.set('quality', String(Math.max(20, Math.min(100, Math.round(quality)))));
     url.searchParams.set('format', 'webp');
+    // Supabase defaults width-only transforms to `fill`, which can crop the
+    // source's aspect ratio. `contain` keeps the original ratio; CSS object-fit
+    // then applies the exact same crop as the unoptimized image.
+    url.searchParams.set('resize', 'contain');
     return url.toString();
   } catch {
     return source;

@@ -92,15 +92,14 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 @keyframes softFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
 .animate-soft-float { animation:softFloat 4.5s ease-in-out infinite; }
 
-/* Banner stays still. No automatic zoom on page load or carousel changes. */
+/* Keep the hero zoom on the compositor; do not wait for a React onLoad state update. */
 @keyframes heroSlowZoom {
   from { transform: scale(1); }
   to { transform: scale(1.055); }
 }
 .animate-slow-zoom { animation: none !important; transform: none !important; }
-.animate-slow-zoom.hero-image-loaded { animation: heroSlowZoom 18s ease-out both; transform-origin: center; }
-@media (max-width: 639px) {
-  .animate-slow-zoom.hero-image-loaded { animation: none !important; transform: none !important; }
+@media (min-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .animate-slow-zoom { animation: heroSlowZoom 18s ease-out both; transform-origin: center; }
 }
 
 @keyframes shimmer { 0% { background-position:-220% 0; } 100% { background-position:220% 0; } }

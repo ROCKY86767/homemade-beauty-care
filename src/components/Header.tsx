@@ -10,7 +10,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
 const NAV_LINKS = [
@@ -36,6 +36,7 @@ export default function Header() {
 
   useEffect(() => {
     getSettings().then(setSettings);
+    return subscribeToSettings(setSettings);
   }, []);
 
   useEffect(() => {

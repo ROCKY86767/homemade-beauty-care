@@ -294,7 +294,7 @@ export default function ProductDetailPage() {
           <div>
             <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream group">
               <img
-                src={getOptimizedImageUrl(gallery[activeImage], 960)}
+                src={getOptimizedImageUrl(gallery[activeImage], 1100)}
                 alt={product.name_bn}
                 width="900"
                 height="900"
@@ -320,7 +320,7 @@ export default function ProductDetailPage() {
                       idx === activeImage ? 'border-primary' : 'border-transparent hover:border-gray-200'
                     }`}
                   >
-                    <img src={getOptimizedImageUrl(img, 320)} alt={product.name_bn + " ছবি " + (idx + 1)} width="300" height="300" loading="lazy" decoding="async" className="h-full w-full aspect-square object-cover" />
+                    <img src={getOptimizedImageUrl(img, 160)} alt={product.name_bn + " ছবি " + (idx + 1)} width="300" height="300" loading="lazy" decoding="async" className="h-full w-full aspect-square object-cover" />
                   </button>
                 ))}
               </div>
@@ -441,7 +441,7 @@ export default function ProductDetailPage() {
                             <span className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('bn-BD')}</span>
                           </div>
                           <p className="mt-3 text-sm leading-7 text-gray-600">{review.review_bn}</p>
-                          {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">{review.media_urls.map((url: string, mediaIndex: number) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={`${url}-${mediaIndex}`} src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full rounded-xl bg-black object-cover" /> : <a key={`${url}-${mediaIndex}`} href={url} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-xl bg-gray-50"><img src={getOptimizedImageUrl(url, 480)} alt={`Customer review media ${mediaIndex + 1}`} width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" /></a>)}</div>}
+                          {Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">{review.media_urls.map((url: string, mediaIndex: number) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={`${url}-${mediaIndex}`} src={url} controls preload="metadata" playsInline className="aspect-[4/5] w-full rounded-xl bg-black object-cover" /> : <a key={`${url}-${mediaIndex}`} href={url} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-xl bg-gray-50"><img src={getOptimizedImageUrl(url, 700)} alt={`Customer review media ${mediaIndex + 1}`} width="480" height="600" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" /></a>)}</div>}
                         </div>
                       ))}
                     </div>

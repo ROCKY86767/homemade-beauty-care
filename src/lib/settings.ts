@@ -186,7 +186,7 @@ export async function updateSettings(updates: Partial<SiteSettings>): Promise<Si
   // The Admin Settings UI keeps a form merged with defaults. Only persist fields
   // that actually differ from the last loaded settings snapshot so saving one
   // category cannot accidentally reset values belonging to another category.
-  const current = cachedSettings || await getSettings();
+  const current = await getSettings();
   const safeUpdates = Object.fromEntries(
     Object.entries(updates).filter(([key, value]) => {
       if (key === 'id') return false;

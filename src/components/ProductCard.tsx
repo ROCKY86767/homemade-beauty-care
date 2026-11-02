@@ -21,7 +21,7 @@ export default function ProductCard({ product, compactActions = false }: Product
       <div className="relative aspect-square overflow-hidden bg-cream">
         <Link to={`/product/${product.slug}`} className="block h-full w-full aspect-square">
           <img
-            src={getOptimizedImageUrl(product.image_url, 640) || product.image_url}
+            src={getOptimizedImageUrl(product.image_url, 480) || product.image_url}
             alt={product.name_bn}
             width="600"
             height="600"

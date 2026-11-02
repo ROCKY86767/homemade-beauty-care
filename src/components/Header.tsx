@@ -41,15 +41,15 @@ export default function Header() {
   useEffect(() => {
     const element = headerRef.current;
     if (!element) return;
-    const updateHeight = () => setHeaderHeight(element.getBoundingClientRect().height);
-    updateHeight();
-    const observer = new ResizeObserver(updateHeight);
+    const observer = new ResizeObserver(([entry]) => {
+      const borderBox = entry.borderBoxSize;
+      const measuredHeight = Array.isArray(borderBox)
+        ? borderBox[0]?.blockSize
+        : borderBox?.blockSize;
+      setHeaderHeight(measuredHeight ?? entry.contentRect.height);
+    });
     observer.observe(element);
-    window.addEventListener('resize', updateHeight);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateHeight);
-    };
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function Header() {
       </div>}
 
       {/* Main Header */}
-      <div aria-hidden="true" style={{ height: headerHeight }} />
+      <div aria-hidden="true" className="h-[72px] sm:h-[120px]" style={headerHeight ? { height: headerHeight } : undefined} />
       <header
         ref={headerRef}
         className={`fixed inset-x-0 top-0 z-[100] isolate overflow-visible bg-white/95 backdrop-blur-md transition-all duration-300 ${

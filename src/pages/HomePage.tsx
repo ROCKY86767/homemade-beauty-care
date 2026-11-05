@@ -307,6 +307,7 @@ export default function HomePage() { // centralized storefront settings
           allProductsResult,
           categoriesResult,
           reviewsResult,
+          editorialResult,
         ] = await Promise.all([
           supabase
             .from('products')
@@ -326,6 +327,13 @@ export default function HomePage() { // centralized storefront settings
             .eq('is_approved', true)
             .order('sort_order')
             .limit(6),
+
+          supabase
+            .from('homepage_editorial_reviews')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: false }),
         ]);
 
 
@@ -412,7 +420,6 @@ export default function HomePage() { // centralized storefront settings
         setOnSale(loadedProducts.filter(product => product.is_on_sale).slice(0, 4));
         setCategories(loadedCategories);
         setReviews(reviewsResult.data || []);
-        const editorialResult = await supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false });
         if (editorialResult.error) console.error('Homepage editorial reviews load error:', editorialResult.error);
         const editorialRows = editorialResult.data || [];
         const seenEditorialReviews = new Set<string>();

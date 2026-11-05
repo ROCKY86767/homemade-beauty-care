@@ -48,13 +48,11 @@ export default function HairPackLandingPage() {
       finally { if (active) setLoading(false); }
     };
     void load();
-    const channel = supabase.channel('hairpack-landing-product-live-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter: 'slug=eq.ghorowa-hairpack' }, () => { void refreshProduct(); }).subscribe();
     const unsubscribeSettings = subscribeToSettings(setSettings);
     const refresh = () => { if (document.visibilityState === 'visible') void refreshProduct(); };
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', refresh);
-    return () => { active = false; unsubscribeSettings(); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); void supabase.removeChannel(channel); };
+    return () => { active = false; unsubscribeSettings(); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
   }, []);
 
   const benefits = useMemo(() => {

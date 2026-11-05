@@ -10,6 +10,7 @@ declare global {
     gtag?: (...args: any[]) => void;
     fbq?: (...args: any[]) => void;
     _fbq?: any;
+    __hbcGaConfiguredIds?: Set<string>;
   }
 }
 
@@ -223,6 +224,67 @@ export default function Analytics() {
 
   useEffect(() => {
     let active = true;
+    let gaLoadScheduled = false;
+    let gaFallbackTimer: number | undefined;
+    let pendingGaId = '';
+    let pendingLoad: (() => void) | null = null;
+    let pendingLoadFallback: (() => void) | null = null;
+
+    const removeDeferredGaListeners = () => {
+      if (pendingLoad) {
+        for (const eventName of ['pointerdown', 'click', 'touchstart', 'keydown', 'scroll']) {
+          window.removeEventListener(eventName, pendingLoad);
+        }
+        pendingLoad = null;
+      }
+      if (pendingLoadFallback) {
+        window.removeEventListener('load', pendingLoadFallback);
+        pendingLoadFallback = null;
+      }
+      if (gaFallbackTimer !== undefined) {
+        window.clearTimeout(gaFallbackTimer);
+        gaFallbackTimer = undefined;
+      }
+    };
+
+    const scheduleGoogleAnalyticsLoad = (measurementId: string) => {
+      pendingGaId = measurementId;
+      if (document.querySelector('script[data-ga4]') || gaLoadScheduled) return;
+      gaLoadScheduled = true;
+
+      const loadGoogleAnalytics = () => {
+        if (!active) return;
+        removeDeferredGaListeners();
+        if (document.querySelector('script[data-ga4]')) return;
+        const script = document.createElement('script');
+        script.async = true;
+        script.dataset.ga4 = 'true';
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(pendingGaId)}`;
+        document.head.appendChild(script);
+      };
+
+      pendingLoad = loadGoogleAnalytics;
+      for (const eventName of ['pointerdown', 'click', 'touchstart', 'keydown', 'scroll']) {
+        window.addEventListener(eventName, loadGoogleAnalytics, { once: true, passive: true });
+      }
+
+      const scheduleFallback = () => {
+        if (pendingLoadFallback) {
+          window.removeEventListener('load', pendingLoadFallback);
+          pendingLoadFallback = null;
+        }
+        if (gaFallbackTimer === undefined) {
+          gaFallbackTimer = window.setTimeout(loadGoogleAnalytics, 3000);
+        }
+      };
+
+      if (document.readyState === 'complete') {
+        scheduleFallback();
+      } else {
+        pendingLoadFallback = scheduleFallback;
+        window.addEventListener('load', scheduleFallback, { once: true });
+      }
+    };
 
     const applySettings = async (settings: Awaited<ReturnType<typeof getSettings>>) => {
       if (!active) return;
@@ -235,15 +297,13 @@ export default function Analytics() {
         window.gtag = window.gtag || function (...args: any[]) {
           window.dataLayer.push(args);
         };
-        window.gtag('js', new Date());
-        window.gtag('config', configuredGaId, { send_page_view: false });
-        if (!document.querySelector('script[data-ga4]')) {
-          const script = document.createElement('script');
-          script.async = true;
-          script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(configuredGaId)}`;
-          script.dataset.ga4 = 'true';
-          document.head.appendChild(script);
+        window.__hbcGaConfiguredIds = window.__hbcGaConfiguredIds || new Set<string>();
+        if (!window.__hbcGaConfiguredIds.has(configuredGaId)) {
+          window.gtag('js', new Date());
+          window.gtag('config', configuredGaId, { send_page_view: false });
+          window.__hbcGaConfiguredIds.add(configuredGaId);
         }
+        scheduleGoogleAnalyticsLoad(configuredGaId);
         setGaId(configuredGaId);
         setGaReady(true);
       } else {
@@ -276,6 +336,7 @@ export default function Analytics() {
 
     return () => {
       active = false;
+      removeDeferredGaListeners();
       unsubscribeSettings();
     };
   }, [shouldTrack]);

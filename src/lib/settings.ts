@@ -79,7 +79,6 @@ const DEFAULT_SETTINGS: SiteSettings = {
 let cachedSettings: SiteSettings | null = null;
 let settingsRequest: Promise<SiteSettings> | null = null;
 let settingsFetchedAt = 0;
-let settingsRealtimeStarted = false;
 const SETTINGS_CACHE_TTL = 30_000;
 const SETTINGS_UPDATED_EVENT = 'hbc:site-settings-updated';
 const SETTINGS_STORAGE_KEY = 'hbc-site-settings-updated';
@@ -100,28 +99,7 @@ async function refreshSettingsFromServer() {
   return getSettings(true);
 }
 
-function ensureSettingsRealtime() {
-  if (settingsRealtimeStarted || typeof window === 'undefined') return;
-  settingsRealtimeStarted = true;
-  // Realtime keeps already-open storefront tabs in sync with Admin updates.
-  // The focus/TTL refresh below is a fallback if Realtime is not enabled for this table.
-  supabase
-    .channel('hbc-site-settings-sync')
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'site_settings',
-      filter: 'id=eq.1',
-    }, () => {
-      void refreshSettingsFromServer().then(publishSettings).catch((error) => {
-        console.error('Updated site settings could not be refreshed:', error);
-      });
-    })
-    .subscribe();
-}
-
 export async function getSettings(forceRefresh = false): Promise<SiteSettings> {
-  ensureSettingsRealtime();
   const isFresh = cachedSettings && Date.now() - settingsFetchedAt < SETTINGS_CACHE_TTL;
   if (!forceRefresh && isFresh) return cachedSettings as SiteSettings;
   if (settingsRequest) return settingsRequest;
@@ -153,7 +131,6 @@ export async function getSettings(forceRefresh = false): Promise<SiteSettings> {
 
 export function subscribeToSettings(listener: (settings: SiteSettings) => void) {
   if (typeof window === 'undefined') return () => undefined;
-  ensureSettingsRealtime();
 
   const onUpdate = (event: Event) => {
     const settings = (event as CustomEvent<SiteSettings>).detail;

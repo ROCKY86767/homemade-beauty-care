@@ -274,7 +274,7 @@ export default function Analytics() {
           pendingLoadFallback = null;
         }
         if (gaFallbackTimer === undefined) {
-          gaFallbackTimer = window.setTimeout(loadGoogleAnalytics, 5000);
+          gaFallbackTimer = window.setTimeout(loadGoogleAnalytics, 3000);
         }
       };
 

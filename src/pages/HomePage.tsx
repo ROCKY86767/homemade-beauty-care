@@ -724,14 +724,14 @@ export default function HomePage() { // centralized storefront settings
                         : <button type="button" onClick={() => openReviewMedia(item.media_urls[0], false)} className="absolute inset-0 flex h-full w-full items-center justify-center bg-[#E9E8DD]" aria-label="ছবি পূর্ণ পর্দায় দেখুন"><img src={item.media_urls[0]} alt={item.title || 'Homepage review'} width="440" height="550" loading="lazy" decoding="async" className="h-full w-full object-contain" /></button>)}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/75 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-3 text-white">
-                        <div className="mb-1 text-sm text-[#F3C98B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>
-                        <p className="font-semibold">{item.customer_name}</p>
+                        <div className="mb-1 text-xs text-[#F3C98B]">{'★'.repeat(Number(item.rating || 5))}{'☆'.repeat(5-Number(item.rating || 5))}</div>
+                        <p className="text-sm font-semibold">{item.customer_name}</p>
                         {item.location && <p className="mt-0.5 text-xs text-white/80">{item.location}</p>}
                       </div>
                     </div>
                     <div className="p-3">
-                      {item.title && <h3 className="mb-1 text-sm font-semibold text-[#263A2D]">{item.title}</h3>}
-                      {item.review_text && <p className="text-sm leading-6 text-gray-600" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.review_text}</p>}
+                      {item.title && <h3 className="mb-1 text-xs font-semibold text-[#263A2D]">{item.title}</h3>}
+                      {item.review_text && <p className="text-xs leading-5 text-gray-600" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.review_text}</p>}
                     </div>
                   </article>
                     ))}

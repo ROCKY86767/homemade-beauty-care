@@ -14,7 +14,7 @@ import {
 import { useCart } from '@/lib/cart-context';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
-import { getSettings, getDeliveryCharge } from '@/lib/settings';
+import { getSettings, getDeliveryCharge, subscribeToSettings } from '@/lib/settings';
 import {
   getDistricts,
   getThanas,
@@ -146,6 +146,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     getSettings().then(setSettings);
+    const unsubscribeSettings = subscribeToSettings(setSettings);
     getDistricts().then(data => {
       setDistricts(data);
       const dhaka = data.find(item => item.bn_name === 'ঢাকা');
@@ -156,6 +157,7 @@ export default function CheckoutPage() {
       }));
       setLocationLoading(false);
     });
+    return unsubscribeSettings;
   }, []);
 
   useEffect(() => {

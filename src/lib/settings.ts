@@ -77,23 +77,116 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 let cachedSettings: SiteSettings | null = null;
+let settingsRequest: Promise<SiteSettings> | null = null;
+let settingsFetchedAt = 0;
+let settingsRealtimeStarted = false;
+const SETTINGS_CACHE_TTL = 30_000;
+const SETTINGS_UPDATED_EVENT = 'hbc:site-settings-updated';
+const SETTINGS_STORAGE_KEY = 'hbc-site-settings-updated';
 
-export async function getSettings(): Promise<SiteSettings> {
-  if (cachedSettings) return cachedSettings;
-  const { data } = await supabase
+function publishSettings(settings: SiteSettings) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent<SiteSettings>(SETTINGS_UPDATED_EVENT, { detail: settings }));
+  try {
+    window.localStorage.setItem(SETTINGS_STORAGE_KEY, String(Date.now()));
+  } catch {
+    // Storage may be unavailable; same-tab subscribers still receive the event.
+  }
+}
+
+async function refreshSettingsFromServer() {
+  cachedSettings = null;
+  settingsFetchedAt = 0;
+  return getSettings(true);
+}
+
+function ensureSettingsRealtime() {
+  if (settingsRealtimeStarted || typeof window === 'undefined') return;
+  settingsRealtimeStarted = true;
+  // Realtime keeps already-open storefront tabs in sync with Admin updates.
+  // The focus/TTL refresh below is a fallback if Realtime is not enabled for this table.
+  supabase
+    .channel('hbc-site-settings-sync')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'site_settings',
+      filter: 'id=eq.1',
+    }, () => {
+      void refreshSettingsFromServer().then(publishSettings).catch((error) => {
+        console.error('Updated site settings could not be refreshed:', error);
+      });
+    })
+    .subscribe();
+}
+
+export async function getSettings(forceRefresh = false): Promise<SiteSettings> {
+  ensureSettingsRealtime();
+  const isFresh = cachedSettings && Date.now() - settingsFetchedAt < SETTINGS_CACHE_TTL;
+  if (!forceRefresh && isFresh) return cachedSettings as SiteSettings;
+  if (settingsRequest) return settingsRequest;
+
+  settingsRequest = supabase
     .from('site_settings')
     .select('*')
     .eq('id', 1)
-    .maybeSingle();
-  cachedSettings = data || DEFAULT_SETTINGS;
-  return cachedSettings ?? DEFAULT_SETTINGS;
+    .maybeSingle()
+    .then(({ data, error }) => {
+      if (error) throw error;
+      cachedSettings = data || DEFAULT_SETTINGS;
+      settingsFetchedAt = Date.now();
+      return cachedSettings as SiteSettings;
+    })
+    .catch((error) => {
+      if (cachedSettings) return cachedSettings;
+      console.error('Site settings could not be loaded:', error);
+      cachedSettings = DEFAULT_SETTINGS;
+      settingsFetchedAt = Date.now();
+      return DEFAULT_SETTINGS;
+    })
+    .finally(() => {
+      settingsRequest = null;
+    });
+
+  return settingsRequest;
+}
+
+export function subscribeToSettings(listener: (settings: SiteSettings) => void) {
+  if (typeof window === 'undefined') return () => undefined;
+  ensureSettingsRealtime();
+
+  const onUpdate = (event: Event) => {
+    const settings = (event as CustomEvent<SiteSettings>).detail;
+    if (settings) listener(settings);
+  };
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== SETTINGS_STORAGE_KEY) return;
+    void refreshSettingsFromServer().then(listener).catch((error) => {
+      console.error('Cross-tab site settings refresh failed:', error);
+    });
+  };
+  const onFocus = () => {
+    if (Date.now() - settingsFetchedAt < SETTINGS_CACHE_TTL) return;
+    void refreshSettingsFromServer().then(listener).catch((error) => {
+      console.error('Site settings focus refresh failed:', error);
+    });
+  };
+
+  window.addEventListener(SETTINGS_UPDATED_EVENT, onUpdate);
+  window.addEventListener('storage', onStorage);
+  window.addEventListener('focus', onFocus);
+  return () => {
+    window.removeEventListener(SETTINGS_UPDATED_EVENT, onUpdate);
+    window.removeEventListener('storage', onStorage);
+    window.removeEventListener('focus', onFocus);
+  };
 }
 
 export async function updateSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {
   // The Admin Settings UI keeps a form merged with defaults. Only persist fields
   // that actually differ from the last loaded settings snapshot so saving one
   // category cannot accidentally reset values belonging to another category.
-  const current = cachedSettings || await getSettings();
+  const current = await getSettings();
   const safeUpdates = Object.fromEntries(
     Object.entries(updates).filter(([key, value]) => {
       if (key === 'id') return false;
@@ -111,6 +204,8 @@ export async function updateSettings(updates: Partial<SiteSettings>): Promise<Si
     .single();
   if (error) throw error;
   cachedSettings = data;
+  settingsFetchedAt = Date.now();
+  publishSettings(data);
   return data;
 }
 
@@ -120,6 +215,8 @@ export function getDefaultSettings(): SiteSettings {
 
 export function clearSettingsCache() {
   cachedSettings = null;
+  settingsFetchedAt = 0;
+  settingsRequest = null;
 }
 
 export function getDeliveryCharge(_settings: SiteSettings, district: string, _subtotal: number, thana = ''): number {

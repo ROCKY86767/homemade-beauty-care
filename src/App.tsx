@@ -11,7 +11,7 @@ import MobileNav from '@/components/MobileNav';
 import LiveChat from '@/components/LiveChat';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import Analytics from '@/components/Analytics';
-import { getSettings } from '@/lib/settings';
+import { getSettings, subscribeToSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 import HomePage from '@/pages/HomePage';
 const ShopPage = lazy(() => import('@/pages/ShopPage'));
@@ -78,6 +78,7 @@ function AppContent() {
 
   useEffect(() => {
     getSettings().then(setSiteSettings);
+    const unsubscribeSettings = subscribeToSettings(setSiteSettings);
     const handleRecovery = async () => {
       const hash = window.location.hash;
       if (!hash) return;
@@ -111,6 +112,7 @@ function AppContent() {
 
     return () => {
       subscription.unsubscribe();
+      unsubscribeSettings();
     };
   }, [navigate]);
 

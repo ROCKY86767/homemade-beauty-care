@@ -28,6 +28,7 @@ const toWebPImageUrl = (imageUrl: string | null | undefined, width: number) => {
     url.searchParams.set('format', 'webp');
     url.searchParams.set('quality', '80');
     url.searchParams.set('width', String(width));
+    url.searchParams.set('resize', 'contain');
     return url.toString();
   } catch {
     return imageUrl;

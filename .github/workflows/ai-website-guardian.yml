@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -89,6 +89,7 @@ jobs:
             exit 0
           fi
           git commit -m "fix: AI Guardian automated website maintenance"
+          gh auth setup-git
           git push origin "$branch"
           pr_url="$(gh pr create --base main --head "$branch" --title "AI Guardian: guarded website fix" --body "## Automated maintenance proposal
 

@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.create-moderator]
 verify_jwt = true
+
+[functions.ai-guardian-report]
+verify_jwt = false

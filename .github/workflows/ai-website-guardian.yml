@@ -40,7 +40,9 @@ jobs:
       - name: Build current website
         id: initial_build
         continue-on-error: true
-        run: npm run build
+        run: |
+          npm run build
+          npm run typecheck
 
       - name: Audit production website
         id: audit
@@ -63,6 +65,7 @@ jobs:
         run: |
           git diff --check
           npm run build
+          npm run typecheck
           AI_GUARDIAN_OUTPUT=ai-guardian-postfix.json node scripts/ai-guardian-audit.mjs
 
       - name: Compare before and after audit

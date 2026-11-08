@@ -41,6 +41,7 @@ import {
   ChevronDown,
   Activity,
   SlidersHorizontal,
+  ShieldCheck,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
@@ -53,6 +54,7 @@ import AdminIntegrationCenter from '../components/AdminIntegrationCenter';
 import AdminSettingsCenter from '../components/AdminSettingsCenter';
 import OrderManagementIntegrationCenter from '../components/OrderManagementIntegrationCenter';
 import AdminAnalyticsView from '../components/AdminAnalyticsView';
+import AdminAIGuardianView from '../components/AdminAIGuardianView';
 import { formatPrice } from '../lib/format';
 import { getSettings, updateSettings, getDeliveryCharge } from '../lib/settings';
 import { getDistricts, getThanas, DHAKA_CITY_THANAS } from '../lib/bangladeshLocations';
@@ -78,6 +80,7 @@ type Tab =
   | 'reports'
   | 'analytics'
   | 'visitor-activity'
+  | 'ai-guardian'
   | 'settings'
   | 'settings-general'
   | 'settings-store'
@@ -290,6 +293,7 @@ export default function AdminPage() {
       'reports',
       'analytics',
       'visitor-activity',
+      'ai-guardian',
       'settings',
       'settings-general',
       'settings-store',
@@ -402,6 +406,7 @@ export default function AdminPage() {
     { id: 'inventory' as Tab, label: 'Inventory', icon: Package },
     { id: 'reports' as Tab, label: 'Reports', icon: BarChart3 },
     { id: 'analytics' as Tab, label: 'Website Analytics', icon: Activity },
+    { id: 'ai-guardian' as Tab, label: 'AI Website Guardian', icon: ShieldCheck },
     { id: 'settings' as Tab, label: 'Settings', icon: Settings },
     { id: 'combo' as Tab, label: 'Homepage Combo Offer', icon: Bookmark },
     { id: 'moderators' as Tab, label: 'Moderators', icon: Users },
@@ -425,7 +430,7 @@ export default function AdminPage() {
   ];
 
   const isAdmin = staffAccess?.role === 'admin';
-  const visibleNavItems = navItems.filter((item) => item.id === 'moderators' ? isAdmin : isAdmin || staffAccess?.permissions?.[item.id] === true);
+  const visibleNavItems = navItems.filter((item) => item.id === 'moderators' || item.id === 'ai-guardian' ? isAdmin : isAdmin || staffAccess?.permissions?.[item.id] === true);
 
   return (
     <div className={`bg-gray-50 ${activeTab === "chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>
@@ -609,6 +614,10 @@ export default function AdminPage() {
 
             {activeTab === 'visitor-activity' && isAdmin && (
               <AdminAnalyticsView journeyOnly />
+            )}
+
+            {activeTab === 'ai-guardian' && isAdmin && (
+              <AdminAIGuardianView />
             )}
 
             {activeTab === 'combo' && (

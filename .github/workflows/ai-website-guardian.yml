@@ -112,7 +112,7 @@ jobs:
           AI_GUARDIAN_REPORT_FILE: ${{ steps.compare.outputs.safe == 'true' && 'ai-guardian-postfix.json' || 'ai-guardian-report.json' }}
           AI_GUARDIAN_PR_URL: ${{ steps.create_pr.outputs.url }}
           AI_GUARDIAN_FIX_BRANCH: ${{ steps.create_pr.outputs.branch }}
-          AI_GUARDIAN_FIX_STATUS: ${{ steps.create_pr.outputs.url != '' && 'pr_created' || (steps.validate.outcome == 'failure' && 'failed' || steps.ai_fix.outputs.fix_status || 'not_attempted') }}
+          AI_GUARDIAN_FIX_STATUS: ${{ steps.create_pr.outputs.url != '' && 'pr_created' || (steps.create_pr.outcome == 'failure' && 'failed') || (steps.validate.outcome == 'failure' && 'failed') || (steps.compare.outcome == 'failure' && 'failed') || steps.ai_fix.outputs.fix_status || 'not_attempted' }}
         run: node scripts/ai-guardian-publish.mjs
 
       - name: Add summary to GitHub run

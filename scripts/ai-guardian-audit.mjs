@@ -12,6 +12,15 @@ if (process.env.AI_GUARDIAN_BUILD_STATUS === 'failure') {
 const metrics = { pages_checked: 0, device_profiles: 2, average_lcp_ms: null, build_status: process.env.AI_GUARDIAN_BUILD_STATUS || 'not_run' };
 const lcpValues = [];
 
+function safeUrl(value) {
+  try {
+    const url = new URL(value);
+    return `${url.origin}${url.pathname}`.slice(0, 350);
+  } catch {
+    return String(value || '').slice(0, 350);
+  }
+}
+
 function addFinding(finding) {
   const key = [finding.category, finding.page, finding.message].join('|');
   if (!findings.some(item => [item.category, item.page, item.message].join('|') === key)) {
@@ -88,13 +97,13 @@ try {
         const failure = request.failure()?.errorText || 'Request failed';
         if (!ignoredHosts.some(host => url.includes(host)) && !failure.includes('ERR_ABORTED')) {
           if (url.startsWith(baseUrl) || url.includes('.supabase.co')) {
-            failedRequests.push({ url: url.slice(0, 350), error: failure.slice(0, 200) });
+            failedRequests.push({ url: safeUrl(url), error: failure.slice(0, 200) });
           }
         }
       });
       page.on('response', response => {
         if (response.status() >= 500) {
-          serverErrors.push({ url: response.url().slice(0, 350), status: response.status() });
+          serverErrors.push({ url: safeUrl(response.url()), status: response.status() });
         }
       });
 

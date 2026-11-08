@@ -6,6 +6,9 @@ const outputPath = process.env.AI_GUARDIAN_OUTPUT || 'ai-guardian-report.json';
 const triggerSource = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' ? 'manual' : 'schedule';
 const startedAt = new Date().toISOString();
 const findings = [];
+if (process.env.AI_GUARDIAN_BUILD_STATUS === 'failure') {
+  findings.push({ category: 'build', severity: 'high', title: 'Project build failed', page: 'repository', message: 'The current source code did not pass npm run build. Review the GitHub Actions build log.' });
+}
 const metrics = { pages_checked: 0, device_profiles: 2, average_lcp_ms: null, build_status: process.env.AI_GUARDIAN_BUILD_STATUS || 'not_run' };
 const lcpValues = [];
 

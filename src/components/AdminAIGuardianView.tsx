@@ -7,7 +7,6 @@ import {
   ExternalLink,
   RefreshCw,
   ShieldCheck,
-  XCircle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -53,7 +52,7 @@ const fixLabel = (status: string) => ({
   pr_created: 'Fix PR created',
   failed: 'Fix failed tests',
   skipped: 'Auto-fix skipped',
-}[status] || status.replaceAll('_', ' '));
+}[status] || status.replace(/_/g, ' '));
 
 export default function AdminAIGuardianView() {
   const [reports, setReports] = useState<GuardianReport[]>([]);

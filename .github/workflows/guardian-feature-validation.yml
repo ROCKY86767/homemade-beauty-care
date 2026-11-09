@@ -5,7 +5,8 @@ on:
     branches: [main]
     paths:
       - 'scripts/ai-guardian-*.mjs'
-      - 'src/components/AdminAIGuardianView.tsx'\n      - 'src/index.css'
+      - 'src/components/AdminAIGuardianView.tsx'
+      - 'src/index.css'
       - '.github/workflows/ai-website-guardian.yml'
       - '.github/workflows/guardian-feature-validation.yml'
       - 'docs/AI_WEBSITE_GUARDIAN_SETUP.md'

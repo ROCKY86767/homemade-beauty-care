@@ -52,7 +52,7 @@ const prompt = [
   JSON.stringify(sourceFiles),
 ].join('\n');
 
-const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite'];
+const models = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
 let responseData = null;
 let lastError = '';
 for (const model of models) {

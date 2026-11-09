@@ -44,9 +44,7 @@ export default function Header() {
     if (!element) return;
     const observer = new ResizeObserver(([entry]) => {
       const borderBox = entry.borderBoxSize;
-      const measuredHeight = Array.isArray(borderBox)
-        ? borderBox[0]?.blockSize
-        : borderBox?.blockSize;
+      const measuredHeight = borderBox?.[0]?.blockSize;
       setHeaderHeight(measuredHeight ?? entry.contentRect.height);
     });
     observer.observe(element);

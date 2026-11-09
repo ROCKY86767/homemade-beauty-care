@@ -9,8 +9,10 @@ const findings = [];
 if (process.env.AI_GUARDIAN_BUILD_STATUS === 'failure') {
   findings.push({ category: 'build', severity: 'high', title: 'Project build failed', page: 'repository', message: 'The current source code did not pass npm run build. Review the GitHub Actions build log.' });
 }
-const metrics = { pages_checked: 0, device_profiles: 2, average_lcp_ms: null, build_status: process.env.AI_GUARDIAN_BUILD_STATUS || 'not_run' };
+const metrics = { pages_checked: 0, device_profiles: 2, average_lcp_ms: null, average_cls: null, average_ttfb_ms: null, build_status: process.env.AI_GUARDIAN_BUILD_STATUS || 'not_run' };
 const lcpValues = [];
+const clsValues = [];
+const ttfbValues = [];
 
 function safeUrl(value) {
   try {
@@ -72,6 +74,27 @@ try {
 
       await page.addInitScript(() => {
         window.__aiGuardianLcp = 0;
+        window.__aiGuardianCls = 0;
+        let clsSessionValue = 0;
+        let clsSessionStart = 0;
+        let clsLastShift = 0;
+        try {
+          new PerformanceObserver((entries) => {
+            for (const entry of entries.getEntries()) {
+              if (entry.hadRecentInput) continue;
+              const time = entry.startTime || 0;
+              if (time - clsLastShift > 1000 || time - clsSessionStart > 5000) {
+                clsSessionStart = time;
+                clsSessionValue = 0;
+              }
+              clsSessionValue += entry.value || 0;
+              clsLastShift = time;
+              window.__aiGuardianCls = Math.max(window.__aiGuardianCls || 0, clsSessionValue);
+            }
+          }).observe({ type: 'layout-shift', buffered: true });
+        } catch {
+          // Layout Shift API is not supported in every browser context.
+        }
         try {
           new PerformanceObserver((entries) => {
             for (const entry of entries.getEntries()) {
@@ -120,11 +143,14 @@ try {
           bodyTextLength: document.body?.innerText?.trim().length || 0,
           horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 2,
           lcp: window.__aiGuardianLcp || 0,
+          cls: window.__aiGuardianCls || 0,
           ttfb: performance.getEntriesByType('navigation')[0]?.responseStart || 0,
         }));
 
         metrics.pages_checked += 1;
         if (pageInfo.lcp > 0) lcpValues.push(pageInfo.lcp);
+        clsValues.push(pageInfo.cls);
+        if (pageInfo.ttfb > 0) ttfbValues.push(pageInfo.ttfb);
 
         if (responseStatus === null || responseStatus >= 500) {
           addFinding({ category: 'availability', severity: 'critical', title: 'Page unavailable', page: route, message: `The page returned HTTP ${responseStatus ?? 'no response'} on ${profile.name}.` });
@@ -157,6 +183,7 @@ try {
           status: responseStatus,
           lcp_ms: Math.round(pageInfo.lcp),
           ttfb_ms: Math.round(pageInfo.ttfb),
+          cls: Number(pageInfo.cls.toFixed(4)),
           horizontal_overflow: pageInfo.horizontalOverflow,
         };
       } catch (error) {
@@ -176,6 +203,12 @@ try {
 
 metrics.average_lcp_ms = lcpValues.length
   ? Math.round(lcpValues.reduce((sum, value) => sum + value, 0) / lcpValues.length)
+  : null;
+metrics.average_cls = clsValues.length
+  ? Number((clsValues.reduce((sum, value) => sum + value, 0) / clsValues.length).toFixed(4))
+  : null;
+metrics.average_ttfb_ms = ttfbValues.length
+  ? Math.round(ttfbValues.reduce((sum, value) => sum + value, 0) / ttfbValues.length)
   : null;
 
 const weights = { critical: 35, high: 20, medium: 8, low: 2 };

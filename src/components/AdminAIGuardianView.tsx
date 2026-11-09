@@ -92,6 +92,23 @@ export default function AdminAIGuardianView() {
   const latest = reports[0];
   const totalFindings = reports.reduce((total, report) => total + (Array.isArray(report.findings) ? report.findings.length : 0), 0);
   const latestFindings = Array.isArray(latest?.findings) ? latest.findings : [];
+  const latestMetrics = (latest?.metrics || {}) as Record<string, unknown>;
+  const previousMetrics = (reports[1]?.metrics || {}) as Record<string, unknown>;
+  const metricNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const metricDelta = (current: unknown, previous: unknown, decimals = 0) => {
+    const a = metricNumber(current);
+    const b = metricNumber(previous);
+    if (a === null || b === null) return 'Baseline being collected';
+    const delta = a - b;
+    return (delta > 0 ? '+' : '') + delta.toFixed(decimals) + ' vs previous audit';
+  };
+  const checkoutMetrics = latestMetrics.checkout_test as { status?: string; profiles?: unknown[]; real_orders_created?: boolean } | undefined;
+  const performanceCards = [
+    { label: 'Average LCP', value: metricNumber(latestMetrics.average_lcp_ms) === null ? '—' : String(metricNumber(latestMetrics.average_lcp_ms)) + ' ms', delta: metricDelta(latestMetrics.average_lcp_ms, previousMetrics.average_lcp_ms) },
+    { label: 'Average CLS', value: metricNumber(latestMetrics.average_cls) === null ? '—' : metricNumber(latestMetrics.average_cls)!.toFixed(4), delta: metricDelta(latestMetrics.average_cls, previousMetrics.average_cls, 4) },
+    { label: 'Average TTFB', value: metricNumber(latestMetrics.average_ttfb_ms) === null ? '—' : String(metricNumber(latestMetrics.average_ttfb_ms)) + ' ms', delta: metricDelta(latestMetrics.average_ttfb_ms, previousMetrics.average_ttfb_ms) },
+    { label: 'Checkout smoke test', value: checkoutMetrics?.status || 'Not run', delta: checkoutMetrics?.profiles?.length ? String(checkoutMetrics.profiles.length) + ' device profiles · no real orders' : 'Desktop and mobile validation' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -157,6 +174,15 @@ export default function AdminAIGuardianView() {
                 </span>
               </div>
               <p className="mt-4 text-sm leading-6 text-gray-700">{latest.summary || 'No summary was provided.'}</p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {performanceCards.map(card => (
+                  <div key={card.label} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <p className="text-xs font-medium text-gray-500">{card.label}</p>
+                    <p className="mt-2 text-xl font-bold text-gray-900">{card.value}</p>
+                    <p className="mt-1 text-xs text-gray-500">{card.delta}</p>
+                  </div>
+                ))}
+              </div>
               <div className="mt-4 flex flex-wrap gap-2 text-xs">
                 <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-slate-700">Auto-fix: {fixLabel(latest.fix_status)}</span>
                 <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-slate-700">Trigger: {latest.trigger_source}</span>

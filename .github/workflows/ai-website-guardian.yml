@@ -51,6 +51,13 @@ jobs:
           AI_GUARDIAN_BUILD_STATUS: ${{ steps.initial_build.outcome }}
         run: node scripts/ai-guardian-audit.mjs
 
+      - name: Run safe checkout smoke tests
+        id: checkout_test
+        if: steps.audit.outcome == 'success'
+        env:
+          AI_GUARDIAN_BASE_URL: https://homemade-beauty-care.vercel.app
+        run: node scripts/ai-guardian-checkout-test.mjs
+
       - name: Ask Gemini for a guarded code fix
         id: ai_fix
         if: always() && steps.audit.outcome == 'success'
@@ -114,6 +121,15 @@ jobs:
           AI_GUARDIAN_FIX_BRANCH: ${{ steps.create_pr.outputs.branch }}
           AI_GUARDIAN_FIX_STATUS: ${{ steps.create_pr.outputs.url != '' && 'pr_created' || (steps.create_pr.outcome == 'failure' && 'failed') || (steps.validate.outcome == 'failure' && 'failed') || (steps.compare.outcome == 'failure' && 'failed') || steps.ai_fix.outputs.fix_status || 'not_attempted' }}
         run: node scripts/ai-guardian-publish.mjs
+
+      - name: Send instant email alert for detected issues
+        if: always() && steps.audit.outcome == 'success'
+        continue-on-error: true
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          AI_GUARDIAN_ALERT_TO: ${{ vars.AI_GUARDIAN_ALERT_TO }}
+          AI_GUARDIAN_ALERT_FROM: ${{ vars.AI_GUARDIAN_ALERT_FROM }}
+        run: node scripts/ai-guardian-alert.mjs
 
       - name: Add summary to GitHub run
         if: always() && steps.audit.outcome == 'success'

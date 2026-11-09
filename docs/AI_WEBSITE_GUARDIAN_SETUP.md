@@ -32,3 +32,20 @@ GitHub Actions usage, Gemini API quota, Supabase Edge Function/database limits, 
 ## Safety and release policy
 
 AI-generated code changes are restricted to the public UI allowlist, checked with a build and a second browser audit, and submitted as a pull request. A human review of the Vercel Preview is still required before merging to `main`, preserving the site's existing release rule. The first version does not automatically modify customer/order data or production database schemas.
+
+## Checkout, performance, and instant alerts
+
+- Each scheduled audit runs a read-only checkout smoke test on desktop and mobile. It seeds a disposable browser-only cart, verifies the checkout form and required-field validation, and asserts that the `create_guest_order` RPC is never called. It does not create a real order, reserve stock, or initiate payment.
+- Performance reports now include average LCP, CLS, and TTFB values across the audited routes and device profiles. Per-route values are retained in each report's metrics JSON and can be compared in the Admin Guardian history.
+- Email alerts are sent only when the audit reports findings or a non-completed status. Healthy audits do not send email.
+
+### Enable email alerts (one-time)
+
+1. Create a Resend account and verify a sender domain/address there.
+2. Add the Resend API key as a GitHub Actions repository secret named `RESEND_API_KEY`.
+3. Add these GitHub Actions repository variables:
+   - `AI_GUARDIAN_ALERT_TO`: the email address that should receive website alerts.
+   - `AI_GUARDIAN_ALERT_FROM`: the verified sender, for example `Website Guardian <alerts@your-verified-domain.com>`.
+4. Run the workflow manually once and confirm that a test finding or an actual detected issue results in an email. Normal healthy runs remain silent.
+
+If the Resend credentials are not configured, audits and dashboard reporting continue normally and the email step is skipped.

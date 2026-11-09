@@ -37,20 +37,35 @@ try {
 
     try {
       const response = await page.goto(`${baseUrl}/checkout`, { waitUntil: 'domcontentloaded', timeout: 25000 });
-      await page.locator('form').first().waitFor({ state: 'visible', timeout: 20000 });
-      await page.locator('form button[type="submit"]').first().waitFor({ state: 'visible', timeout: 10000 });
 
-      // Dispatch the React form event directly so browser-native required-field UI
-      // cannot prevent the application validation handler from being exercised.
-      await page.locator('form').first().evaluate(form =>
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+      // The global header also contains a search form (hidden on mobile).
+      // Identify checkout by its customer-facing submit button, not form order.
+      const checkoutForm = page.locator('form').filter({
+        has: page.getByRole('button', { name: /Place Order|অর্ডার নিশ্চিত করুন/i }),
+      });
+      await checkoutForm.waitFor({ state: 'visible', timeout: 20000 });
+      const submitButton = checkoutForm.getByRole('button', { name: /Place Order|অর্ডার নিশ্চিত করুন/i });
+      await submitButton.waitFor({ state: 'visible', timeout: 10000 });
+
+      if (!response || response.status() >= 400) {
+        throw new Error(`Checkout page returned HTTP ${response?.status() ?? 'no response'}.`);
+      }
+
+      // Bypass browser-native required-field blocking while still using the
+      // browser's submit event so React's real onSubmit handler is exercised.
+      await checkoutForm.evaluate(form => {
+        form.noValidate = true;
+        form.requestSubmit();
+      });
+
+      const validationMessage = checkoutForm.getByText(
+        /Please fill in all required fields|প্রয়োজনীয় তথ্য পূরণ করুন/i
       );
-      await page.waitForTimeout(250);
-      const bodyText = await page.locator('body').innerText();
-      const validationShown = /Please fill in all required fields|প্রয়োজনীয় তথ্য পূরণ করুন/i.test(bodyText);
-      if (!response || response.status() >= 400) throw new Error(`Checkout page returned HTTP ${response?.status() ?? 'no response'}.`);
-      if (!validationShown) throw new Error('Required-field validation message was not displayed.');
-      if (orderRpcCalls !== 0) throw new Error('Safety check failed: order-creation RPC was called during the smoke test.');
+      await validationMessage.waitFor({ state: 'visible', timeout: 5000 });
+
+      if (orderRpcCalls !== 0) {
+        throw new Error('Safety check failed: order-creation RPC was called during the smoke test.');
+      }
 
       results.push({ device: profile.name, status: 'passed', validation: 'passed', order_rpc_calls: orderRpcCalls });
     } catch (error) {

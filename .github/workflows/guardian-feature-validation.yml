@@ -1,0 +1,56 @@
+name: Guardian feature validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/ai-guardian-*.mjs'
+      - 'src/components/AdminAIGuardianView.tsx'
+      - '.github/workflows/ai-website-guardian.yml'
+      - '.github/workflows/guardian-feature-validation.yml'
+      - 'docs/AI_WEBSITE_GUARDIAN_SETUP.md'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Install temporary Playwright browser
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Audit production routes and performance
+        env:
+          AI_GUARDIAN_BASE_URL: https://homemade-beauty-care.vercel.app
+        run: node scripts/ai-guardian-audit.mjs
+
+      - name: Run safe checkout smoke tests
+        env:
+          AI_GUARDIAN_BASE_URL: https://homemade-beauty-care.vercel.app
+        run: node scripts/ai-guardian-checkout-test.mjs

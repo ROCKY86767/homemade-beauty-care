@@ -52,7 +52,7 @@ const prompt = [
   JSON.stringify(sourceFiles),
 ].join('\n');
 
-const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite'];
 let responseData = null;
 let lastError = '';
 for (const model of models) {
@@ -64,7 +64,6 @@ for (const model of models) {
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
-          temperature: 0.1,
           maxOutputTokens: 12000,
           responseSchema: {
             type: 'OBJECT',
@@ -87,9 +86,11 @@ for (const model of models) {
     const json = await response.json();
     if (!response.ok) throw new Error(`${model}: HTTP ${response.status} ${JSON.stringify(json).slice(0, 700)}`);
     responseData = json;
+    console.log(`Gemini safe-fix response received from ${model}.`);
     break;
   } catch (error) {
     lastError = error instanceof Error ? error.message : 'Gemini request failed';
+    console.error(lastError);
   }
 }
 

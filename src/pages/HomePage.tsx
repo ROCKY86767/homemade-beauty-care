@@ -279,11 +279,11 @@ export default function HomePage() { // centralized storefront settings
          * আলাদা section-এর products বের করা হচ্ছে।
          */
 
-        const bannersPromise = supabase
+        const bannersPromise = Promise.resolve(supabase
           .from('banners')
           .select('*')
           .eq('is_active', true)
-          .order('sort_order')
+          .order('sort_order'))
           .then((result) => {
             if (result.error) {
               console.error('Banners load error:', result.error);
@@ -722,7 +722,7 @@ export default function HomePage() { // centralized storefront settings
             >
               <div className="homepage-review-track flex w-max py-3">
                 {[0, 1].map((copy) => (
-                  <div key={copy} className="homepage-review-group flex shrink-0 gap-4 pr-4 sm:gap-5 sm:pr-5" aria-hidden={copy === 1 ? true : undefined} inert={copy === 1}>
+                  <div key={copy} className="homepage-review-group flex shrink-0 gap-4 pr-4 sm:gap-5 sm:pr-5" aria-hidden={copy === 1 ? true : undefined} {...(copy === 1 ? ({ inert: '' } as any) : {})}>
                     {editorialReviews.map((item) => (
                   <article key={`${copy}-${item.id}`} className="w-[58vw] max-w-[220px] shrink-0 overflow-hidden rounded-2xl border border-[#E3E5D9] bg-white shadow-md shadow-[#263A2D]/5 sm:w-[220px]">
                     <div className="relative aspect-[4/5] overflow-hidden bg-[#E9E8DD]">

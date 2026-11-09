@@ -55,7 +55,7 @@ jobs:
         id: ai_fix
         if: always() && steps.audit.outcome == 'success'
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY_2 }}
           AI_GUARDIAN_AUTO_FIX: ${{ vars.AI_GUARDIAN_AUTO_FIX || 'true' }}
         run: node scripts/ai-guardian-ai-fix.mjs
 

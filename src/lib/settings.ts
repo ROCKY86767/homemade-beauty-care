@@ -126,11 +126,13 @@ export async function getSettings(forceRefresh = false): Promise<SiteSettings> {
   if (!forceRefresh && isFresh) return cachedSettings as SiteSettings;
   if (settingsRequest) return settingsRequest;
 
-  settingsRequest = supabase
-    .from('site_settings')
-    .select('*')
-    .eq('id', 1)
-    .maybeSingle()
+  settingsRequest = Promise.resolve(
+    supabase
+      .from('site_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle()
+  )
     .then(({ data, error }) => {
       if (error) throw error;
       cachedSettings = data || DEFAULT_SETTINGS;

@@ -34,8 +34,10 @@ jobs:
 
       - name: Install temporary browser audit dependency
         run: |
-          npm install --no-save --package-lock=false playwright@1.56.1
-          npx playwright install --with-deps chromium
+          mkdir -p /tmp/guardian-playwright
+          npm install --prefix /tmp/guardian-playwright --no-save --package-lock=false playwright@1.56.1
+          ln -s /tmp/guardian-playwright/node_modules/playwright node_modules/playwright
+          /tmp/guardian-playwright/node_modules/.bin/playwright install --with-deps chromium
 
       - name: Build current website
         id: initial_build
@@ -141,3 +143,25 @@ jobs:
           if [ -n "${{ steps.create_pr.outputs.url }}" ]; then
             echo "AI fix PR: ${{ steps.create_pr.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Fail run when Guardian detects blocking issues
+        if: always() && steps.audit.outcome == 'success'
+        env:
+          INITIAL_BUILD_OUTCOME: ${{ steps.initial_build.outcome }}
+          AI_FIX_STATUS: ${{ steps.ai_fix.outputs.fix_status }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const report = JSON.parse(await readFile('ai-guardian-report.json', 'utf8'));
+          const problems = [];
+          if (process.env.INITIAL_BUILD_OUTCOME !== 'success') problems.push('Build or typecheck failed.');
+          if (report.status !== 'completed') problems.push(`Audit status: ${report.status}; health score: ${report.health_score}.`);
+          if (report.metrics?.checkout_test?.status !== 'passed') problems.push('Checkout smoke test did not pass on both devices.');
+          if (report.findings?.length && process.env.AI_FIX_STATUS === 'failed') problems.push('Gemini safe-fix attempt failed while findings were present.');
+          if (problems.length) {
+            console.error('AI Website Guardian found blocking issues:');
+            for (const problem of problems) console.error(`- ${problem}`);
+            process.exit(1);
+          }
+          console.log('Guardian audit, checkout smoke tests, build, and safe-fix status are healthy.');
+          NODE

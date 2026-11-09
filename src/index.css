@@ -456,9 +456,9 @@ img {
   border-radius: 1.1rem !important;
 }
 .homepage-compact > section.brand-gradient .section-padding,
-.homepage-compact > section:not(.hero-premium) .min-h-\\[390px\\],
-.homepage-compact > section:not(.hero-premium) .min-h-\\[460px\\],
-.homepage-compact > section:not(.hero-premium) .min-h-\\[520px\\] {
+.homepage-compact > section:not(.hero-premium) [class~="min-h-[390px]"],
+.homepage-compact > section:not(.hero-premium) [class~="min-h-[460px]"],
+.homepage-compact > section:not(.hero-premium) [class~="min-h-[520px]"] {
   min-height: 0 !important;
 }
 .homepage-compact > section.brand-gradient .section-padding {

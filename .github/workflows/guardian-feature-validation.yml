@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/ai-guardian-*.mjs'
       - 'src/components/AdminAIGuardianView.tsx'
+      - 'src/index.css'
       - '.github/workflows/ai-website-guardian.yml'
       - '.github/workflows/guardian-feature-validation.yml'
       - 'docs/AI_WEBSITE_GUARDIAN_SETUP.md'
@@ -42,8 +43,10 @@ jobs:
 
       - name: Install temporary Playwright browser
         run: |
-          npm install --no-save --package-lock=false playwright@1.56.1
-          npx playwright install --with-deps chromium
+          mkdir -p /tmp/guardian-playwright
+          npm install --prefix /tmp/guardian-playwright --no-save --package-lock=false playwright@1.56.1
+          ln -s /tmp/guardian-playwright/node_modules/playwright node_modules/playwright
+          /tmp/guardian-playwright/node_modules/.bin/playwright install --with-deps chromium
 
       - name: Audit production routes and performance
         env:

@@ -7,6 +7,7 @@ import {
   ExternalLink,
   RefreshCw,
   ShieldCheck,
+  Play,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -58,6 +59,8 @@ export default function AdminAIGuardianView() {
   const [reports, setReports] = useState<GuardianReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [manualRunning, setManualRunning] = useState(false);
+  const [manualMessage, setManualMessage] = useState('');
   const [error, setError] = useState('');
 
   const load = useCallback(async (quiet = false) => {
@@ -82,6 +85,25 @@ export default function AdminAIGuardianView() {
     setLoading(false);
     setRefreshing(false);
   }, []);
+
+  const runManualAudit = async () => {
+    setManualRunning(true);
+    setManualMessage('');
+    setError('');
+
+    const { data, error: triggerError } = await supabase.functions.invoke('guardian-manual-trigger', {
+      method: 'POST',
+      body: {},
+    });
+
+    if (triggerError) {
+      setError(triggerError.message || 'Manual audit শুরু করা যায়নি।');
+    } else {
+      setManualMessage(data?.message || 'Manual audit request GitHub Actions-এ পাঠানো হয়েছে। Audit শেষ হলে রিপোর্ট এখানে দেখা যাবে।');
+    }
+
+    setManualRunning(false);
+  };
 
   useEffect(() => {
     void load();
@@ -120,6 +142,16 @@ export default function AdminAIGuardianView() {
           </div>
           <p className="mt-1 text-sm text-gray-500">Website health monitoring, scheduled every 6 hours.</p>
         </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          onClick={() => void runManualAudit()}
+          disabled={manualRunning || loading}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {manualRunning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+          {manualRunning ? 'Starting audit…' : 'Run manual audit'}
+        </button>
         <button
           type="button"
           onClick={() => void load(true)}
@@ -129,7 +161,14 @@ export default function AdminAIGuardianView() {
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           Refresh reports
         </button>
+        </div>
       </div>
+      {manualMessage && (
+        <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+          <p>{manualMessage}</p>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border bg-white p-5">

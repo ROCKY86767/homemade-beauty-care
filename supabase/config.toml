@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.ai-guardian-report]
 verify_jwt = false
+
+[functions.guardian-manual-trigger]
+verify_jwt = true

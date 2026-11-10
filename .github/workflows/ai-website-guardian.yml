@@ -1,8 +1,9 @@
 name: AI Website Guardian
 
 on:
+  # Run 17 minutes past each 6-hour boundary to avoid GitHub's top-of-hour schedule congestion.
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 permissions:

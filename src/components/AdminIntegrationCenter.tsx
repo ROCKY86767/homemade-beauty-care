@@ -191,6 +191,42 @@ export default function AdminIntegrationCenter() {
     setSaving(false);
   };
 
+  const saveMetaSettings = async () => {
+    if (settings.meta_capi_enabled && !settings.meta_pixel_id.trim()) {
+      setError('Browser Pixel চালু করতে Meta Pixel ID দিতে হবে।');
+      return;
+    }
+    if (settings.meta_capi_enabled && !settings.meta_capi_access_token_set) {
+      setError('Meta CAPI চালু করার আগে Access Token save করো।');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const { data, error: rpcError } = await supabase.rpc(
+        'save_admin_integration_settings',
+        { p_settings: settings }
+      );
+      if (rpcError) throw rpcError;
+
+      // Update the public browser Pixel switch after integration settings are saved,
+      // so storefront listeners read the latest Pixel/CAPI state.
+      await updateSettings({ meta_pixel_enabled: settings.meta_capi_enabled });
+
+      setSettings({ ...EMPTY, ...(data || settings) });
+      setMessage(settings.meta_capi_enabled
+        ? 'Meta Pixel + Conversions API চালু হয়েছে।'
+        : 'Meta Pixel + Conversions API বন্ধ করা হয়েছে।');
+    } catch (err: any) {
+      setError(err.message || 'Meta settings save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const saveSecret = async (name: string, value: string) => {
     setSavingSecret(name);
     setError('');
@@ -481,7 +517,10 @@ export default function AdminIntegrationCenter() {
 
           <div className="mt-5 space-y-4">
             <label className="flex items-center justify-between rounded-lg border bg-gray-50 px-3 py-3">
-              <span className="text-sm font-medium">Enable Meta CAPI</span>
+              <span>
+                <span className="block text-sm font-medium">Enable Meta Pixel + Conversions API</span>
+                <span className="mt-0.5 block text-xs text-gray-500">একটি সুইচ থেকেই Browser Pixel ও server-side Purchase tracking চালু/বন্ধ হবে। চালু করতে Pixel ID এবং CAPI Access Token save থাকতে হবে।</span>
+              </span>
               <input
                 type="checkbox"
                 checked={settings.meta_capi_enabled}
@@ -506,8 +545,9 @@ export default function AdminIntegrationCenter() {
                   value={settings.meta_dataset_id}
                   onChange={(e) => setSettings({ ...settings, meta_dataset_id: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
-                  placeholder="Dataset ID"
+                  placeholder="Dataset ID (optional)"
                 />
+                <p className="mt-1 text-xs text-gray-500">Meta আলাদা Dataset ID না দিলে ফাঁকা রাখো। তখন Pixel ID-ই CAPI Dataset হিসেবে ব্যবহার হবে।</p>
               </div>
             </div>
 
@@ -534,7 +574,7 @@ export default function AdminIntegrationCenter() {
 
           <button
             type="button"
-            onClick={saveSettings}
+            onClick={saveMetaSettings}
             disabled={saving}
             className="mt-5 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-medium inline-flex items-center gap-2 disabled:opacity-50"
           >

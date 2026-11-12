@@ -192,8 +192,8 @@ export default function AdminIntegrationCenter() {
   };
 
   const saveMetaSettings = async () => {
-    if (settings.meta_capi_enabled && !settings.meta_pixel_id.trim() && !settings.meta_dataset_id.trim()) {
-      setError('Meta Pixel ID বা Dataset ID দিতে হবে।');
+    if (settings.meta_capi_enabled && !settings.meta_pixel_id.trim()) {
+      setError('Browser Pixel চালু করতে Meta Pixel ID দিতে হবে।');
       return;
     }
     if (settings.meta_capi_enabled && !settings.meta_capi_access_token_set) {
@@ -206,12 +206,15 @@ export default function AdminIntegrationCenter() {
     setMessage('');
 
     try {
-      await updateSettings({ meta_pixel_enabled: settings.meta_capi_enabled });
       const { data, error: rpcError } = await supabase.rpc(
         'save_admin_integration_settings',
         { p_settings: settings }
       );
       if (rpcError) throw rpcError;
+
+      // Update the public browser Pixel switch after integration settings are saved,
+      // so storefront listeners read the latest Pixel/CAPI state.
+      await updateSettings({ meta_pixel_enabled: settings.meta_capi_enabled });
 
       setSettings({ ...EMPTY, ...(data || settings) });
       setMessage(settings.meta_capi_enabled

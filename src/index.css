@@ -1571,3 +1571,65 @@ footer img {
 .hbc-luna-site .luna-filter-row>div>div{display:grid;align-content:start;gap:8px}
 .hbc-luna-site .luna-filter-row>div>div>div{display:grid;gap:6px}
 .hbc-luna-site .luna-filter-row input[type="number"]{width:100%;min-width:0;padding:7px;border:1px solid #DCCBBF;background:#FFFCF9}
+
+
+/* Checkout responsive containment: prevent mobile horizontal overflow */
+.hbc-luna-site .luna-checkout-content{
+  width:100%;
+  max-width:1160px;
+  min-width:0;
+  margin-inline:auto;
+  padding-inline:clamp(16px,3.2vw,32px)!important;
+  box-sizing:border-box;
+}
+.hbc-luna-site .luna-checkout-content *,
+.hbc-luna-site .luna-checkout-content *::before,
+.hbc-luna-site .luna-checkout-content *::after{box-sizing:border-box}
+.hbc-luna-site .luna-checkout-form{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  width:100%;
+  min-width:0;
+  gap:20px!important;
+}
+.hbc-luna-site .luna-checkout-form>div,
+.hbc-luna-site .luna-checkout-main,
+.hbc-luna-site .luna-checkout-aside,
+.hbc-luna-site .luna-checkout-summary{width:100%;min-width:0;max-width:100%}
+.hbc-luna-site .luna-checkout-main .card,
+.hbc-luna-site .luna-checkout-summary{padding:18px!important}
+.hbc-luna-site .luna-checkout-content input:not([type="radio"]):not([type="checkbox"]),
+.hbc-luna-site .luna-checkout-content select,
+.hbc-luna-site .luna-checkout-content textarea{
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+}
+.hbc-luna-site .luna-checkout-summary .flex{min-width:0}
+.hbc-luna-site .luna-checkout-summary .flex>span{min-width:0;overflow-wrap:anywhere}
+.hbc-luna-site .luna-checkout-summary .flex-1{min-width:0}
+.hbc-luna-site .luna-checkout-summary .space-y-3>div{min-width:0}
+.hbc-luna-site .luna-checkout-summary .space-y-3>div>span:last-child{flex:0 1 auto;text-align:right;overflow-wrap:anywhere}
+.hbc-luna-site .luna-checkout-summary .py-4.border-b>div.flex{align-items:center;flex-wrap:wrap}
+.hbc-luna-site .luna-checkout-summary .py-4.border-b input{flex:1 1 0;width:1%;min-width:0}
+.hbc-luna-site .luna-checkout-summary .py-4.border-b button{flex:0 0 auto;white-space:nowrap}
+.hbc-luna-site .luna-checkout-content h1,
+.hbc-luna-site .luna-checkout-content h2,
+.hbc-luna-site .luna-checkout-content p,
+.hbc-luna-site .luna-checkout-content label{overflow-wrap:anywhere}
+@media(min-width:1024px){
+  .hbc-luna-site .luna-checkout-form{grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr)!important;gap:24px!important}
+  .hbc-luna-site .luna-checkout-summary{position:sticky;top:112px}
+}
+@media(max-width:639px){
+  .hbc-luna-site .luna-checkout-content{padding-inline:16px!important;padding-top:28px!important;padding-bottom:48px!important}
+  .hbc-luna-site .luna-checkout-content .flex.items-center.justify-between{flex-wrap:wrap}
+  .hbc-luna-site .luna-checkout-content .grid.sm\\:grid-cols-2{grid-template-columns:minmax(0,1fr)!important}
+  .hbc-luna-site .luna-checkout-main .card,
+  .hbc-luna-site .luna-checkout-summary{padding:16px!important}
+  .hbc-luna-site .luna-checkout-summary{position:static!important}
+  .hbc-luna-site .luna-checkout-summary .space-y-3>div.flex{gap:8px}
+  .hbc-luna-site .luna-checkout-summary .text-2xl{font-size:21px!important}
+  .hbc-luna-site .luna-checkout-content .text-sm{overflow-wrap:anywhere}
+}

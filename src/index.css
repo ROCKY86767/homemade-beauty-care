@@ -2018,3 +2018,94 @@ footer img {
 .hbc-luna-site .luna-testimonial > div:first-child svg {
   flex: 0 0 auto;
 }
+
+
+/* Compact LUNA footer without removing any footer content or links. */
+.hbc-luna-site .luna-footer-main {
+  padding-top: 30px !important;
+  padding-bottom: 26px !important;
+  gap: 22px !important;
+}
+.hbc-luna-site .luna-footer-brand img {
+  margin-bottom: 0 !important;
+}
+.hbc-luna-site .luna-footer-brand h3 {
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+}
+.hbc-luna-site .luna-footer-brand p,
+.hbc-luna-site .luna-footer-newsletter p {
+  margin-top: 5px !important;
+  line-height: 1.45 !important;
+}
+.hbc-luna-site .luna-footer-socials {
+  margin-top: 10px !important;
+  gap: 7px !important;
+}
+.hbc-luna-site .luna-footer-socials a {
+  width: 28px !important;
+  height: 28px !important;
+}
+.hbc-luna-site .luna-footer-links {
+  gap: 12px !important;
+}
+.hbc-luna-site .luna-footer-links h4,
+.hbc-luna-site .luna-footer-contact h4,
+.hbc-luna-site .luna-footer-newsletter h4 {
+  margin-bottom: 8px !important;
+  font-size: 11px !important;
+}
+.hbc-luna-site .luna-footer-links ul {
+  gap: 6px !important;
+}
+.hbc-luna-site .luna-footer-links a,
+.hbc-luna-site .luna-footer-contact p,
+.hbc-luna-site .luna-footer-contact a {
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+}
+.hbc-luna-site .luna-footer-contact p {
+  gap: 6px !important;
+  margin-bottom: 7px !important;
+}
+.hbc-luna-site .luna-footer-contact svg {
+  width: 12px;
+  height: 12px;
+}
+.hbc-luna-site .luna-footer-newsletter form {
+  margin-top: 9px !important;
+}
+.hbc-luna-site .luna-footer-newsletter input {
+  padding: 7px 3px !important;
+  font-size: 10px !important;
+}
+.hbc-luna-site .luna-footer-newsletter button {
+  width: 30px !important;
+}
+.hbc-luna-site .luna-footer-bottom {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  font-size: 9px !important;
+}
+@media (max-width: 1023px) {
+  .hbc-luna-site .luna-footer-main {
+    gap: 18px !important;
+  }
+}
+@media (max-width: 639px) {
+  .hbc-luna-site .luna-footer-main {
+    gap: 18px !important;
+    padding-top: 22px !important;
+    padding-bottom: 18px !important;
+  }
+  .hbc-luna-site .luna-footer-links {
+    gap: 14px !important;
+  }
+  .hbc-luna-site .luna-footer-links ul {
+    gap: 5px !important;
+  }
+  .hbc-luna-site .luna-footer-bottom {
+    gap: 4px !important;
+  }
+}

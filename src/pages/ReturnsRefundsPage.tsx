@@ -4,7 +4,7 @@ import SEO from '@/components/SEO';
 
 export default function ReturnsRefundsPage() {
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-returns-page min-h-screen bg-cream">
       <SEO title="Returns & Refunds - Homemade Beauty Care" />
 
       <div className="section-padding py-8 md:py-12">

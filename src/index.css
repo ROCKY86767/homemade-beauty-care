@@ -1965,3 +1965,34 @@ footer img {
  .hbc-luna-site .hbc-hairpack>section:first-of-type .max-w-6xl{padding-top:30px!important;padding-bottom:30px!important}
  .hbc-luna-site .hbc-hairpack>section:not(:first-of-type){padding-top:42px!important;padding-bottom:42px!important}
 }
+
+
+/* Requested LUNA refinements: compact story/reviews and clearer horizontal footer branding. */
+.hbc-luna-site .luna-story-section { min-height:270px!important; grid-template-columns:1.1fr .9fr; }
+.hbc-luna-site .luna-story-image,.hbc-luna-site .luna-story-image img { min-height:270px!important; height:270px!important; }
+.hbc-luna-site .luna-story-copy { padding:24px clamp(22px,4vw,54px)!important; }
+.hbc-luna-site .luna-story-copy h2 { margin:8px 0 10px!important; font-size:clamp(22px,2.5vw,28px)!important; line-height:1.15!important; }
+.hbc-luna-site .luna-story-copy p { margin-bottom:12px!important; font-size:12px!important; line-height:1.55!important; }
+.hbc-luna-site .luna-story-copy .luna-hero-primary { min-height:36px; padding-inline:14px; font-size:9px; }
+.hbc-luna-site .luna-testimonial-section { padding:27px 0!important; }
+.hbc-luna-site .luna-testimonial-section h2 { margin:5px 0 8px!important; font-size:clamp(20px,2.3vw,27px)!important; }
+.hbc-luna-site .luna-testimonial-grid { gap:10px!important; margin:10px 0 0!important; }
+.hbc-luna-site .luna-testimonial { padding:10px!important; }
+.hbc-luna-site .luna-testimonial>p { min-height:0!important; margin:7px 0!important; font-size:12px!important; line-height:1.45!important; }
+.hbc-luna-site .luna-testimonial>div { gap:2px!important; font-size:10px!important; }
+.hbc-luna-site .luna-testimonial svg { width:12px; height:12px; }
+.hbc-luna-site footer .luna-footer-brand { display:grid!important; grid-template-columns:54px minmax(0,1fr)!important; grid-template-rows:auto auto!important; align-items:center!important; column-gap:12px!important; row-gap:2px!important; }
+.hbc-luna-site footer .luna-footer-brand>img { grid-column:1!important; grid-row:1/span 2!important; width:54px!important; height:54px!important; max-height:54px!important; object-fit:contain!important; align-self:center!important; }
+.hbc-luna-site footer .luna-footer-brand>h3 { grid-column:2!important; grid-row:1!important; align-self:end!important; margin:0!important; color:#FFFCF9!important; font-size:16px!important; line-height:1.2!important; font-weight:600!important; overflow-wrap:normal; }
+.hbc-luna-site footer .luna-footer-brand>p { grid-column:2!important; grid-row:2!important; align-self:start!important; margin:0!important; color:#E9DDD3!important; font-size:11px!important; line-height:1.4!important; }
+.hbc-luna-site footer .luna-footer-brand>.luna-footer-socials { grid-column:1/-1!important; margin-top:10px!important; }
+.hbc-luna-site footer .luna-footer-bottom>span { color:#F8F4EF!important; }
+@media(max-width:639px) {
+ .hbc-luna-site .luna-story-section { grid-template-columns:1fr!important; }
+ .hbc-luna-site .luna-story-image,.hbc-luna-site .luna-story-image img { min-height:0!important; height:150px!important; }
+ .hbc-luna-site .luna-story-copy { padding:16px 18px 18px!important; }
+ .hbc-luna-site .luna-story-copy h2 { font-size:22px!important; }
+ .hbc-luna-site .luna-testimonial-section { padding:18px 0!important; }
+ .hbc-luna-site .luna-testimonial-grid { grid-template-columns:1fr!important; gap:7px!important; }
+ .hbc-luna-site .luna-testimonial { padding:9px!important; }
+}

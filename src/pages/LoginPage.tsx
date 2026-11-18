@@ -70,7 +70,7 @@ export default function LoginPage() {
     <>
       <SEO title="Login - Homemade Beauty Care" />
 
-      <div className="min-h-[70vh] bg-cream flex items-center justify-center px-4 py-12">
+      <div className="luna-login-page min-h-[70vh] bg-cream flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="card bg-white p-6 sm:p-8">
             <div className="text-center mb-8">

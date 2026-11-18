@@ -876,3 +876,332 @@ footer img {
 .visitor-activity-page * {
   transform: none !important;
 }
+
+
+/* ==========================================================================
+   HOMEMADE BEAUTY CARE — LUNA-inspired editorial storefront system
+   Scoped to customer-facing routes so Admin and operational tools stay intact.
+   ========================================================================== */
+.hbc-luna-site {
+  --luna-cream: #F8F4EF;
+  --luna-paper: #FFFCF9;
+  --luna-blush: #CBB3A0;
+  --luna-blush-soft: #E9DDD3;
+  --luna-brown: #6E4D35;
+  --luna-deep: #1A0E07;
+  --luna-cocoa: #552D18;
+  --luna-terracotta: #996445;
+  --luna-tan: #BB8E6D;
+  --luna-border: #E6D9CE;
+  --luna-muted: #806B5C;
+  background: var(--luna-cream);
+  color: var(--luna-deep);
+  font-family: 'Hind Siliguri', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.hbc-luna-site main { background: var(--luna-cream); }
+.hbc-luna-site h1,
+.hbc-luna-site h2,
+.hbc-luna-site h3,
+.hbc-luna-site h4,
+.hbc-luna-site .font-display {
+  font-family: 'Playfair Display', 'Hind Siliguri', serif;
+  letter-spacing: -.025em;
+}
+.hbc-luna-site p { color: inherit; }
+.hbc-luna-site .bg-white { background-color: var(--luna-paper) !important; }
+.hbc-luna-site .bg-cream,
+.hbc-luna-site .bg-\[\#F7F4EA\] { background-color: var(--luna-cream) !important; }
+.hbc-luna-site .bg-light-green,
+.hbc-luna-site .bg-light-green\/40 { background-color: var(--luna-blush-soft) !important; }
+.hbc-luna-site .bg-primary { background-color: var(--luna-brown) !important; }
+.hbc-luna-site .bg-dark { background-color: var(--luna-deep) !important; }
+.hbc-luna-site .bg-accent { background-color: var(--luna-terracotta) !important; }
+.hbc-luna-site .text-primary { color: var(--luna-brown) !important; }
+.hbc-luna-site .text-dark,
+.hbc-luna-site .text-ink { color: var(--luna-deep) !important; }
+.hbc-luna-site .text-accent { color: var(--luna-terracotta) !important; }
+.hbc-luna-site .border-primary { border-color: var(--luna-brown) !important; }
+.hbc-luna-site .border-gray-50,
+.hbc-luna-site .border-gray-100 { border-color: var(--luna-border) !important; }
+.hbc-luna-site .border-gray-200 { border-color: #DCCABD !important; }
+.hbc-luna-site .brand-gradient {
+  background: linear-gradient(120deg, #1A0E07 0%, #552D18 55%, #996445 100%) !important;
+}
+.hbc-luna-site .brand-soft-gradient {
+  background: linear-gradient(135deg, #F8F4EF 0%, #FFFCF9 60%, #E9DDD3 100%) !important;
+}
+.hbc-luna-site .brand-accent-gradient {
+  background: linear-gradient(135deg, #6E4D35 0%, #996445 100%) !important;
+}
+.hbc-luna-site .brand-shadow { box-shadow: 0 18px 48px rgb(85 45 24 / .10) !important; }
+.hbc-luna-site .brand-glow { box-shadow: 0 0 0 1px rgb(110 77 53 / .10), 0 14px 36px rgb(110 77 53 / .12) !important; }
+.hbc-luna-site .btn-primary,
+.hbc-luna-site .btn-accent {
+  border: 1px solid var(--luna-deep);
+  border-radius: 2px;
+  background: var(--luna-deep) !important;
+  color: #FFFCF9 !important;
+  min-height: 46px;
+  padding: .8rem 1.55rem;
+  font-size: .88rem;
+  font-weight: 600;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+.hbc-luna-site .btn-primary:hover,
+.hbc-luna-site .btn-accent:hover {
+  background: var(--luna-brown) !important;
+  border-color: var(--luna-brown);
+  box-shadow: 0 8px 22px rgb(26 14 7 / .12);
+}
+.hbc-luna-site .btn-secondary {
+  border: 1px solid var(--luna-brown);
+  border-radius: 2px;
+  color: var(--luna-brown) !important;
+  background: transparent !important;
+  min-height: 46px;
+  padding: .8rem 1.55rem;
+  font-size: .88rem;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.hbc-luna-site .btn-secondary:hover {
+  color: var(--luna-paper) !important;
+  background: var(--luna-brown) !important;
+}
+.hbc-luna-site .card {
+  border: 1px solid var(--luna-border);
+  border-radius: 4px !important;
+  background: var(--luna-paper);
+  box-shadow: 0 3px 14px rgb(85 45 24 / .035);
+  will-change: auto;
+}
+.hbc-luna-site .card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgb(85 45 24 / .09);
+}
+.hbc-luna-site .input-field,
+.hbc-luna-site input:not([type="checkbox"]):not([type="radio"]),
+.hbc-luna-site select,
+.hbc-luna-site textarea {
+  border-color: var(--luna-border);
+  border-radius: 3px;
+  background-color: var(--luna-paper);
+  color: var(--luna-deep);
+}
+.hbc-luna-site input:focus,
+.hbc-luna-site select:focus,
+.hbc-luna-site textarea:focus {
+  border-color: var(--luna-brown) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(203 179 160 / .24) !important;
+}
+
+/* Header and navigation */
+.hbc-luna-site header {
+  background: rgb(248 244 239 / .96) !important;
+  border-bottom: 1px solid var(--luna-border);
+  box-shadow: 0 5px 24px rgb(26 14 7 / .045) !important;
+  backdrop-filter: blur(18px);
+}
+.hbc-luna-site header .section-padding { max-width: 1440px; }
+.hbc-luna-site header h1 { color: var(--luna-deep) !important; }
+.hbc-luna-site header p { color: var(--luna-brown) !important; }
+.hbc-luna-site header input {
+  background: #FFFCF9 !important;
+  border-color: var(--luna-border) !important;
+  border-radius: 2px !important;
+}
+.hbc-luna-site header nav { border-color: var(--luna-border) !important; }
+.hbc-luna-site header nav a {
+  border-radius: 2px !important;
+  color: var(--luna-brown) !important;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  font-size: .72rem !important;
+}
+.hbc-luna-site header nav a:hover { background: var(--luna-blush-soft) !important; color: var(--luna-deep) !important; }
+.hbc-luna-site header button,
+.hbc-luna-site header a[aria-label] { color: var(--luna-brown) !important; }
+.hbc-luna-site header button:hover,
+.hbc-luna-site header a[aria-label]:hover { background: var(--luna-blush-soft) !important; }
+.hbc-luna-site header .bg-primary { background: var(--luna-brown) !important; }
+.hbc-luna-site header .bg-accent { background: var(--luna-terracotta) !important; }
+
+/* Homepage editorial treatment */
+.hbc-luna-site .homepage-compact { background: var(--luna-cream); }
+.hbc-luna-site .hero-premium {
+  border-radius: 3px !important;
+  box-shadow: 0 18px 50px rgb(26 14 7 / .10) !important;
+  background-color: var(--luna-blush-soft) !important;
+}
+.hbc-luna-site .hero-premium .bg-gradient-to-r {
+  background-image: linear-gradient(90deg, rgb(26 14 7 / .64) 0%, rgb(26 14 7 / .30) 52%, rgb(26 14 7 / .04) 100%) !important;
+}
+.hbc-luna-site .hero-premium h1 {
+  max-width: 720px;
+  font-size: clamp(2.4rem, 5vw, 5.4rem) !important;
+  line-height: 1.08 !important;
+  font-weight: 500 !important;
+  letter-spacing: -.045em !important;
+}
+.hbc-luna-site .hero-premium a,
+.hbc-luna-site .hero-premium button {
+  border-radius: 2px !important;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.hbc-luna-site .homepage-compact section:not(.hero-premium) {
+  border-color: var(--luna-border);
+}
+.hbc-luna-site .homepage-compact .section-heading-premium {
+  font-weight: 500 !important;
+  letter-spacing: -.035em !important;
+}
+.hbc-luna-site .homepage-compact .compact-combo-card {
+  border-radius: 3px !important;
+  background: linear-gradient(120deg, #1A0E07, #552D18) !important;
+}
+.hbc-luna-site .homepage-compact .compact-why-section {
+  background: #552D18 !important;
+}
+.hbc-luna-site .homepage-compact .compact-why-section .bg-primary\/20 {
+  background: rgb(203 179 160 / .18) !important;
+  color: var(--luna-blush) !important;
+}
+.hbc-luna-site .homepage-compact .compact-product-grid-section .grid { row-gap: 1.4rem; }
+.hbc-luna-site .homepage-compact .compact-product-grid-section .card {
+  border-radius: 3px !important;
+  overflow: hidden;
+}
+.hbc-luna-site .homepage-compact .compact-product-grid-section .card > div:first-child {
+  background: var(--luna-blush-soft) !important;
+}
+.hbc-luna-site .homepage-compact .compact-product-grid-section .card > div:last-child {
+  padding: .85rem !important;
+}
+.hbc-luna-site .homepage-compact .compact-reviews-section { background: #F0E7DF !important; }
+
+/* Product cards, catalog and detail pages */
+.hbc-luna-site .group.card {
+  border-radius: 3px !important;
+  overflow: hidden;
+}
+.hbc-luna-site .group.card > div:first-child { background: var(--luna-blush-soft) !important; }
+.hbc-luna-site .group.card > div:first-child > a > img {
+  transition: transform .8s cubic-bezier(.2,.75,.25,1);
+}
+.hbc-luna-site .group.card > div:last-child { padding: 1rem !important; }
+.hbc-luna-site .group.card h3 {
+  font-weight: 500 !important;
+  letter-spacing: -.02em;
+}
+.hbc-luna-site .group.card .bg-primary,
+.hbc-luna-site .group.card .bg-accent { border-radius: 2px !important; }
+.hbc-luna-site .group.card .absolute.inset-x-3.bottom-3 { gap: .4rem; }
+.hbc-luna-site .group.card .absolute.inset-x-3.bottom-3 button {
+  border-radius: 2px !important;
+  background: var(--luna-deep) !important;
+}
+.hbc-luna-site .group.card .absolute.inset-x-3.bottom-3 a { border-radius: 2px !important; }
+.hbc-luna-site .group.card .absolute.right-3.top-3 { border: 1px solid var(--luna-border); }
+.hbc-luna-site main .bg-cream { background-color: var(--luna-cream) !important; }
+.hbc-luna-site main .bg-white { background-color: var(--luna-paper) !important; }
+.hbc-luna-site main .rounded-2xl,
+.hbc-luna-site main .rounded-xl { border-radius: 4px !important; }
+.hbc-luna-site main .rounded-full { border-radius: 2px; }
+.hbc-luna-site main .shadow-lg,
+.hbc-luna-site main .shadow-xl { box-shadow: 0 14px 34px rgb(85 45 24 / .08) !important; }
+.hbc-luna-site main .text-gray-400,
+.hbc-luna-site main .text-gray-500 { color: var(--luna-muted) !important; }
+.hbc-luna-site main .text-gray-600,
+.hbc-luna-site main .text-gray-700 { color: #594638 !important; }
+.hbc-luna-site main .border-gray-100,
+.hbc-luna-site main .border-gray-200 { border-color: var(--luna-border) !important; }
+.hbc-luna-site main .bg-primary\/5,
+.hbc-luna-site main .bg-primary\/10 { background: rgb(203 179 160 / .20) !important; }
+.hbc-luna-site main .bg-accent\/10 { background: rgb(153 100 69 / .10) !important; }
+
+/* Catalog title, filter controls, product detail and checkout surfaces */
+.hbc-luna-site main > div > .bg-cream,
+.hbc-luna-site main > .bg-cream { background: #F0E7DF !important; }
+.hbc-luna-site main .section-padding { max-width: 1320px; }
+.hbc-luna-site main .sticky { border-color: var(--luna-border); }
+.hbc-luna-site main .card,
+.hbc-luna-site main form .rounded-2xl,
+.hbc-luna-site main form .rounded-xl {
+  border-color: var(--luna-border);
+}
+.hbc-luna-site main button:not(.chat-message-input button) { transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease; }
+.hbc-luna-site main button:focus-visible,
+.hbc-luna-site main a:focus-visible {
+  outline: 2px solid var(--luna-terracotta);
+  outline-offset: 3px;
+}
+.hbc-luna-site main .bg-emerald-50 { background: #F0E7DF !important; }
+.hbc-luna-site main .text-emerald-700 { color: var(--luna-brown) !important; }
+.hbc-luna-site main .border-emerald-200 { border-color: var(--luna-blush) !important; }
+
+/* Footer and mobile navigation */
+.hbc-luna-site footer {
+  background: var(--luna-deep) !important;
+  color: #F8F4EF !important;
+  border-top: 1px solid #552D18;
+}
+.hbc-luna-site footer h2,
+.hbc-luna-site footer h3,
+.hbc-luna-site footer h4 { color: #FFFCF9 !important; font-weight: 500 !important; }
+.hbc-luna-site footer p,
+.hbc-luna-site footer span,
+.hbc-luna-site footer a { color: #DCCABD; }
+.hbc-luna-site footer a:hover { color: #FFFCF9 !important; }
+.hbc-luna-site footer input {
+  background: #FFFCF9 !important;
+  color: var(--luna-deep) !important;
+  border: 1px solid #806B5C !important;
+  border-radius: 2px !important;
+}
+.hbc-luna-site footer button {
+  border-radius: 2px !important;
+  background: var(--luna-blush) !important;
+  color: var(--luna-deep) !important;
+}
+.hbc-luna-site footer .border-white\/10 { border-color: rgb(203 179 160 / .20) !important; }
+.hbc-luna-site nav.fixed,
+.hbc-luna-site .mobile-nav {
+  background: var(--luna-paper) !important;
+  border-color: var(--luna-border) !important;
+}
+.hbc-luna-site .mobile-nav a,
+.hbc-luna-site .mobile-nav button { color: var(--luna-brown) !important; }
+
+/* Keep mobile cards, controls and forms composed and easy to tap. */
+@media (max-width: 767px) {
+  .hbc-luna-site .hero-premium {
+    min-height: 440px;
+    border-radius: 2px !important;
+  }
+  .hbc-luna-site .hero-premium h1 {
+    font-size: clamp(2rem, 9vw, 3.15rem) !important;
+    line-height: 1.12 !important;
+  }
+  .hbc-luna-site .homepage-compact .compact-product-grid-section .grid {
+    gap: .7rem !important;
+  }
+  .hbc-luna-site .group.card > div:last-child { padding: .7rem !important; }
+  .hbc-luna-site main .section-padding { padding-left: 1rem; padding-right: 1rem; }
+  .hbc-luna-site .btn-primary,
+  .hbc-luna-site .btn-secondary,
+  .hbc-luna-site .btn-accent { min-height: 44px; padding: .7rem 1rem; font-size: .78rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hbc-luna-site *, .hbc-luna-site *::before, .hbc-luna-site *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

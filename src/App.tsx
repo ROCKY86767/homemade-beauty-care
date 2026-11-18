@@ -59,7 +59,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   }, [isHomePage]);
 
   return (
-    <div className="w-full min-w-0 min-h-screen flex flex-col overflow-x-clip">
+    <div className={`w-full min-w-0 min-h-screen flex flex-col overflow-x-clip ${!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/moderator') && !location.pathname.startsWith('/order-status-dashboard') ? 'hbc-luna-site' : ''}`}>
       {!isHairPackLanding && <Header />}
       <main className={`w-full min-w-0 min-h-[100svh] flex-1 ${isHairPackLanding ? '' : 'pb-16 lg:pb-0'}`}>
         <Suspense fallback={<PageLoader />}>{children}</Suspense>

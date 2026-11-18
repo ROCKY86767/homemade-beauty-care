@@ -68,7 +68,7 @@ function HomePageLoadingSkeleton({ banner }: { banner?: Banner }) {
       <section className="bg-white py-12 sm:py-20">
         <div className="section-padding">
           <div className="mx-auto mb-9 h-12 max-w-2xl animate-pulse rounded-xl bg-gray-100 sm:mb-12" />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+          <div className="luna-category-grid grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
             {Array.from({ length: 4 }).map((_, index) => <div key={index} className="aspect-[4/5] animate-pulse rounded-[1.35rem] bg-[#E8EEDF]" />)}
           </div>
         </div>
@@ -474,146 +474,49 @@ export default function HomePage() { // centralized storefront settings
   return (
     <div className="homepage-compact">
       <SEO title={settings?.seo_site_title || settings?.brand_name || 'Homemade Beauty Care'} />
-      {/* Hero Slider */}
+      {/* LUNA editorial split hero */}
       {banners.length > 0 ? (
-        <section className="relative hero-premium mx-3 my-3 h-[520px] overflow-hidden rounded-[1.5rem] shadow-[0_24px_70px_rgba(38,58,45,.16)] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]">
-          {banners.map((banner, idx) => (
-            <div
-              key={banner.id}
-              className={`absolute inset-0 ${
-                idx === currentBanner
-                  ? 'opacity-100'
-                  : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              <div className="absolute inset-0 bg-[#e9e7dc]">
-                {idx === currentBanner && (
-                  <picture>
-                    <source media="(max-width: 639px)" srcSet={toWebPImageSrcSet(banner.mobile_image_url || banner.desktop_image_url || banner.image_url)} sizes="100vw" />
-                    <img
-                      src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1280)}
-                      srcSet={toWebPImageSrcSet(banner.desktop_image_url || banner.image_url || banner.mobile_image_url)}
-                      sizes="100vw"
-                      alt={banner.title_bn}
-                      width="1920"
-                      height="1080"
-                      fetchPriority="high"
-                      loading="eager"
-                      decoding="async"
-                      className="h-full w-full object-cover animate-slow-zoom"
-                    />
-                  </picture>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#17291f]/35 via-transparent to-white/5" />
-              </div>
-
-              <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 lg:px-16">
-                <div className="max-w-xl text-white">
-                  {banner.small_text_bn && (
-                    <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[.18em] text-white backdrop-blur-md animate-fade-in-up">
-                      {banner.small_text_bn}
-                    </p>
-                  )}
-
-                  <h1 className="mb-5 max-w-[620px] font-display text-3xl font-bold leading-[1.15] tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl xl:text-7xl animate-fade-in-up">
-                    {banner.title_bn}
-                  </h1>
-
-                  {banner.description_bn && (
-                    <p className="mb-7 max-w-lg text-sm leading-7 text-white/90 sm:text-lg sm:leading-8 animate-fade-in-up">
-                      {banner.description_bn}
-                    </p>
-                  )}
-
-                  <div className="relative z-20 flex flex-wrap gap-3 animate-fade-in-up">
-                    {banner.button_text_bn && (
-                      <Link
-                        to={banner.button_link || '/shop'}
-                        className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#F7F4EA] px-7 py-3.5 font-semibold text-[#263A2D] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl active:scale-95 click-feedback-soft"
-                      >
-                        {banner.button_text_bn}
-                      </Link>
-                    )}
-
-                    {idx === 0 && (
-                      <Link
-                        to="/shop"
-                        className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/60 bg-white/10 px-7 py-3.5 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 active:scale-95 click-feedback-soft"
-                      >
-                        View Collection
-                      </Link>
-                    )}
-                  </div>
+        <section className="luna-home-hero" aria-label="Featured collection">
+          <div className="luna-home-hero-copy">
+            <span className="luna-eyebrow">HOMEMADE BEAUTY CARE · EVERYDAY RITUALS</span>
+            {banners.map((banner, idx) => (
+              <div key={banner.id} className={idx === currentBanner ? 'luna-hero-slide is-active' : 'luna-hero-slide'} aria-hidden={idx !== currentBanner}>
+                {banner.small_text_bn && <p className="luna-hero-kicker">{banner.small_text_bn}</p>}
+                <h1>{banner.title_bn}</h1>
+                {banner.description_bn && <p className="luna-hero-description">{banner.description_bn}</p>}
+                <div className="luna-hero-actions">
+                  <Link to={banner.button_link || '/shop'} className="luna-hero-primary">{banner.button_text_bn || 'Shop the collection'} <ArrowRight size={17} /></Link>
+                  <Link to="/category/hair-care" className="luna-hero-secondary">Explore hair care</Link>
                 </div>
               </div>
-            </div>
-          ))}
-
-          {banners.length > 1 && (
-            <>
-              <button
-                onClick={prevBanner}
-                className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-black/35 click-feedback-soft sm:left-5 sm:h-12 sm:w-12"
-                aria-label="Previous banner"
-              >
-                <ChevronLeft size={24} />
-              </button>
-
-              <button
-                onClick={nextBanner}
-                className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-black/35 click-feedback-soft sm:right-5 sm:h-12 sm:w-12"
-                aria-label="Next banner"
-              >
-                <ChevronRight size={24} />
-              </button>
-
-              <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-2 backdrop-blur-md sm:bottom-7">
-                {banners.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentBanner(idx)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      idx === currentBanner
-                        ? 'w-8 bg-white'
-                        : 'w-2 bg-white/50'
-                    }`}
-                    aria-label={`Go to banner ${idx + 1}`}
-                  />
-                ))}
+            ))}
+            {banners.length > 1 && (
+              <div className="luna-hero-pagination" aria-label="Choose featured banner">
+                {banners.map((banner, idx) => <button key={banner.id} type="button" onClick={() => setCurrentBanner(idx)} className={idx === currentBanner ? 'is-active' : ''} aria-label={`Show slide ${idx + 1}`} />)}
+                <button type="button" className="luna-hero-arrow" onClick={prevBanner} aria-label="Previous banner"><ChevronLeft size={17} /></button>
+                <button type="button" className="luna-hero-arrow" onClick={nextBanner} aria-label="Next banner"><ChevronRight size={17} /></button>
               </div>
-            </>
-          )}
+            )}
+          </div>
+          <div className="luna-home-hero-media">
+            {banners.map((banner, idx) => (
+              <picture key={banner.id} className={idx === currentBanner ? 'luna-hero-image is-active' : 'luna-hero-image'}>
+                <source media="(max-width: 639px)" srcSet={toWebPImageSrcSet(banner.mobile_image_url || banner.desktop_image_url || banner.image_url)} sizes="100vw" />
+                <img src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1280)} srcSet={toWebPImageSrcSet(banner.desktop_image_url || banner.image_url || banner.mobile_image_url)} sizes="(max-width: 767px) 100vw, 58vw" alt={banner.title_bn} width="1280" height="960" fetchPriority={idx === currentBanner ? 'high' : 'auto'} loading={idx === currentBanner ? 'eager' : 'lazy'} decoding="async" />
+              </picture>
+            ))}
+            <span className="luna-image-caption">NATURAL CARE, THOUGHTFULLY MADE</span>
+          </div>
         </section>
       ) : (
-        <section className="relative overflow-hidden brand-gradient text-white">
-          <div className="absolute inset-0 opacity-10" aria-hidden="true">
-            <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full border-[36px] border-white" />
-            <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full border-[42px] border-white" />
+        <section className="luna-home-hero luna-home-hero-fallback">
+          <div className="luna-home-hero-copy">
+            <span className="luna-eyebrow">HOMEMADE BEAUTY CARE</span>
+            <h1>প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া</h1>
+            <p className="luna-hero-description">আপনার চুল ও ত্বকের দৈনন্দিন যত্নে বেছে নিন যত্ন করে তৈরি পণ্য।</p>
+            <div className="luna-hero-actions"><Link to="/shop" className="luna-hero-primary">সব পণ্য দেখুন <ArrowRight size={17} /></Link><Link to="/category/hair-care" className="luna-hero-secondary">Hair Care</Link></div>
           </div>
-          <div className="section-padding relative z-10 grid min-h-[390px] items-center gap-8 py-12 sm:min-h-[460px] sm:grid-cols-[1.2fr_.8fr] sm:py-16 lg:min-h-[520px]">
-            <div className="max-w-2xl">
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-white/75">Homemade Beauty Care</p>
-              <h1 className="font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
-                প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া
-              </h1>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-white/80 sm:text-base">
-                আপনার চুল ও ত্বকের দৈনন্দিন যত্নে বেছে নিন যত্ন করে তৈরি পণ্য। সহজ অর্ডার, নির্ভরযোগ্য সহায়তা এবং ঘরে বসেই ডেলিভারি।
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link to="/shop" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 font-semibold text-dark transition hover:bg-cream">
-                  সব পণ্য দেখুন <ArrowRight size={18} className="ml-2" />
-                </Link>
-                <Link to="/category/hair-care" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/60 px-7 py-3 font-semibold text-white transition hover:bg-white/10">
-                  Hair Care
-                </Link>
-              </div>
-            </div>
-            <div className="mx-auto flex w-full max-w-[260px] items-center justify-center rounded-[2rem] border border-white/20 bg-white/10 p-7 shadow-2xl backdrop-blur-sm sm:max-w-[300px]">
-              <img src="/new-homemade-logo.png" alt="Homemade Beauty Care logo" width="300" height="300" loading="lazy" decoding="async" className="aspect-square w-full rounded-2xl object-contain" />
-            </div>
-          </div>
+          <div className="luna-home-hero-media luna-fallback-media"><img src="/new-homemade-logo.png" alt="Homemade Beauty Care" /></div>
         </section>
       )}
 
@@ -667,7 +570,7 @@ export default function HomePage() { // centralized storefront settings
               <Link
                 key={cat.id}
                 to={`/category/${cat.slug}`}
-                className="group relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#DDE3D7] bg-[#E8EEDF] shadow-[0_8px_28px_rgba(38,58,45,.07)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(38,58,45,.15)] click-feedback-soft"
+                className="luna-category-tile group relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#DDE3D7] bg-[#E8EEDF] shadow-[0_8px_28px_rgba(38,58,45,.07)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(38,58,45,.15)] click-feedback-soft"
               >
                 <img
                   src={cat.image_url || ''}

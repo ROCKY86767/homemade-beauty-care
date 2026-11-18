@@ -232,7 +232,7 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-orders-page min-h-screen bg-cream">
       <SEO title="My Orders - Homemade Beauty Care" />
 
       <div className="section-padding py-8">

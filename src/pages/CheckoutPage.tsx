@@ -910,11 +910,11 @@ export default function CheckoutPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="grid lg:grid-cols-3 gap-6"
+          className="luna-checkout-form grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] gap-5 sm:gap-6"
         >
 
           {/* LEFT */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="luna-checkout-main min-w-0 space-y-5 sm:space-y-6">
 
             {/* Customer Info */}
             <div className="card p-4 sm:p-6 border border-gray-50">
@@ -1361,9 +1361,9 @@ export default function CheckoutPage() {
           </div>
 
           {/* RIGHT */}
-          <div className="lg:col-span-1">
+          <div className="luna-checkout-aside min-w-0">
 
-            <div className="card p-6 border border-gray-50 sticky top-44">
+            <div className="luna-checkout-summary card min-w-0 p-4 sm:p-6 border border-gray-50 lg:sticky lg:top-28">
 
               <h2 className="font-display text-lg font-semibold text-ink mb-4">
                 {t('Order Summary', 'অর্ডারের বিবরণ')}

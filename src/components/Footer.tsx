@@ -94,7 +94,7 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
           {subscribed && <p className="luna-subscribe-success">ধন্যবাদ! আপনার ইমেইল যুক্ত হয়েছে।</p>}
         </div>}
       </div>
-      <div className="luna-footer-bottom section-padding"><span>© {new Date().getFullYear()} {settings?.brand_name || 'Homemade Beauty Care'}. All rights reserved.</span><div><Link to="/privacy-policy">Privacy Policy</Link><Link to="/returns-refunds">Returns</Link></div></div>
+      <div className="luna-footer-bottom section-padding"><span>© {new Date().getFullYear()} {settings?.brand_name || 'Homemade Beauty Care'}. All rights reserved.</span></div></div>
     </footer>
   );
 }

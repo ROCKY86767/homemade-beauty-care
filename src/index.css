@@ -1746,3 +1746,50 @@ footer img {
  .hbc-luna-site .luna-address-page select,
  .hbc-luna-site .luna-address-page textarea{width:100%;min-width:0}
 }
+
+
+/* LUNA account and information-page finish */
+.hbc-luna-site .luna-account-page,
+.hbc-luna-site .luna-returns-page,
+.hbc-luna-site .luna-delivery-page,
+.hbc-luna-site .luna-privacy-page{background:#FFFCF9!important;color:#1A0E07}
+.hbc-luna-site .luna-account-page>.section-padding,
+.hbc-luna-site .luna-returns-page>.section-padding,
+.hbc-luna-site .luna-delivery-page>.section-padding,
+.hbc-luna-site .luna-privacy-page>.section-padding{padding-top:48px!important;padding-bottom:76px!important}
+.hbc-luna-site .luna-account-page .card{border:1px solid #E7D9CE!important;border-radius:2px!important;background:#FFFCF9!important;box-shadow:none!important}
+.hbc-luna-site .luna-account-page h1,
+.hbc-luna-site .luna-account-page h2,
+.hbc-luna-site .luna-returns-page h1,
+.hbc-luna-site .luna-delivery-page h1,
+.hbc-luna-site .luna-privacy-page h1{font-family:'Playfair Display','Hind Siliguri',serif!important;font-weight:500!important;letter-spacing:-.025em;color:#1A0E07!important}
+.hbc-luna-site .luna-account-page h1,
+.hbc-luna-site .luna-returns-page h1,
+.hbc-luna-site .luna-delivery-page h1,
+.hbc-luna-site .luna-privacy-page h1{font-size:clamp(30px,4vw,44px)!important}
+.hbc-luna-site .luna-account-page .grid>a{border:1px solid #E7D9CE!important;border-radius:2px!important;background:#F8F1EB!important;box-shadow:none!important;padding:24px!important}
+.hbc-luna-site .luna-account-page .grid>a svg{color:#6E4D35!important}
+.hbc-luna-site .luna-account-page .grid>a h2{font-size:19px!important}
+.hbc-luna-site .luna-returns-page .max-w-3xl,
+.hbc-luna-site .luna-delivery-page .max-w-3xl,
+.hbc-luna-site .luna-privacy-page .max-w-3xl{max-width:850px!important}
+.hbc-luna-site .luna-returns-page h2,
+.hbc-luna-site .luna-delivery-page h2,
+.hbc-luna-site .luna-privacy-page h2{font-family:'Playfair Display','Hind Siliguri',serif!important;font-weight:500!important;color:#552D18!important}
+.hbc-luna-site .luna-returns-page p,
+.hbc-luna-site .luna-delivery-page p,
+.hbc-luna-site .luna-privacy-page p,
+.hbc-luna-site .luna-returns-page li,
+.hbc-luna-site .luna-delivery-page li,
+.hbc-luna-site .luna-privacy-page li{color:#806B5C!important;line-height:1.9!important}
+.hbc-luna-site .luna-returns-page .card,
+.hbc-luna-site .luna-delivery-page .card,
+.hbc-luna-site .luna-privacy-page .card{border:1px solid #E7D9CE!important;border-radius:2px!important;background:#F8F1EB!important;box-shadow:none!important}
+@media(max-width:639px){
+ .hbc-luna-site .luna-account-page>.section-padding,
+ .hbc-luna-site .luna-returns-page>.section-padding,
+ .hbc-luna-site .luna-delivery-page>.section-padding,
+ .hbc-luna-site .luna-privacy-page>.section-padding{padding-top:30px!important;padding-bottom:54px!important}
+ .hbc-luna-site .luna-account-page .card{padding:18px!important}
+ .hbc-luna-site .luna-account-page .grid{gap:12px!important}
+}

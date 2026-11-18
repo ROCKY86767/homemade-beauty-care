@@ -16,9 +16,9 @@ export default function ProductCard({ product, compactActions = false }: Product
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <div className="group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
-      <div className="relative aspect-square overflow-hidden bg-cream">
-        <Link to={`/product/${product.slug}`} className="block h-full w-full aspect-square">
+    <div className="luna-product-card group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
+      <div className="luna-product-image relative aspect-square overflow-hidden bg-cream">
+        <Link to={`/product/${product.slug}`} className="luna-product-image-link block h-full w-full aspect-square">
           <img
             src={product.image_url}
             alt={product.name_bn}
@@ -78,7 +78,7 @@ export default function ProductCard({ product, compactActions = false }: Product
         </div>
       </div>
 
-      <div className="p-3 sm:p-4">
+      <div className="luna-product-info p-3 sm:p-4">
         <Link to={`/product/${product.slug}`}>
           <h3 className="font-display text-sm sm:text-base font-semibold text-ink transition-colors hover:text-primary line-clamp-1">
             {product.name_bn}
@@ -90,7 +90,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           </p>
         )}
 
-        <div className="mt-2 flex items-center gap-2">
+        <div className="luna-product-rating mt-2 flex items-center gap-2">
           <StarRating rating={product.rating} size={14} />
           <span className="text-xs text-gray-400">
             {product.rating} ({product.review_count})

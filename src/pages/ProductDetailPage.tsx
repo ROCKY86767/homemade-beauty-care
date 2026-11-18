@@ -231,7 +231,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="luna-product-detail min-h-screen bg-white">
       <SEO
         title={`${product.name_bn} - ${settings?.brand_name || 'Homemade Beauty Care'}`}
         description={product.short_description_bn || product.description_bn || undefined}
@@ -288,11 +288,11 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="section-padding py-5 sm:py-8">
+      <div className="luna-product-layout section-padding py-5 sm:py-8">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Images */}
           <div>
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream group">
+            <div className="luna-product-gallery relative aspect-square overflow-hidden rounded-2xl bg-cream group">
               <img
                 src={gallery[activeImage]}
                 alt={product.name_bn}
@@ -327,8 +327,8 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Right: Info */}
-          <div>
+          {/* Product information */}
+          <div className="luna-product-information">
             {product.category && (
               <Link to={`/category/${product.category.slug}`} className="text-sm text-primary font-medium">
                 {product.category.name_bn}
@@ -415,7 +415,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        <div id="reviews" className="mt-10 scroll-mt-24 border-t border-gray-100 pt-8">
+        <div id="reviews" className="luna-product-tabs mt-10 scroll-mt-24 border-t border-gray-100 pt-8">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {TABS.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-primary text-white' : 'bg-cream text-gray-600 hover:text-primary'}`}>

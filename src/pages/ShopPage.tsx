@@ -206,19 +206,19 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="luna-shop-page min-h-screen bg-white">
       {/* Banner */}
-      <div className="bg-cream py-7 sm:py-10">
+      <div className="luna-shop-heading bg-cream py-7 sm:py-10">
         <div className="section-padding text-center">
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-dark">{pageTitle}</h1>
           {pageDesc && <p className="mt-2 text-gray-500 max-w-xl mx-auto">{pageDesc}</p>}
         </div>
       </div>
 
-      <div className="section-padding py-6 sm:py-8">
+      <div className="luna-shop-content section-padding py-6 sm:py-8">
         <div className="flex gap-8">
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0">
+          <aside className="luna-shop-sidebar hidden lg:block w-64 shrink-0">
             <div className="sticky top-44">
               <h2 className="font-display text-lg font-semibold text-ink mb-5 flex items-center gap-2">
                 <SlidersHorizontal size={18} /> Filters
@@ -227,9 +227,10 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
             </div>
           </aside>
 
-          {/* Main */}
+          {/* Main collection grid */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-5 sm:mb-6">
+            <div className="luna-filter-row hidden lg:grid"><FilterContent /></div>
+            <div className="luna-shop-toolbar flex items-center justify-between mb-5 sm:mb-6">
               <p className="text-sm text-gray-500">
                 <span className="font-semibold text-ink">{filtered.length}</span> products
               </p>
@@ -264,7 +265,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 <p className="text-gray-400 text-lg">No products found.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="luna-shop-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {filtered.map(p => <ProductCard key={p.id} product={p} compactActions />)}
               </div>
             )}

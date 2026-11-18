@@ -876,10 +876,10 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-checkout-page min-h-screen bg-cream">
       <SEO title="Checkout - Homemade Beauty Care" />
 
-      <div className="section-padding py-8">
+      <div className="luna-checkout-content section-padding py-8">
 
         <div className="flex justify-end mb-4">
           <button type="button" onClick={() => setIsBangla(value => !value)} aria-label={isBangla ? 'Switch checkout to English' : 'Checkout page in Bangla'} className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/5">

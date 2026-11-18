@@ -16,11 +16,9 @@ import type { SiteSettings } from '@/lib/types';
 const NAV_LINKS = [
   { label: 'Home', path: '/' },
   { label: 'Shop', path: '/shop' },
-  { label: 'Skin care', path: '/category/skin-care' },
-  { label: 'Hair care', path: '/category/hair-care' },
-  { label: 'New Product', path: '/new-arrivals' },
-  { label: 'Offer', path: '/offers' },
-  { label: 'About Us', path: '/about' },
+  { label: 'Skin Care', path: '/category/skin-care' },
+  { label: 'Hair Care', path: '/category/hair-care' },
+  { label: 'Our Story', path: '/about' },
   { label: 'Contact', path: '/contact' },
 ];
 
@@ -77,7 +75,7 @@ export default function Header() {
   return (
     <>
       {/* Announcement Bar */}
-      {settings?.announcement_bn && <div className="bg-dark text-white text-sm">
+      {settings?.announcement_bn && <div className="luna-announcement bg-dark text-white text-sm">
         <div className="section-padding flex items-center justify-center py-2 text-center">
           <p className="font-medium">
             {settings?.announcement_bn ||
@@ -90,7 +88,7 @@ export default function Header() {
       <div aria-hidden="true" className="h-[72px] sm:h-[120px]" style={headerHeight ? { height: headerHeight } : undefined} />
       <header
         ref={headerRef}
-        className={`fixed inset-x-0 top-0 z-[100] isolate overflow-visible bg-white/95 backdrop-blur-md transition-all duration-300 ${
+        className={`luna-store-header fixed inset-x-0 top-0 z-[100] isolate overflow-visible bg-white/95 backdrop-blur-md transition-all duration-300 ${
           scrolled ? 'shadow-lg shadow-dark/5' : 'shadow-sm'
         }`}
       >

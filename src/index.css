@@ -1372,3 +1372,188 @@ footer img {
   .hbc-luna-site .homepage-compact .compact-product-grid-section { padding-top: 48px !important; padding-bottom: 48px !important; }
   .hbc-luna-site .homepage-compact .compact-product-grid-section .grid { column-gap: 10px !important; row-gap: 20px !important; }
 }
+
+/* LUNA storefront composition — customer-facing routes only */
+.hbc-luna-site{background:#FFFCF9;color:#1A0E07}
+.hbc-luna-site .section-padding{width:min(1320px,calc(100% - 64px));margin-inline:auto;padding-inline:0}
+.hbc-luna-site .luna-announcement{background:#E8D7CC!important;color:#552D18!important;font-size:10px!important;letter-spacing:.12em}
+.hbc-luna-site .luna-announcement .section-padding{padding-block:8px!important}
+.hbc-luna-site .luna-store-header{background:rgba(255,252,249,.97)!important;box-shadow:none!important;border-bottom:1px solid #E8DED6}
+.hbc-luna-site .luna-store-header>.section-padding>div:first-child{min-height:82px;padding-block:12px!important;display:grid;grid-template-columns:1fr auto 1fr;gap:28px}
+.hbc-luna-site .luna-store-header a[href="/"]{max-width:none!important}
+.hbc-luna-site .luna-store-header a[href="/"] img{width:48px!important;height:48px!important}
+.hbc-luna-site .luna-store-header a[href="/"] h1{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:22px!important;font-weight:500!important;letter-spacing:-.04em;color:#1A0E07!important}
+.hbc-luna-site .luna-store-header a[href="/"] p{color:#8B6C58!important;font-size:10px!important}
+.hbc-luna-site .luna-store-header form{max-width:280px}
+.hbc-luna-site .luna-store-header form input{background:transparent!important;border:0!important;border-bottom:1px solid #CBB3A0!important;border-radius:0!important;padding:9px 35px 9px 5px!important}
+.hbc-luna-site .luna-store-header form button{background:transparent!important;color:#552D18!important}
+.hbc-luna-site .luna-store-header nav{border:0!important;background:transparent!important}
+.hbc-luna-site .luna-store-header nav .section-padding{display:flex;justify-content:center}
+.hbc-luna-site .luna-store-header nav ul{gap:26px!important;padding-block:0!important}
+.hbc-luna-site .luna-store-header nav a{padding:10px 0!important;border-radius:0!important;color:#49372B!important;font-size:11px!important;letter-spacing:.09em;text-transform:uppercase}
+.hbc-luna-site .luna-store-header nav a:hover{background:transparent!important;color:#996445!important}
+.hbc-luna-site .luna-store-header button,.hbc-luna-site .luna-store-header a[aria-label]{color:#552D18!important}
+.hbc-luna-site .luna-store-header>div[aria-hidden="true"]{height:132px!important}
+.hbc-luna-site .luna-store-header nav.hidden{display:none!important}
+.hbc-luna-site .luna-home-hero{width:min(1320px,calc(100% - 64px));min-height:610px;margin:34px auto 46px;display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);background:#F0E7DF;overflow:hidden;border:1px solid #E6D9CE}
+.hbc-luna-site .luna-home-hero-copy{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:clamp(36px,5vw,82px)}
+.hbc-luna-site .luna-eyebrow,.hbc-luna-site .luna-image-caption{color:#996445;font-size:10px;font-weight:700;letter-spacing:.2em;line-height:1.6}
+.hbc-luna-site .luna-hero-slide{display:none;width:100%}
+.hbc-luna-site .luna-hero-slide.is-active{display:block;animation:lunaHeroIn .45s ease both}
+.hbc-luna-site .luna-hero-kicker{margin:26px 0 12px;color:#996445;font-size:12px}
+.hbc-luna-site .luna-hero-slide h1,.hbc-luna-site .luna-home-hero-copy>h1{max-width:570px;margin:20px 0 18px;color:#1A0E07;font-family:'Playfair Display','Hind Siliguri',serif;font-size:clamp(38px,4.5vw,66px)!important;font-weight:500!important;line-height:1.08!important;letter-spacing:-.045em!important}
+.hbc-luna-site .luna-hero-description{max-width:430px;margin:0 0 30px;color:#806B5C;font-size:15px;line-height:1.9}
+.hbc-luna-site .luna-hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px}
+.hbc-luna-site .luna-hero-primary{display:inline-flex;min-height:50px;align-items:center;justify-content:center;gap:12px;padding:0 24px;background:#1A0E07;color:#FFFCF9!important;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:background .2s ease,transform .2s ease}
+.hbc-luna-site .luna-hero-primary:hover{background:#6E4D35;transform:translateY(-2px)}
+.hbc-luna-site .luna-hero-secondary{color:#6E4D35!important;font-size:12px;font-weight:600;text-decoration:underline;text-decoration-color:#CBB3A0;text-underline-offset:5px}
+.hbc-luna-site .luna-home-hero-media{position:relative;min-height:610px;overflow:hidden;background:#E9DDD3}
+.hbc-luna-site .luna-hero-image{position:absolute;inset:0;display:block;opacity:0;transition:opacity .55s ease}
+.hbc-luna-site .luna-hero-image.is-active{opacity:1}
+.hbc-luna-site .luna-hero-image img{width:100%;height:100%;object-fit:cover}
+.hbc-luna-site .luna-image-caption{position:absolute;right:22px;bottom:20px;z-index:2;padding:9px 12px;background:rgb(255 252 249 / .86);color:#552D18;font-size:8px}
+.hbc-luna-site .luna-hero-pagination{display:flex;align-items:center;gap:8px;margin-top:42px}
+.hbc-luna-site .luna-hero-pagination>button:not(.luna-hero-arrow){width:22px;height:2px;padding:0;border:0;background:#CBB3A0}
+.hbc-luna-site .luna-hero-pagination>button.is-active:not(.luna-hero-arrow){width:42px;background:#552D18}
+.hbc-luna-site .luna-hero-pagination .luna-hero-arrow{display:grid;width:34px;height:34px;place-items:center;margin-left:7px;border:1px solid #D7C5B7;background:transparent;color:#552D18}
+.hbc-luna-site .luna-home-hero-fallback{min-height:520px}
+.hbc-luna-site .luna-home-hero-fallback .luna-home-hero-media{display:grid;place-items:center}
+.hbc-luna-site .luna-fallback-media img{width:min(48%,300px);height:auto;object-fit:contain}
+.hbc-luna-site .luna-featured-section{padding:92px 0 100px;background:#FFFCF9}
+.hbc-luna-site .luna-section-heading{display:flex;align-items:end;justify-content:space-between;gap:28px;margin-bottom:34px}
+.hbc-luna-site .luna-section-heading h2,.hbc-luna-site .luna-testimonial-section h2{margin:10px 0 7px;color:#1A0E07;font-family:'Playfair Display','Hind Siliguri',serif;font-size:clamp(30px,3vw,43px);font-weight:500;letter-spacing:-.04em;line-height:1.12}
+.hbc-luna-site .luna-section-heading p{color:#8B786B;font-size:13px}
+.hbc-luna-site .luna-text-link{display:inline-flex;align-items:center;gap:10px;color:#6E4D35;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.hbc-luna-site .luna-featured-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.hbc-luna-site .luna-product-card{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.hbc-luna-site .luna-product-image{aspect-ratio:1/1.16!important;border-radius:0!important;background:#F0E7DF!important}
+.hbc-luna-site .luna-product-image-link{aspect-ratio:1/1.16!important}
+.hbc-luna-site .luna-product-image img{object-fit:cover;transition:transform .7s ease}
+.hbc-luna-site .luna-product-card:hover .luna-product-image img{transform:scale(1.035)}
+.hbc-luna-site .luna-product-info{padding:14px 2px 10px!important}
+.hbc-luna-site .luna-product-info h3{color:#1A0E07!important;font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:16px!important;font-weight:500!important}
+.hbc-luna-site .luna-product-info>div.luna-product-rating{display:none!important}
+.hbc-luna-site .luna-product-info>div:last-child{margin-top:8px!important}
+.hbc-luna-site .luna-product-info>div:last-child>span:first-child{color:#552D18!important;font-size:14px!important;font-weight:600!important}
+.hbc-luna-site .luna-product-image>button{width:34px!important;height:34px!important;border:1px solid #E1D3C8;box-shadow:none!important}
+.hbc-luna-site .luna-product-image>div:last-child{display:none!important}
+.hbc-luna-site .luna-category-editorial{padding:20px 0 100px;background:#F5EDE7}
+.hbc-luna-site .luna-category-links{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.hbc-luna-site .luna-category-link{display:flex;flex-direction:column;color:#1A0E07}
+.hbc-luna-site .luna-category-link img{width:100%;aspect-ratio:4/5;object-fit:cover;background:#E8D7CC}
+.hbc-luna-site .luna-category-link span{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #CBB3A0;font-family:'Playfair Display','Hind Siliguri',serif;font-size:17px}
+.hbc-luna-site .luna-category-link small{color:#996445;font-size:10px}
+.hbc-luna-site .luna-category-link svg{margin-left:auto}
+.hbc-luna-site .luna-story-section{display:grid;grid-template-columns:1.1fr .9fr;min-height:540px;background:#E9DCD2}
+.hbc-luna-site .luna-story-image,.hbc-luna-site .luna-story-image img{min-height:540px}
+.hbc-luna-site .luna-story-image{overflow:hidden}
+.hbc-luna-site .luna-story-image img{width:100%;height:100%;object-fit:cover}
+.hbc-luna-site .luna-story-copy{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:clamp(36px,7vw,100px)}
+.hbc-luna-site .luna-story-copy h2{margin:18px 0;color:#1A0E07;font-family:'Playfair Display','Hind Siliguri',serif;font-size:clamp(34px,4vw,54px);font-weight:500;line-height:1.1}
+.hbc-luna-site .luna-story-copy p{max-width:430px;margin-bottom:26px;color:#715B4C;font-size:14px;line-height:1.9}
+.hbc-luna-site .luna-testimonial-section{padding:90px 0;background:#FFFCF9}
+.hbc-luna-site .luna-testimonial-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:32px 0}
+.hbc-luna-site .luna-testimonial{padding:26px;border:1px solid #E8DED6;background:#FFFCF9}
+.hbc-luna-site .luna-testimonial>p{min-height:80px;margin:18px 0;color:#6E5A4B;font-family:'Playfair Display','Hind Siliguri',serif;font-size:17px;line-height:1.6}
+.hbc-luna-site .luna-testimonial>div{display:flex;flex-direction:column;gap:4px;font-size:11px}
+.hbc-luna-site .luna-testimonial>div span{color:#9A8678}
+.hbc-luna-site .luna-shop-heading{background:#F5EDE7!important;padding:55px 0 42px!important}
+.hbc-luna-site .luna-shop-heading .section-padding{text-align:left!important}
+.hbc-luna-site .luna-shop-heading h1{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:clamp(36px,5vw,58px)!important;font-weight:500!important}
+.hbc-luna-site .luna-shop-heading p{margin-top:12px!important;color:#806B5C!important;font-size:13px!important}
+.hbc-luna-site .luna-shop-content{padding-top:34px!important;padding-bottom:90px!important}
+.hbc-luna-site .luna-shop-sidebar{display:none!important}
+.hbc-luna-site .luna-filter-row{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:14px 0 24px;border-bottom:1px solid #E8DED6;margin-bottom:18px}
+.hbc-luna-site .luna-filter-row>div{display:contents}
+.hbc-luna-site .luna-filter-row h3{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:14px!important;font-weight:500!important;margin:0 0 8px!important}
+.hbc-luna-site .luna-filter-row label,.hbc-luna-site .luna-filter-row span{font-size:11px!important;color:#806B5C!important}
+.hbc-luna-site .luna-filter-row input{accent-color:#6E4D35}
+.hbc-luna-site .luna-shop-toolbar{padding-bottom:18px;border-bottom:1px solid #E8DED6}
+.hbc-luna-site .luna-shop-toolbar select,.hbc-luna-site .luna-shop-toolbar button{border-radius:0!important;border-color:#CBB3A0!important;background:#FFFCF9!important}
+.hbc-luna-site .luna-shop-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:26px 18px!important}
+.hbc-luna-site .luna-product-detail .bg-cream{background:#F5EDE7!important}
+.hbc-luna-site .luna-product-layout{padding-top:40px!important;padding-bottom:90px!important}
+.hbc-luna-site .luna-product-gallery{border-radius:0!important;background:#F0E7DF!important}
+.hbc-luna-site .luna-product-information{padding:22px 0 0 24px}
+.hbc-luna-site .luna-product-information h1{margin-top:14px!important;font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:clamp(30px,3vw,44px)!important;font-weight:500!important;line-height:1.15!important}
+.hbc-luna-site .luna-product-information .text-2xl,.hbc-luna-site .luna-product-information .text-3xl{font-family:'Playfair Display','Hind Siliguri',serif;font-weight:500!important}
+.hbc-luna-site .luna-product-information .rounded-2xl.bg-cream{border-radius:0!important;background:#F5EDE7!important}
+.hbc-luna-site .luna-product-tabs{margin-top:80px!important;border-color:#E8DED6!important}
+.hbc-luna-site .luna-cart-page,.hbc-luna-site .luna-checkout-page{background:#FFFCF9!important}
+.hbc-luna-site .luna-cart-content,.hbc-luna-site .luna-checkout-content{max-width:1160px;padding-top:64px!important;padding-bottom:90px!important}
+.hbc-luna-site .luna-cart-heading h1{margin-top:10px;font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:42px!important;font-weight:500!important}
+.hbc-luna-site .luna-cart-item,.hbc-luna-site .luna-cart-summary,.hbc-luna-site .luna-checkout-content .card{border:1px solid #E8DED6!important;border-radius:0!important;background:#FFFCF9!important;box-shadow:none!important}
+.hbc-luna-site .luna-cart-item img{border-radius:0!important}
+.hbc-luna-site .luna-cart-summary{padding:28px!important}
+.hbc-luna-site .luna-cart-summary h2,.hbc-luna-site .luna-checkout-content h1,.hbc-luna-site .luna-checkout-content h2{font-family:'Playfair Display','Hind Siliguri',serif!important;font-weight:500!important}
+.hbc-luna-site .luna-checkout-content input,.hbc-luna-site .luna-checkout-content select,.hbc-luna-site .luna-checkout-content textarea{border-radius:0!important;border-color:#DCCBBF!important;background:#FFFCF9!important}
+.hbc-luna-site .luna-store-footer{background:#F5EDE7!important;color:#1A0E07!important;border-top:1px solid #E8DED6}
+.hbc-luna-site .luna-footer-main{display:grid!important;grid-template-columns:1.25fr 1.7fr 1fr 1.35fr;gap:42px!important;padding-top:58px!important;padding-bottom:58px!important}
+.hbc-luna-site .luna-footer-brand img{width:54px;height:54px;object-fit:contain;margin-bottom:16px}
+.hbc-luna-site .luna-footer-brand h3{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:22px!important;font-weight:500!important}
+.hbc-luna-site .luna-footer-brand p,.hbc-luna-site .luna-footer-newsletter p{max-width:260px;margin-top:10px;color:#806B5C;font-size:12px;line-height:1.8}
+.hbc-luna-site .luna-footer-socials{display:flex;gap:9px;margin-top:20px}
+.hbc-luna-site .luna-footer-socials a{display:grid;width:32px;height:32px;place-items:center;border:1px solid #CBB3A0;color:#552D18}
+.hbc-luna-site .luna-footer-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.hbc-luna-site .luna-footer-links h4,.hbc-luna-site .luna-footer-contact h4,.hbc-luna-site .luna-footer-newsletter h4{margin-bottom:16px;color:#1A0E07!important;font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:12px!important;font-weight:600!important;letter-spacing:.08em}
+.hbc-luna-site .luna-footer-links ul{display:grid;gap:11px}
+.hbc-luna-site .luna-footer-links a,.hbc-luna-site .luna-footer-contact p,.hbc-luna-site .luna-footer-contact a{color:#806B5C!important;font-size:11px}
+.hbc-luna-site .luna-footer-contact p{display:flex;align-items:flex-start;gap:8px;margin:0 0 12px}
+.hbc-luna-site .luna-footer-contact svg{flex:none;color:#996445}
+.hbc-luna-site .luna-footer-newsletter form{display:flex;margin-top:18px;border-bottom:1px solid #996445}
+.hbc-luna-site .luna-footer-newsletter input{width:100%;min-width:0;padding:12px 4px;border:0!important;border-radius:0!important;background:transparent!important;color:#1A0E07!important;font-size:11px}
+.hbc-luna-site .luna-footer-newsletter button{display:grid;width:40px;flex:none;place-items:center;border:0;background:transparent!important;color:#552D18!important}
+.hbc-luna-site .luna-subscribe-success{color:#6E4D35!important;font-size:11px}
+.hbc-luna-site .luna-footer-bottom{display:flex;justify-content:space-between;gap:20px;padding-block:18px;border-top:1px solid #DDCFC4;color:#806B5C;font-size:10px}
+.hbc-luna-site .luna-footer-bottom>div{display:flex;gap:20px}
+@keyframes lunaHeroIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1023px){
+ .hbc-luna-site .luna-store-header>.section-padding>div:first-child{grid-template-columns:1fr auto}
+ .hbc-luna-site .luna-store-header nav ul{gap:14px!important}
+ .hbc-luna-site .luna-featured-grid,.hbc-luna-site .luna-shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .hbc-luna-site .luna-category-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .hbc-luna-site .luna-footer-main{grid-template-columns:1fr 1.5fr!important;gap:34px!important}
+ .hbc-luna-site .luna-filter-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:639px){
+ .hbc-luna-site .section-padding{width:calc(100% - 36px)}
+ .hbc-luna-site .luna-store-header>.section-padding>div:first-child{min-height:66px;display:flex;gap:8px;padding-block:9px!important}
+ .hbc-luna-site .luna-store-header a[href="/"]{max-width:180px!important}
+ .hbc-luna-site .luna-store-header a[href="/"] img{width:34px!important;height:34px!important}
+ .hbc-luna-site .luna-store-header a[href="/"] h1{font-size:13px!important}
+ .hbc-luna-site .luna-store-header form{display:none!important}
+ .hbc-luna-site .luna-store-header>div[aria-hidden="true"]{height:66px!important}
+ .hbc-luna-site .luna-announcement{font-size:9px!important}
+ .hbc-luna-site .luna-home-hero{width:100%;margin:0 auto 28px;display:flex;flex-direction:column-reverse;border-left:0;border-right:0}
+ .hbc-luna-site .luna-home-hero-media{min-height:0;height:310px}
+ .hbc-luna-site .luna-home-hero-copy{padding:30px 22px 34px}
+ .hbc-luna-site .luna-hero-slide h1,.hbc-luna-site .luna-home-hero-copy>h1{margin:15px 0 12px;font-size:clamp(34px,10vw,46px)!important}
+ .hbc-luna-site .luna-hero-description{margin-bottom:22px;font-size:13px}
+ .hbc-luna-site .luna-hero-pagination{margin-top:26px}
+ .hbc-luna-site .luna-featured-section,.hbc-luna-site .luna-testimonial-section{padding:54px 0!important}
+ .hbc-luna-site .luna-section-heading{align-items:flex-start;flex-direction:column;gap:14px;margin-bottom:24px}
+ .hbc-luna-site .luna-featured-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}
+ .hbc-luna-site .luna-product-info h3{font-size:13px!important}
+ .hbc-luna-site .luna-category-editorial{padding:44px 0 54px}
+ .hbc-luna-site .luna-category-links{gap:12px}
+ .hbc-luna-site .luna-category-link span{font-size:14px;gap:7px}
+ .hbc-luna-site .luna-story-section{grid-template-columns:1fr}
+ .hbc-luna-site .luna-story-image,.hbc-luna-site .luna-story-image img{min-height:0;height:300px}
+ .hbc-luna-site .luna-story-copy{padding:38px 24px 46px}
+ .hbc-luna-site .luna-testimonial-grid{grid-template-columns:1fr;gap:12px}
+ .hbc-luna-site .luna-testimonial>p{min-height:0}
+ .hbc-luna-site .luna-shop-heading{padding:38px 0 28px!important}
+ .hbc-luna-site .luna-shop-content{padding-top:24px!important;padding-bottom:54px!important}
+ .hbc-luna-site .luna-filter-row{display:none!important}
+ .hbc-luna-site .luna-shop-toolbar{align-items:flex-start;gap:10px}
+ .hbc-luna-site .luna-shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:22px 12px!important}
+ .hbc-luna-site .luna-product-layout{padding-top:20px!important}
+ .hbc-luna-site .luna-product-information{padding:8px 0 0}
+ .hbc-luna-site .luna-cart-content,.hbc-luna-site .luna-checkout-content{padding-top:34px!important;padding-bottom:54px!important}
+ .hbc-luna-site .luna-cart-heading h1{font-size:34px!important}
+ .hbc-luna-site .luna-cart-item{padding:12px!important;gap:12px!important}
+ .hbc-luna-site .luna-cart-item img{width:82px!important;height:82px!important}
+ .hbc-luna-site .luna-footer-main{grid-template-columns:1fr!important;gap:30px!important}
+ .hbc-luna-site .luna-footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+ .hbc-luna-site .luna-footer-bottom{flex-direction:column}
+}

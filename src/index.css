@@ -1112,7 +1112,6 @@ footer img {
 .hbc-luna-site main .bg-white { background-color: var(--luna-paper) !important; }
 .hbc-luna-site main .rounded-2xl,
 .hbc-luna-site main .rounded-xl { border-radius: 4px !important; }
-.hbc-luna-site main .rounded-full { border-radius: 2px; }
 .hbc-luna-site main .shadow-lg,
 .hbc-luna-site main .shadow-xl { box-shadow: 0 14px 34px rgb(85 45 24 / .08) !important; }
 .hbc-luna-site main .text-gray-400,
@@ -1204,4 +1203,30 @@ footer img {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* Editorial portrait framing and warmer image treatments. */
+.hbc-luna-site .group.card > div:first-child {
+  aspect-ratio: 4 / 5 !important;
+  height: auto;
+}
+.hbc-luna-site .group.card > div:first-child > a {
+  aspect-ratio: 4 / 5 !important;
+}
+.hbc-luna-site .from-dark\/70 {
+  --tw-gradient-from: rgb(26 14 7 / .78) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(26 14 7 / 0) var(--tw-gradient-to-position) !important;
+}
+.hbc-luna-site .from-dark\/30 {
+  --tw-gradient-from: rgb(26 14 7 / .34) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(26 14 7 / 0) var(--tw-gradient-to-position) !important;
+}
+.hbc-luna-site .to-dark\/30 {
+  --tw-gradient-to: rgb(26 14 7 / .22) var(--tw-gradient-to-position) !important;
+}
+.hbc-luna-site .homepage-compact .section-padding > .text-center h2,
+.hbc-luna-site main .section-padding > .text-center h1,
+.hbc-luna-site main .section-padding > .text-center h2 {
+  font-weight: 500 !important;
+  letter-spacing: -.035em;
 }

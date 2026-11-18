@@ -922,7 +922,7 @@ export default function CheckoutPage() {
                 {t('Customer Information', 'গ্রাহকের তথ্য')}
               </h2>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="luna-checkout-fields grid sm:grid-cols-2 gap-4">
 
                 {/* Name */}
                 <div>

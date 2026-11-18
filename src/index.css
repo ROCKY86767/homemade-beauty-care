@@ -1625,7 +1625,7 @@ footer img {
 @media(max-width:639px){
   .hbc-luna-site .luna-checkout-content{padding-inline:16px!important;padding-top:28px!important;padding-bottom:48px!important}
   .hbc-luna-site .luna-checkout-content .flex.items-center.justify-between{flex-wrap:wrap}
-  .hbc-luna-site .luna-checkout-content .grid.sm\\:grid-cols-2{grid-template-columns:minmax(0,1fr)!important}
+  .hbc-luna-site .luna-checkout-fields{grid-template-columns:minmax(0,1fr)!important}
   .hbc-luna-site .luna-checkout-main .card,
   .hbc-luna-site .luna-checkout-summary{padding:16px!important}
   .hbc-luna-site .luna-checkout-summary{position:static!important}

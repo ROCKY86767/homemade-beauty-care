@@ -4,7 +4,7 @@ import SEO from '@/components/SEO';
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-privacy-page min-h-screen bg-cream">
       <SEO title="Privacy Policy - Homemade Beauty Care" />
       <div className="section-padding py-8 md:py-12">
         <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">

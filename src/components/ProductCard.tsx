@@ -97,7 +97,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           </span>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="luna-product-price mt-3 flex items-center gap-2">
           <span className="text-base sm:text-lg font-bold text-ink">
             {formatPrice(product.price)}
           </span>

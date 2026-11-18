@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Phone, Mail, MapPin, MessageCircle, Youtube } from 'lucide-react';
+import { ArrowRight, Facebook, Instagram, Phone, Mail, MapPin, MessageCircle, Youtube } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getSettings, subscribeToSettings } from '@/lib/settings';

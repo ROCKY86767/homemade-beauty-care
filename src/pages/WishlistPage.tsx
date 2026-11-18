@@ -50,7 +50,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-wishlist-page min-h-screen bg-cream">
       <div className="section-padding py-8">
         <h1 className="font-display text-3xl font-bold text-dark mb-8">আপনার উইশলিস্ট</h1>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

@@ -1793,3 +1793,175 @@ footer img {
  .hbc-luna-site .luna-account-page .card{padding:18px!important}
  .hbc-luna-site .luna-account-page .grid{gap:12px!important}
 }
+
+
+
+/* LUNA finish: hair-pack landing, authentication, order confirmation and invoice */
+.hbc-luna-site .luna-login-page,
+.hbc-luna-site .luna-reset-page,
+.hbc-luna-site .luna-success-page,
+.hbc-luna-site .luna-invoice-page{
+  background:#F3EAE3!important;
+  color:#1A0E07;
+}
+.hbc-luna-site .luna-login-page>.w-full,
+.hbc-luna-site .luna-reset-page>.w-full{max-width:460px!important}
+.hbc-luna-site .luna-login-page .card,
+.hbc-luna-site .luna-reset-page>.w-full{
+  border:1px solid #E7D9CE!important;
+  border-radius:2px!important;
+  background:#FFFCF9!important;
+  box-shadow:0 18px 55px rgba(85,45,24,.07)!important;
+}
+.hbc-luna-site .luna-login-page h1,
+.hbc-luna-site .luna-reset-page h1{
+  color:#1A0E07!important;
+  font-family:'Playfair Display','Hind Siliguri',serif!important;
+  font-weight:500!important;
+  letter-spacing:-.025em;
+}
+.hbc-luna-site .luna-login-page .bg-primary,
+.hbc-luna-site .luna-reset-page .bg-primary,
+.hbc-luna-site .luna-login-page button.bg-primary,
+.hbc-luna-site .luna-reset-page button.bg-primary{
+  background:#552D18!important;
+}
+.hbc-luna-site .luna-login-page input,
+.hbc-luna-site .luna-reset-page input{
+  border:1px solid #DDCFC4!important;
+  border-radius:0!important;
+  background:#FFFCF9!important;
+  color:#1A0E07!important;
+  box-shadow:none!important;
+}
+.hbc-luna-site .luna-login-page input:focus,
+.hbc-luna-site .luna-reset-page input:focus{
+  border-color:#996445!important;
+  outline:0!important;
+  box-shadow:0 0 0 2px #CBB3A033!important;
+}
+.hbc-luna-site .luna-login-page button,
+.hbc-luna-site .luna-reset-page button{border-radius:0!important}
+.hbc-luna-site .luna-success-page>.max-w-lg{
+  max-width:680px!important;
+}
+.hbc-luna-site .luna-success-page>.max-w-lg>div{
+  border:1px solid #E7D9CE!important;
+  border-radius:2px!important;
+  background:#FFFCF9!important;
+  box-shadow:0 18px 55px rgba(85,45,24,.07)!important;
+}
+.hbc-luna-site .luna-success-page h1{
+  color:#1A0E07!important;
+  font-family:'Playfair Display','Hind Siliguri',serif!important;
+  font-weight:500!important;
+  letter-spacing:-.025em;
+}
+.hbc-luna-site .luna-success-page .text-primary,
+.hbc-luna-site .luna-success-page .text-ink{color:#552D18!important}
+.hbc-luna-site .luna-success-page .bg-primary\/10,
+.hbc-luna-site .luna-success-page .ring-primary\/5{background:#F3EAE3!important}
+.hbc-luna-site .luna-success-page .btn-primary,
+.hbc-luna-site .luna-success-page .btn-secondary{
+  min-height:46px;
+  border-radius:0!important;
+}
+.hbc-luna-site .luna-success-page .btn-primary{background:#552D18!important;color:#FFFCF9!important}
+.hbc-luna-site .luna-success-page .btn-secondary{border:1px solid #CBB3A0!important;background:transparent!important;color:#552D18!important}
+.hbc-luna-site .luna-invoice-page{padding-top:52px!important;padding-bottom:72px!important}
+.hbc-luna-site .luna-invoice-page .batch-invoice,
+.hbc-luna-site .luna-invoice-page>.max-w-3xl>.card{
+  border:1px solid #E7D9CE!important;
+  border-radius:2px!important;
+  background:#FFFCF9!important;
+  box-shadow:0 12px 40px rgba(85,45,24,.06)!important;
+}
+.hbc-luna-site .luna-invoice-page h1{
+  color:#1A0E07!important;
+  font-family:'Playfair Display','Hind Siliguri',serif!important;
+  font-weight:500!important;
+}
+.hbc-luna-site .luna-invoice-page .text-primary{color:#552D18!important}
+.hbc-luna-site .luna-invoice-page .bg-primary{background:#552D18!important}
+.hbc-luna-site .luna-invoice-page .bg-gray-50{background:#F8F1EB!important}
+.hbc-luna-site .luna-invoice-page .border-gray-100,
+.hbc-luna-site .luna-invoice-page .border-gray-200,
+.hbc-luna-site .luna-invoice-page .border-primary\/10{border-color:#E7D9CE!important}
+.hbc-luna-site .luna-invoice-page .btn-primary,
+.hbc-luna-site .luna-invoice-page .btn-secondary{border-radius:0!important}
+.hbc-luna-site .luna-invoice-page .btn-primary{background:#552D18!important;color:#FFFCF9!important}
+@media(max-width:639px){
+ .hbc-luna-site .luna-login-page,
+ .hbc-luna-site .luna-reset-page{padding-block:36px!important}
+ .hbc-luna-site .luna-login-page .card{padding:22px!important}
+ .hbc-luna-site .luna-reset-page>.w-full{padding:22px!important}
+ .hbc-luna-site .luna-success-page{padding-block:38px!important}
+ .hbc-luna-site .luna-invoice-page{padding:28px 14px 48px!important}
+ .hbc-luna-site .luna-invoice-page .batch-invoice{padding:18px!important}
+}
+
+/* Hair Pack landing page translated into the LUNA cream, blush and cocoa palette */
+.hbc-luna-site .hbc-hairpack{
+  background:#FFFCF9!important;
+  color:#1A0E07!important;
+}
+.hbc-luna-site .hbc-hairpack>header{
+  border-color:#E7D9CE!important;
+  background:#FFFCF9!important;
+}
+.hbc-luna-site .hbc-hairpack>header p:first-child{color:#552D18!important}
+.hbc-luna-site .hbc-hairpack>div.sticky{
+  border-color:#E7D9CE!important;
+  background:rgba(255,252,249,.96)!important;
+}
+.hbc-luna-site .hbc-hairpack>div.sticky p:first-child{color:#552D18!important}
+.hbc-luna-site .hbc-hairpack>div.sticky a{
+  background:#552D18!important;
+  color:#FFFCF9!important;
+}
+.hbc-luna-site .hbc-hairpack>section:first-of-type{
+  background:#552D18!important;
+  color:#FFFCF9!important;
+}
+.hbc-luna-site .hbc-hairpack>section:first-of-type>div:first-child{
+  background-image:radial-gradient(ellipse at 85% 10%,rgba(203,179,160,.22),transparent 42%),linear-gradient(135deg,#321A10,#552D18 65%,#6E4D35)!important;
+}
+.hbc-luna-site .hbc-hairpack>section:first-of-type .text-\[\#e6c77f\],
+.hbc-luna-site .hbc-hairpack>section:first-of-type .text-\[\#f4d995\]{color:#E8CDBB!important}
+.hbc-luna-site .hbc-hairpack>section:first-of-type a.bg-\[\#e5c477\]{
+  background:#E8CDBB!important;color:#321A10!important;
+}
+.hbc-luna-site .hbc-hairpack>section:first-of-type a.border-white\/30{border-color:#CBB3A0!important}
+.hbc-luna-site .hbc-hairpack>section:not(:first-of-type){
+  color:#1A0E07;
+}
+.hbc-luna-site .hbc-hairpack .bg-\[\#fffdf7\],
+.hbc-luna-site .hbc-hairpack .bg-\[\#fffaf0\]{background:#FFFCF9!important}
+.hbc-luna-site .hbc-hairpack .bg-\[\#f8f6ef\],
+.hbc-luna-site .hbc-hairpack .bg-\[\#f8f1eb\]{background:#F3EAE3!important}
+.hbc-luna-site .hbc-hairpack .bg-\[\#eaf0e2\],
+.hbc-luna-site .hbc-hairpack .bg-\[\#e5e2d6\]{background:#F3EAE3!important}
+.hbc-luna-site .hbc-hairpack .bg-\[\#315b32\],
+.hbc-luna-site .hbc-hairpack .bg-\[\#203f29\]{background:#552D18!important}
+.hbc-luna-site .hbc-hairpack .text-\[\#263b29\],
+.hbc-luna-site .hbc-hairpack .text-\[\#344a35\],
+.hbc-luna-site .hbc-hairpack .text-\[\#315b32\]{color:#552D18!important}
+.hbc-luna-site .hbc-hairpack .text-\[\#687461\],
+.hbc-luna-site .hbc-hairpack .text-\[\#78806f\],
+.hbc-luna-site .hbc-hairpack .text-\[\#77806e\]{color:#806B5C!important}
+.hbc-luna-site .hbc-hairpack .border-\[\#e8e0cc\],
+.hbc-luna-site .hbc-hairpack .border-\[\#e5e2d6\]{border-color:#E7D9CE!important}
+.hbc-luna-site .hbc-hairpack button,
+.hbc-luna-site .hbc-hairpack a.hp-btn{border-radius:0!important}
+.hbc-luna-site .hbc-hairpack input,
+.hbc-luna-site .hbc-hairpack select,
+.hbc-luna-site .hbc-hairpack textarea{
+  border-color:#DDCFC4!important;
+  border-radius:0!important;
+  background:#FFFCF9!important;
+  color:#1A0E07!important;
+}
+@media(max-width:639px){
+ .hbc-luna-site .hbc-hairpack>section:first-of-type .max-w-6xl{padding-top:30px!important;padding-bottom:30px!important}
+ .hbc-luna-site .hbc-hairpack>section:not(:first-of-type){padding-top:42px!important;padding-bottom:42px!important}
+}

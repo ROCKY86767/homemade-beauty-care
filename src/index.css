@@ -1996,3 +1996,11 @@ footer img {
  .hbc-luna-site .luna-testimonial-grid { grid-template-columns:1fr!important; gap:7px!important; }
  .hbc-luna-site .luna-testimonial { padding:9px!important; }
 }
+
+
+/* User-requested footer text contrast: brand copy and copyright in black. */
+.hbc-luna-site footer .luna-footer-brand>h3,
+.hbc-luna-site footer .luna-footer-brand>p,
+.hbc-luna-site footer .luna-footer-bottom>span {
+  color:#000000!important;
+}

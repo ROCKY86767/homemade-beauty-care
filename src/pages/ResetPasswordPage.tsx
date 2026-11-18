@@ -101,7 +101,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4">
+    <div className="luna-reset-page min-h-screen bg-cream flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
           <img

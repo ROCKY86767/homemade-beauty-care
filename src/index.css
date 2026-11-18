@@ -2004,3 +2004,17 @@ footer img {
 .hbc-luna-site footer .luna-footer-bottom>span {
   color:#000000!important;
 }
+
+
+/* Keep customer review rating stars in a single horizontal row. */
+.hbc-luna-site .luna-testimonial > div:first-child {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 2px !important;
+  width: max-content;
+}
+.hbc-luna-site .luna-testimonial > div:first-child svg {
+  flex: 0 0 auto;
+}

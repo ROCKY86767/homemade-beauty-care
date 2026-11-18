@@ -1633,3 +1633,59 @@ footer img {
   .hbc-luna-site .luna-checkout-summary .text-2xl{font-size:21px!important}
   .hbc-luna-site .luna-checkout-content .text-sm{overflow-wrap:anywhere}
 }
+
+
+/* LUNA editorial styling for secondary customer pages */
+.hbc-luna-site .luna-about-page,
+.hbc-luna-site .luna-contact-page{background:#FFFCF9!important;color:#1A0E07}
+.hbc-luna-site .luna-about-page>section:first-child{height:clamp(300px,38vw,470px)!important;position:relative}
+.hbc-luna-site .luna-about-page>section:first-child img{filter:saturate(.72);object-position:center 48%}
+.hbc-luna-site .luna-about-page>section:first-child>div:last-child{background:linear-gradient(90deg,rgba(26,14,7,.66),rgba(26,14,7,.12))!important}
+.hbc-luna-site .luna-about-page>section:first-child h1{font-family:'Playfair Display','Hind Siliguri',serif!important;font-weight:500!important;font-size:clamp(38px,5vw,64px)!important;letter-spacing:-.035em}
+.hbc-luna-site .luna-about-page>section:first-child p{font-size:15px!important;letter-spacing:.08em;color:#F5E9DF!important}
+.hbc-luna-site .luna-about-page>section:nth-child(2){padding-block:clamp(64px,9vw,116px)!important;background:#FFFCF9}
+.hbc-luna-site .luna-about-page>section:nth-child(2) .section-padding{max-width:850px!important}
+.hbc-luna-site .luna-about-page h2{font-family:'Playfair Display','Hind Siliguri',serif!important;font-weight:500!important;letter-spacing:-.025em}
+.hbc-luna-site .luna-about-page>section:nth-child(2) h2{font-size:clamp(30px,4vw,46px)!important;margin-bottom:24px!important}
+.hbc-luna-site .luna-about-page>section:nth-child(2) p{font-size:15px!important;line-height:2!important;color:#806B5C!important}
+.hbc-luna-site .luna-about-page>section:nth-child(3){padding-block:76px!important;background:#F3EAE3!important}
+.hbc-luna-site .luna-about-page>section:nth-child(3) .text-center{margin-bottom:42px!important}
+.hbc-luna-site .luna-about-page>section:nth-child(3) h2{font-size:clamp(30px,4vw,42px)!important}
+.hbc-luna-site .luna-about-page>section:nth-child(3) .grid>div{border:1px solid #E7D9CE!important;border-radius:2px!important;background:#FFFCF9!important;padding:30px!important;box-shadow:none!important}
+.hbc-luna-site .luna-about-page>section:nth-child(3) .grid>div>div:first-child{width:46px!important;height:46px!important;border-radius:50%!important;background:#F0E3DA!important;color:#6E4D35!important}
+.hbc-luna-site .luna-about-page>section:nth-child(3) h3{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:18px!important;font-weight:500!important}
+.hbc-luna-site .luna-about-page>section:nth-child(3) p{color:#806B5C!important;line-height:1.9!important}
+.hbc-luna-site .luna-about-page>section:nth-child(4){padding-block:82px!important;background:#FFFCF9!important}
+.hbc-luna-site .luna-about-page>section:nth-child(4) h2{font-size:clamp(30px,4vw,42px)!important}
+.hbc-luna-site .luna-about-page>section:nth-child(4) p{color:#806B5C!important}
+.hbc-luna-site .luna-about-page .btn-primary,
+.hbc-luna-site .luna-contact-page .btn-primary{border-radius:0!important;background:#552D18!important;color:#FFFCF9!important;padding:14px 28px!important;letter-spacing:.04em}
+.hbc-luna-site .luna-contact-page>section:first-child{padding-block:64px!important;background:#F3EAE3!important}
+.hbc-luna-site .luna-contact-page>section:first-child h1{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:clamp(36px,5vw,54px)!important;font-weight:500!important;color:#1A0E07!important}
+.hbc-luna-site .luna-contact-page>section:first-child p{color:#806B5C!important;font-size:14px!important}
+.hbc-luna-site .luna-contact-page>.section-padding{max-width:1160px!important;padding-top:64px!important;padding-bottom:80px!important}
+.hbc-luna-site .luna-contact-page>.section-padding>.grid{gap:clamp(28px,5vw,72px)!important}
+.hbc-luna-site .luna-contact-page h2{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:28px!important;font-weight:500!important;color:#1A0E07!important}
+.hbc-luna-site .luna-contact-page .space-y-4>div{border:1px solid #E7D9CE!important;border-radius:2px!important;background:#F8F1EB!important;padding:20px!important}
+.hbc-luna-site .luna-contact-page .space-y-4>div>div:first-child{background:#EEDFD4!important;color:#6E4D35!important}
+.hbc-luna-site .luna-contact-page h3{color:#1A0E07!important;font-family:'Playfair Display','Hind Siliguri',serif!important;font-weight:500!important}
+.hbc-luna-site .luna-contact-page .space-y-4 p,
+.hbc-luna-site .luna-contact-page .space-y-4 a{color:#806B5C!important;overflow-wrap:anywhere}
+.hbc-luna-site .luna-contact-page form.card{border:1px solid #E7D9CE!important;border-radius:2px!important;background:#FFFCF9!important;padding:clamp(20px,3vw,34px)!important;box-shadow:none!important}
+.hbc-luna-site .luna-contact-page form label{color:#6E4D35!important;font-size:12px!important;letter-spacing:.04em}
+.hbc-luna-site .luna-contact-page form input,
+.hbc-luna-site .luna-contact-page form textarea{border:1px solid #DDCFC4!important;border-radius:0!important;background:#FFFCF9!important;color:#1A0E07!important;box-shadow:none!important}
+.hbc-luna-site .luna-contact-page form input:focus,
+.hbc-luna-site .luna-contact-page form textarea:focus{border-color:#996445!important;outline:0!important;box-shadow:0 0 0 2px #CBB3A033!important}
+@media(max-width:639px){
+ .hbc-luna-site .luna-about-page>section:first-child{height:300px!important}
+ .hbc-luna-site .luna-about-page>section:first-child .section-padding{padding-inline:22px}
+ .hbc-luna-site .luna-about-page>section:nth-child(2),
+ .hbc-luna-site .luna-about-page>section:nth-child(3),
+ .hbc-luna-site .luna-about-page>section:nth-child(4){padding-block:48px!important}
+ .hbc-luna-site .luna-about-page>section:nth-child(3) .grid{gap:12px!important}
+ .hbc-luna-site .luna-about-page>section:nth-child(3) .grid>div{padding:20px!important}
+ .hbc-luna-site .luna-contact-page>section:first-child{padding-block:42px!important}
+ .hbc-luna-site .luna-contact-page>.section-padding{padding-top:38px!important;padding-bottom:54px!important}
+ .hbc-luna-site .luna-contact-page h2{font-size:24px!important}
+}

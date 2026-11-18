@@ -38,7 +38,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="luna-contact-page min-h-screen bg-white">
       {/* Hero */}
       <section className="bg-cream py-12">
         <div className="section-padding text-center">

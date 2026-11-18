@@ -360,15 +360,6 @@ export default function Header() {
               </li>
             </ul>
 
-            <div className="p-4 border-t border-gray-100">
-              <Link
-                to="/admin"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-full bg-dark py-3 text-center text-sm font-medium text-white click-feedback-soft"
-              >
-                Admin Dashboard
-              </Link>
-            </div>
           </div>
         </div>
       )}

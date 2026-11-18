@@ -1689,3 +1689,60 @@ footer img {
  .hbc-luna-site .luna-contact-page>.section-padding{padding-top:38px!important;padding-bottom:54px!important}
  .hbc-luna-site .luna-contact-page h2{font-size:24px!important}
 }
+
+
+/* LUNA customer account, wishlist and order utility pages */
+.hbc-luna-site .luna-wishlist-page,
+.hbc-luna-site .luna-orders-page,
+.hbc-luna-site .luna-tracking-page,
+.hbc-luna-site .luna-address-page{background:#FFFCF9!important;color:#1A0E07}
+.hbc-luna-site .luna-wishlist-page>.section-padding,
+.hbc-luna-site .luna-orders-page>.section-padding{max-width:1240px!important;padding-top:54px!important;padding-bottom:76px!important}
+.hbc-luna-site .luna-wishlist-page h1,
+.hbc-luna-site .luna-orders-page h1,
+.hbc-luna-site .luna-tracking-page h1,
+.hbc-luna-site .luna-address-page h1{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:clamp(30px,4vw,44px)!important;font-weight:500!important;letter-spacing:-.025em;color:#1A0E07!important}
+.hbc-luna-site .luna-orders-page .card,
+.hbc-luna-site .luna-tracking-page .card,
+.hbc-luna-site .luna-address-page .card{border:1px solid #E7D9CE!important;border-radius:2px!important;background:#FFFCF9!important;box-shadow:none!important}
+.hbc-luna-site .luna-orders-page form.card,
+.hbc-luna-site .luna-tracking-page form.card{padding:24px!important}
+.hbc-luna-site .luna-orders-page input,
+.hbc-luna-site .luna-tracking-page input,
+.hbc-luna-site .luna-address-page input,
+.hbc-luna-site .luna-address-page select,
+.hbc-luna-site .luna-address-page textarea{border:1px solid #DDCFC4!important;border-radius:0!important;background:#FFFCF9!important;color:#1A0E07!important;box-shadow:none!important;min-width:0;max-width:100%}
+.hbc-luna-site .luna-orders-page input:focus,
+.hbc-luna-site .luna-tracking-page input:focus,
+.hbc-luna-site .luna-address-page input:focus,
+.hbc-luna-site .luna-address-page select:focus,
+.hbc-luna-site .luna-address-page textarea:focus{border-color:#996445!important;outline:0!important;box-shadow:0 0 0 2px #CBB3A033!important}
+.hbc-luna-site .luna-orders-page .btn-primary,
+.hbc-luna-site .luna-tracking-page .btn-primary,
+.hbc-luna-site .luna-address-page button.bg-emerald-600{border-radius:0!important;background:#552D18!important;color:#FFFCF9!important}
+.hbc-luna-site .luna-orders-page .border-b{border-color:#E7D9CE!important}
+.hbc-luna-site .luna-orders-page .text-ink,
+.hbc-luna-site .luna-tracking-page .text-ink,
+.hbc-luna-site .luna-address-page .text-gray-900{color:#1A0E07!important}
+.hbc-luna-site .luna-orders-page .text-gray-500,
+.hbc-luna-site .luna-tracking-page .text-gray-500,
+.hbc-luna-site .luna-address-page .text-gray-500{color:#806B5C!important}
+.hbc-luna-site .luna-address-page .bg-emerald-50{background:#F3EAE3!important;border-color:#E7D9CE!important}
+.hbc-luna-site .luna-address-page .text-emerald-700,
+.hbc-luna-site .luna-address-page .text-emerald-900{color:#6E4D35!important}
+.hbc-luna-site .luna-address-page .bg-emerald-100{background:#EEDFD4!important;color:#6E4D35!important}
+.hbc-luna-site .luna-address-page .bg-emerald-600{background:#552D18!important}
+.hbc-luna-site .luna-address-page .border-gray-200,
+.hbc-luna-site .luna-address-page .border-gray-300{border-color:#E7D9CE!important}
+.hbc-luna-site .luna-wishlist-page .grid{row-gap:30px!important}
+@media(max-width:639px){
+ .hbc-luna-site .luna-wishlist-page>.section-padding,
+ .hbc-luna-site .luna-orders-page>.section-padding{padding-top:34px!important;padding-bottom:54px!important}
+ .hbc-luna-site .luna-orders-page form.card,
+ .hbc-luna-site .luna-tracking-page form.card{padding:16px!important}
+ .hbc-luna-site .luna-address-page .mx-auto.max-w-5xl{padding-inline:16px!important;padding-top:30px!important}
+ .hbc-luna-site .luna-address-page .flex.flex-col.gap-3.sm\:flex-row{min-width:0}
+ .hbc-luna-site .luna-address-page input,
+ .hbc-luna-site .luna-address-page select,
+ .hbc-luna-site .luna-address-page textarea{width:100%;min-width:0}
+}

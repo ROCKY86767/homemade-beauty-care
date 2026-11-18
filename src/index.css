@@ -876,3 +876,64 @@ footer img {
 .visitor-activity-page * {
   transform: none !important;
 }
+
+
+/* Homemade Beauty Care brand refresh — scoped to the customer-facing storefront.
+   Admin routes intentionally keep their existing palette. */
+.storefront-theme {
+  --brand-primary: #1B8217;
+  --brand-primary-dark: #146313;
+  --brand-primary-light: #69AD63;
+  --brand-deep: #173D1B;
+  --brand-ink: #29332D;
+  --brand-cream: #FFF9EC;
+  --brand-surface: #EAF3E5;
+  --brand-accent: #D09726;
+  --brand-accent-dark: #A87517;
+  --brand-accent-light: #E9BE68;
+  --brand-border: #DCE8D6;
+  color: var(--brand-ink);
+}
+
+/* Tailwind brand utilities are overridden only inside the storefront wrapper. */
+.storefront-theme .bg-primary,
+.storefront-theme [class~="bg-primary"] { background-color: #1B8217 !important; }
+.storefront-theme [class*="bg-primary/"] { background-color: color-mix(in srgb, #1B8217 calc(var(--tw-bg-opacity, 1) * 100%), transparent) !important; }
+.storefront-theme .bg-primary-dark { background-color: #146313 !important; }
+.storefront-theme .bg-primary-light { background-color: #69AD63 !important; }
+.storefront-theme .text-primary,
+.storefront-theme [class~="text-primary"] { color: #1B8217 !important; }
+.storefront-theme [class*="text-primary/"] { color: color-mix(in srgb, #1B8217 calc(var(--tw-text-opacity, 1) * 100%), transparent) !important; }
+.storefront-theme .text-primary-dark { color: #146313 !important; }
+.storefront-theme .text-primary-light { color: #69AD63 !important; }
+.storefront-theme .border-primary { border-color: #1B8217 !important; }
+.storefront-theme .ring-primary { --tw-ring-color: #1B8217 !important; }
+.storefront-theme .bg-accent { background-color: #D09726 !important; }
+.storefront-theme [class*="bg-accent/"] { background-color: color-mix(in srgb, #D09726 calc(var(--tw-bg-opacity, 1) * 100%), transparent) !important; }
+.storefront-theme .text-accent { color: #A87517 !important; }
+.storefront-theme .border-accent { border-color: #D09726 !important; }
+.storefront-theme .bg-dark { background-color: #173D1B !important; }
+.storefront-theme .text-dark { color: #173D1B !important; }
+.storefront-theme .bg-cream { background-color: #FFF9EC !important; }
+.storefront-theme .bg-light-green { background-color: #EAF3E5 !important; }
+.storefront-theme .text-ink { color: #29332D !important; }
+.storefront-theme .border-gray-200 { border-color: #DCE8D6 !important; }
+
+/* Brand buttons and focus states. */
+.storefront-theme .btn-primary { background-color: #1B8217 !important; }
+.storefront-theme .btn-primary:hover { background-color: #146313 !important; }
+.storefront-theme .btn-secondary { border-color: #1B8217 !important; color: #1B8217 !important; }
+.storefront-theme .btn-secondary:hover { background-color: #1B8217 !important; color: #fff !important; }
+.storefront-theme .btn-accent { background-color: #D09726 !important; }
+.storefront-theme .btn-accent:hover { background-color: #A87517 !important; }
+.storefront-theme .input-field:focus { border-color: #1B8217 !important; box-shadow: 0 0 0 2px rgb(27 130 23 / .18) !important; }
+.storefront-theme :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline-color: #1B8217; }
+.storefront-theme :focus-visible { outline-color: #1B8217; }
+
+/* Branded gradients and soft surfaces. */
+.storefront-theme .brand-gradient { background: linear-gradient(135deg, #173D1B 0%, #1B8217 58%, #69AD63 100%); }
+.storefront-theme .brand-soft-gradient { background: linear-gradient(135deg, #FFF9EC 0%, #fff 55%, #EAF3E5 100%); }
+.storefront-theme .brand-accent-gradient { background: linear-gradient(135deg, #A87517 0%, #D09726 100%); }
+.storefront-theme .brand-border { border-color: #DCE8D6 !important; }
+.storefront-theme .brand-glow { box-shadow: 0 0 0 1px rgb(27 130 23 / .10), 0 12px 35px rgb(27 130 23 / .12); }
+.storefront-theme .focus-ring:focus-visible { box-shadow: 0 0 0 4px rgb(27 130 23 / .18); }

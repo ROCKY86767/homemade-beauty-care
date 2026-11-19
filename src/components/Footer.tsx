@@ -5,13 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { getSettings, subscribeToSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
-const toBangladeshPhone = (value: string) => {
-  const digits = value.replace(/\D/g, '');
-  if (digits.startsWith('880')) return digits;
-  if (digits.startsWith('0')) return `880${digits.slice(1)}`;
-  return digits;
-};
-
 const FOOTER_LINKS = {
   'QUICK LINKS': [
     { label: 'Home', path: '/' },

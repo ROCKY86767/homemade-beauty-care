@@ -233,7 +233,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
       <div className="luna-shop-content section-padding py-6 sm:py-8">
         <div className="flex gap-8">
           {/* Desktop Sidebar */}
-          <aside className="luna-shop-sidebar hidden lg:block w-64 shrink-0">
+          <aside className="luna-shop-sidebar hidden">
             <div className="sticky top-44">
               <h2 className="font-display text-lg font-semibold text-ink mb-5 flex items-center gap-2">
                 <SlidersHorizontal size={18} /> Filters

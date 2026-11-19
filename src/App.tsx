@@ -65,7 +65,7 @@ function Layout({ children, settings }: { children: React.ReactNode; settings: S
 
   useEffect(() => {
     if (!showPageTransition) return;
-    const timeout = window.setTimeout(() => setShowPageTransition(false), 260);
+    const timeout = window.setTimeout(() => setShowPageTransition(false), 550);
     return () => window.clearTimeout(timeout);
   }, [showPageTransition]);
 

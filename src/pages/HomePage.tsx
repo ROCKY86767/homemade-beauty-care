@@ -53,41 +53,41 @@ const INITIAL_HERO_BANNER: Banner = {
 function HomePageLoadingSkeleton({ banner }: { banner?: Banner }) {
   return (
     <div className="homepage-compact" aria-hidden="true">
-      <section className="relative mx-3 my-3 h-[520px] overflow-hidden rounded-[1.5rem] bg-[#e9e7dc] sm:mx-6 sm:my-6 sm:h-[560px] sm:rounded-[2rem] lg:mx-auto lg:my-8 lg:h-[590px] lg:w-[calc(100%-3rem)] lg:max-w-[1440px]">
-        {banner ? (
-          <>
-            <picture>
-              <source media="(max-width: 639px)" srcSet={toWebPImageSrcSet(banner.mobile_image_url || banner.desktop_image_url || banner.image_url)} sizes="100vw" />
-              <img src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1280)} srcSet={toWebPImageSrcSet(banner.desktop_image_url || banner.image_url || banner.mobile_image_url)} sizes="100vw" alt={banner.title_bn} width="1920" height="1080" fetchPriority="high" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-slow-zoom" />
-            </picture>
-            <div className="absolute inset-0 bg-gradient-to-r from-[#17291f]/80 via-[#17291f]/42 to-[#17291f]/5" />
-            <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 lg:px-16"><h1 className="max-w-xl font-display text-3xl font-bold leading-tight text-white drop-shadow-sm sm:text-5xl lg:text-6xl">{banner.title_bn}</h1></div>
-          </>
-        ) : <div className="h-full w-full animate-pulse bg-[#e9e7dc]" />}
-      </section>
-      <section className="bg-white py-12 sm:py-20">
-        <div className="section-padding">
-          <div className="mx-auto mb-9 h-12 max-w-2xl animate-pulse rounded-xl bg-gray-100 sm:mb-12" />
-          <div className="luna-category-grid grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-            {Array.from({ length: 4 }).map((_, index) => <div key={index} className="aspect-[4/5] animate-pulse rounded-[1.35rem] bg-[#E8EEDF]" />)}
-          </div>
+      <section className="luna-home-hero">
+        <div className="luna-home-hero-copy">
+          <div className="h-3 w-44 animate-pulse bg-[#D8C5B7]" />
+          <div className="mt-8 h-12 w-full max-w-[430px] animate-pulse bg-[#E6D9CE] sm:h-16" />
+          <div className="mt-3 h-12 w-4/5 max-w-[350px] animate-pulse bg-[#E6D9CE]" />
+          <div className="mt-5 h-4 w-full max-w-[360px] animate-pulse bg-[#E6D9CE]" />
+          <div className="mt-2 h-4 w-4/5 max-w-[300px] animate-pulse bg-[#E6D9CE]" />
+          <div className="mt-8 h-[50px] w-40 animate-pulse bg-[#D8C5B7]" />
+        </div>
+        <div className="luna-home-hero-media">
+          {banner?.desktop_image_url || banner?.image_url || banner?.mobile_image_url ? (
+            <img
+              src={toWebPImageUrl(banner.desktop_image_url || banner.image_url || banner.mobile_image_url, 1280)}
+              srcSet={toWebPImageSrcSet(banner.desktop_image_url || banner.image_url || banner.mobile_image_url)}
+              sizes="(max-width: 639px) 100vw, 55vw"
+              alt=""
+              width="1280"
+              height="900"
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full animate-pulse bg-[#E9DDD3]" />
+          )}
         </div>
       </section>
-      {[0, 1, 2].map((section) => (
-        <section key={section} className="py-10 sm:py-16">
-          <div className="section-padding">
-            <div className="mx-auto mb-10 h-10 max-w-xs animate-pulse rounded-xl bg-gray-100" />
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, index) => <div key={index} className="overflow-hidden rounded-2xl bg-white"><div className="aspect-square animate-pulse bg-[#E8EEDF]" /><div className="space-y-3 p-3"><div className="h-4 animate-pulse rounded bg-gray-100" /><div className="h-4 w-2/3 animate-pulse rounded bg-gray-100" /></div></div>)}
-            </div>
-          </div>
-        </section>
-      ))}
-      <section className="overflow-hidden bg-[#F7F4EA] py-8 sm:py-12">
+      <section className="bg-[#FFFCF9] py-12 sm:py-16">
         <div className="section-padding">
-          <div className="mb-6 h-8 w-56 animate-pulse rounded bg-gray-100" />
-          <div className="flex gap-4 overflow-hidden">
-            {[0, 1, 2].map(index => <div key={index} className="w-[58vw] max-w-[220px] shrink-0 overflow-hidden rounded-2xl bg-white"><div className="aspect-[4/5] animate-pulse bg-[#E8EEDF]" /><div className="h-24 animate-pulse bg-gray-100" /></div>)}
+          <div className="mx-auto mb-8 h-8 max-w-xs animate-pulse bg-[#E6D9CE]" />
+          <div className="luna-category-grid grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((item) => (
+              <div key={item} className="min-h-[155px] animate-pulse bg-[#F0E7DF]" />
+            ))}
           </div>
         </div>
       </section>

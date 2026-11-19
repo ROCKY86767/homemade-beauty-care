@@ -60,7 +60,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           <Heart size={18} className={inWishlist ? 'fill-white' : ''} />
         </button>
 
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
+        <div className="absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 opacity-100 translate-y-0 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
           <Link
             to={`/product/${product.slug}`}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"
@@ -77,7 +77,6 @@ export default function ProductCard({ product, compactActions = false }: Product
             title="Add to Cart"
           >
             <ShoppingCart size={17} />
-            <span className="whitespace-nowrap text-xs font-semibold">Add to Cart</span>
           </button>
         </div>
       </div>

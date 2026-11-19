@@ -38,6 +38,8 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   const [priceRange, setPriceRange] = useState<[number, number]>([0, Number.MAX_SAFE_INTEGER]);
   const [minRating, setMinRating] = useState(0);
   const [onlyDiscount, setOnlyDiscount] = useState(false);
+  const [shopPageImage, setShopPageImage] = useState<{ desktop_image_url: string | null; mobile_image_url: string | null } | null>(null);
+
 
   useEffect(() => {
     let active = true;
@@ -99,6 +101,33 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
     return () => {
       active = false;
     };
+  }, [categorySlug, isOffers, isNewArrivals, query]);
+
+  useEffect(() => {
+    let active = true;
+    const isShopAllPage = !categorySlug && !isOffers && !isNewArrivals && !query;
+    if (!isShopAllPage) {
+      setShopPageImage(null);
+      return () => { active = false; };
+    }
+
+    supabase
+      .from('shop_page_settings')
+      .select('desktop_image_url, mobile_image_url')
+      .eq('id', 1)
+      .eq('is_active', true)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          console.error('Shop All image load error:', error);
+          setShopPageImage(null);
+          return;
+        }
+        setShopPageImage(data || null);
+      });
+
+    return () => { active = false; };
   }, [categorySlug, isOffers, isNewArrivals, query]);
 
   const filtered = useMemo(() => {
@@ -229,6 +258,25 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
           {pageDesc && <p className="mt-2 text-gray-500 max-w-xl mx-auto">{pageDesc}</p>}
         </div>
       </div>
+
+      {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
+        <div className="section-padding pt-4">
+          <picture>
+            {shopPageImage.mobile_image_url && (
+              <source media="(max-width: 639px)" srcSet={shopPageImage.mobile_image_url} />
+            )}
+            <img
+              src={shopPageImage.desktop_image_url || shopPageImage.mobile_image_url || ''}
+              alt="Shop All collection"
+              loading="lazy"
+              decoding="async"
+              className={shopPageImage.mobile_image_url
+                ? "block w-full aspect-[9/11] sm:aspect-[16/5] rounded-2xl object-cover"
+                : "block w-full aspect-[16/7] sm:aspect-[16/5] rounded-2xl object-cover"}
+            />
+          </picture>
+        </div>
+      )}
 
       <div className="luna-shop-content section-padding py-6 sm:py-8">
         <div className="flex gap-8">

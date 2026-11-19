@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Eye, ShoppingCart, Zap } from 'lucide-react';
 import type { Product } from '@/lib/types';
@@ -12,13 +13,25 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, compactActions = false }: ProductCardProps) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
+  const [showMobileActions, setShowMobileActions] = useState(false);
   const discount = calculateDiscountPercent(product.price, product.old_price);
   const inWishlist = isInWishlist(product.id);
 
   return (
     <div className="luna-product-card group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
       <div className="luna-product-image relative aspect-square overflow-hidden bg-cream">
-        <Link to={`/product/${product.slug}`} className="luna-product-image-link block h-full w-full aspect-square">
+        <Link
+          to={`/product/${product.slug}`}
+          onClick={(event) => {
+            if (window.matchMedia("(max-width: 639px)").matches) {
+              event.preventDefault();
+              setShowMobileActions((visible) => !visible);
+            }
+          }}
+          aria-label={`Tap to ${showMobileActions ? "hide" : "show"} product actions`}
+          aria-expanded={showMobileActions}
+          className="luna-product-image-link block h-full w-full aspect-square"
+        >
           <img
             src={product.image_url}
             alt={product.name_bn}
@@ -60,7 +73,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           <Heart size={18} className={inWishlist ? 'fill-white' : ''} />
         </button>
 
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 opacity-100 translate-y-0 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
+        <div className={`absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 transition-all duration-300 ${showMobileActions ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"} sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0`}>
           <Link
             to={`/product/${product.slug}`}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"

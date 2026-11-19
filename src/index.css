@@ -2469,19 +2469,20 @@ footer img {
   place-items: center;
   pointer-events: none;
   background: rgb(247 244 234 / 96%);
-  animation: hbcPageTransitionFade 780ms ease-out both;
+  animation: hbcPageTransitionFade 1000ms ease-out both;
 }
 .hbc-page-transition-brand {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 6px;
   width: min(340px, 88vw);
-  min-height: 84px;
+  min-height: 112px;
   overflow: visible;
   isolation: isolate;
-  animation: hbcPageTransitionBrand 780ms cubic-bezier(.2,.75,.25,1) both;
+  animation: hbcPageTransitionBrand 1000ms cubic-bezier(.2,.75,.25,1) both;
 }
 .hbc-page-transition-brand img {
   display: block;
@@ -2496,6 +2497,7 @@ footer img {
   font-size: clamp(17px, 4.5vw, 23px);
   font-weight: 700;
   line-height: 1.15;
+  text-align: center;
   white-space: nowrap;
 }
 .hbc-page-transition-brand::after {
@@ -2510,7 +2512,7 @@ footer img {
   background: linear-gradient(105deg, transparent 0%, rgb(255 255 255 / 8%) 28%, rgb(255 255 255 / 82%) 50%, rgb(255 255 255 / 12%) 72%, transparent 100%);
   filter: blur(2px);
   transform: skewX(-18deg) translateX(-180%);
-  animation: hbcLogoShine 780ms ease-in-out both;
+  animation: hbcLogoShine 1000ms ease-in-out both;
 }
 @keyframes hbcPageTransitionFade {
   0% { opacity: 0; }

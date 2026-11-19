@@ -2316,3 +2316,48 @@ footer img {
     height: 19px !important;
   }
 }
+
+
+/* Footer brand lockup: logo on the left, brand name and tagline stacked on its right. */
+.hbc-luna-site footer .luna-footer-brand {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  column-gap: 12px !important;
+  row-gap: 10px !important;
+}
+.hbc-luna-site footer .luna-footer-brand > img {
+  flex: 0 0 54px !important;
+  width: 54px !important;
+  height: 54px !important;
+  max-height: 54px !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+.hbc-luna-site footer .luna-footer-brand-copy {
+  display: flex !important;
+  flex: 1 1 150px !important;
+  min-width: 0 !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 3px !important;
+}
+.hbc-luna-site footer .luna-footer-brand-copy > h3 {
+  margin: 0 !important;
+  color: #000 !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  overflow-wrap: normal !important;
+}
+.hbc-luna-site footer .luna-footer-brand-copy > p {
+  max-width: 260px !important;
+  margin: 0 !important;
+  color: #000 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+.hbc-luna-site footer .luna-footer-brand > .luna-footer-socials {
+  flex: 0 0 100% !important;
+  margin-top: 2px !important;
+}

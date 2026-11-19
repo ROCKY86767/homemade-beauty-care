@@ -2596,3 +2596,18 @@ footer img {
     height: 19px !important;
   }
 }
+
+
+/* Final mobile action visibility override: beat the legacy :last-child rule. */
+@media (max-width: 639px) {
+  .hbc-luna-site .luna-product-card .luna-product-image > div.luna-product-actions {
+    opacity: 0 !important;
+    transform: translateY(8px) !important;
+    pointer-events: none !important;
+  }
+  .hbc-luna-site .luna-product-card .luna-product-image > div.luna-product-actions.is-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+  }
+}

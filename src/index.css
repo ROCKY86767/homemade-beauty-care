@@ -2469,7 +2469,7 @@ footer img {
   place-items: center;
   pointer-events: none;
   background: rgb(247 244 234 / 96%);
-  animation: hbcPageTransitionFade 260ms ease-out both;
+  animation: hbcPageTransitionFade 550ms ease-out both;
 }
 .hbc-page-transition-brand {
   display: flex;
@@ -2481,7 +2481,7 @@ footer img {
   font-size: clamp(16px, 2vw, 21px);
   font-weight: 600;
   text-align: center;
-  animation: hbcPageTransitionBrand 260ms ease-out both;
+  animation: hbcPageTransitionBrand 550ms ease-out both;
 }
 .hbc-page-transition-brand img {
   display: block;

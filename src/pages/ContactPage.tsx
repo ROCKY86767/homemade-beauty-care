@@ -5,7 +5,7 @@ import { getSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
 const toBangladeshPhone = (value: string) => {
-  const digits = value.replace(/\\D/g, '');
+  const digits = value.replace(/\D/g, '');
   if (digits.startsWith('880')) return digits;
   if (digits.startsWith('0')) return `880${digits.slice(1)}`;
   return digits;
@@ -111,7 +111,7 @@ export default function ContactPage() {
       ))}
 
       <a
-        href={settings?.whatsapp_number || settings?.phone ? `https://wa.me/${(settings?.whatsapp_number || settings?.phone || '').replace(/\D/g, '').replace(/^0/, '88')}` : '#'}
+        href={`https://wa.me/${toBangladeshPhone(whatsappNumber)}`}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"

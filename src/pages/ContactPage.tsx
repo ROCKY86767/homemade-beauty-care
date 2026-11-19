@@ -4,12 +4,23 @@ import { supabase } from '@/lib/supabase';
 import { getSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
+const toBangladeshPhone = (value: string) => {
+  const digits = value.replace(/\D/g, '');
+  if (digits.startsWith('880')) return digits;
+  if (digits.startsWith('0')) return `880${digits.slice(1)}`;
+  return digits;
+};
+
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [showSocial, setShowSocial] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const contactPhone = settings?.phone?.trim() || '01999478203';
+  const whatsappNumber = settings?.whatsapp_number?.trim() || '01999478203';
+  const contactEmail = settings?.email?.trim() || 'support.ghrcha@gmail.com';
+  const contactAddress = settings?.address_bn?.trim() || 'ঢাকা, বাংলাদেশ';
 
   useEffect(() => {
     getSettings().then(setSettings);
@@ -38,7 +49,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="luna-contact-page min-h-screen bg-white">
       {/* Hero */}
       <section className="bg-cream py-12">
         <div className="section-padding text-center">
@@ -100,7 +111,7 @@ export default function ContactPage() {
       ))}
 
       <a
-        href={settings?.whatsapp_number || settings?.phone ? `https://wa.me/${(settings?.whatsapp_number || settings?.phone || '').replace(/\D/g, '').replace(/^0/, '88')}` : '#'}
+        href={`https://wa.me/${toBangladeshPhone(whatsappNumber)}`}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors"
@@ -118,10 +129,10 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-semibold text-ink">Phone</h3>
                   <a
-                    href={settings?.phone ? `tel:${settings.phone}` : '#'} 
+                    href={`tel:+${toBangladeshPhone(contactPhone)}`} 
                     className="text-gray-500 text-sm mt-1 inline-block hover:text-primary"
                   >
-                    {settings?.phone || 'Customer Support'}
+                    {contactPhone}
                   </a>
                 </div>
               </div>
@@ -131,16 +142,26 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-ink">Email</h3>
-                  <p className="text-gray-500 text-sm mt-1">{settings?.email || 'support.ghrcha@gmail.com'}</p>
+                  <a href={`mailto:${contactEmail}`} className="text-gray-500 text-sm mt-1 inline-block hover:text-primary">{contactEmail}</a>
                 </div>
               </div>
+              <div className="flex items-start gap-4 p-5 rounded-2xl bg-cream">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
+                  <MessageCircle size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-ink">WhatsApp</h3>
+                  <a href={`https://wa.me/${toBangladeshPhone(whatsappNumber)}`} target="_blank" rel="noopener noreferrer" className="text-gray-500 text-sm mt-1 inline-block hover:text-primary">{whatsappNumber}</a>
+                </div>
+              </div>
+
               <div className="flex items-start gap-4 p-5 rounded-2xl bg-cream">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
                   <MapPin size={24} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-ink">Address</h3>
-                  <p className="text-gray-500 text-sm mt-1">{settings?.address_bn || 'Dhaka, Bangladesh'}</p>
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactAddress)}`} target="_blank" rel="noopener noreferrer" className="text-gray-500 text-sm mt-1 inline-block hover:text-primary">{contactAddress}</a>
                 </div>
               </div>
               <div className="flex items-start gap-4 p-5 rounded-2xl bg-cream">

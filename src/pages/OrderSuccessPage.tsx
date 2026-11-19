@@ -89,7 +89,7 @@ export default function OrderSuccessPage() {
   }, [orderNumber, location.state]);
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center bg-cream px-4 py-12">
+    <div className="luna-success-page min-h-[70vh] flex items-center justify-center bg-cream px-4 py-12">
       <SEO title="Order Confirmed - Homemade Beauty Care" />
       <div className="max-w-lg w-full">
         <div className="relative overflow-hidden rounded-3xl bg-white border border-primary/10 shadow-sm px-5 py-8 sm:px-10 sm:py-10 text-center animate-fade-in-up">

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Phone, Mail, MapPin, MessageCircle, Youtube } from 'lucide-react';
+import { ArrowRight, Facebook, Instagram, MessageCircle, Youtube } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getSettings, subscribeToSettings } from '@/lib/settings';
@@ -17,15 +17,6 @@ const FOOTER_LINKS = {
     { label: 'Returns and Refunds', path: '/returns-refunds' },
     { label: 'Delivery Information', path: '/delivery-information' },
     { label: 'Privacy Policy', path: '/privacy-policy' },
-  ],
-  CATEGORIES: [
-    { label: 'Hair Care', path: '/category/hair-care' },
-    { label: 'Hair Oil', path: '/category/hair-oil' },
-    { label: 'Hair Pack', path: '/category/hair-pack' },
-    { label: 'Skin Care', path: '/category/skin-care' },
-    { label: 'Face Care', path: '/category/face-care' },
-    { label: 'Face Pack', path: '/category/face-pack' },
-    { label: 'Offers', path: '/offers' },
   ],
 };
 
@@ -59,6 +50,7 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
     setTimeout(() => setSubscribed(false), 3000);
   };
 
+
   const socials = [
     { url: settings?.facebook_url, icon: Facebook, label: 'Facebook' },
     { url: settings?.instagram_url, icon: Instagram, label: 'Instagram' },
@@ -67,136 +59,29 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
   ].filter(s => s.url);
 
   return (
-    <footer className="bg-dark text-white" style={hidden || (waitForSettings && !settingsLoaded) ? { visibility: 'hidden' } : undefined} aria-hidden={hidden || (waitForSettings && !settingsLoaded)}>
-      {/* Newsletter */}
-      {settings?.newsletter_enabled !== false && (
-      <div className="border-b border-white/10">
-        <div className="section-padding py-8 sm:py-12">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-xl sm:text-2xl font-bold text-white">
-              Stay Updated
-            </h2>
-            <p className="mt-2 text-sm text-white/70">
-              Subscribe for new products, special offers and beauty tips.
-            </p>
-            <form onSubmit={handleSubscribe} className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Enter Your Email"
-                className="flex-1 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm text-white placeholder-white/50 outline-none focus:border-primary-light focus:bg-white/15"
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-light"
-              >
-                Subscribe
-              </button>
-            </form>
-            {subscribed && (
-              <p className="mt-3 text-sm text-primary-light animate-fade-in">
-                Thank you! You have successfully subscribed.।
-              </p>
-            )}
+    <footer className="luna-store-footer bg-dark text-white" style={hidden || (waitForSettings && !settingsLoaded) ? { visibility: 'hidden' } : undefined} aria-hidden={hidden || (waitForSettings && !settingsLoaded)}>
+      <div className="luna-footer-main section-padding py-12">
+        <div className="luna-footer-brand">
+          <img src={settings?.logo_url || "/new-homemade-logo.png"} alt={settings?.brand_name || "Homemade Beauty Care"} width={64} height={64} />
+          <div className="luna-footer-brand-copy">
+            <h3>{settings?.brand_name || 'Homemade Beauty Care'}</h3>
+            <p>চুল ও ত্বকের দৈনন্দিন যত্নকে আরও সহজ ও সুন্দর করার জন্য আমাদের যাত্রা।</p>
           </div>
+          {socials.length > 0 && <div className="luna-footer-socials">{socials.map(social => <a key={social.label} href={social.url || '#'} target="_blank" rel="noopener noreferrer" aria-label={social.label}><social.icon size={17} /></a>)}</div>}
         </div>
-      </div>
-
-      )}
-
-      {/* Main footer */}
-      <div className="section-padding py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-          {/* About */}
-          <div className="col-span-2 md:col-span-3 lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-<img
-  src={settings?.logo_url || "/new-homemade-logo.png"}
-  alt="Homemade Beauty Care"
-  width={56}
-  height={56}
-  className="h-14 w-14 rounded-md object-contain"
-  style={{ borderRadius: '6px' }}
-/>
-              <h3 className="font-display text-lg font-bold text-white">
-                {settings?.brand_name || 'Homemade Beauty Care'}
-              </h3>
-            </div>
-            <p className="text-sm text-white/70 leading-relaxed">
-              {settings?.footer_text_bn || 'চুল ও ত্বকের দৈনন্দিন যত্নকে আরও সহজ ও সুন্দর করার জন্য আমাদের যাত্রা।'}
-            </p>
-            {socials.length > 0 && (
-              <div className="flex gap-3 mt-5">
-                {socials.map(social => (
-                  <a key={social.label} href={social.url || '#'} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-primary" aria-label={social.label}>
-                    <social.icon size={18} />
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Link columns */}
-          {Object.entries(FOOTER_LINKS).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-white/90 mb-4">
-                {title}
-              </h4>
-              <ul className="space-y-2.5">
-                {links.map(link => (
-                  <li key={link.path}>
-                    <Link
-                      to={link.path}
-                      className="text-sm text-white/60 transition-colors hover:text-primary-light"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          {/* Contact */}
-          <div>
-            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-white/90 mb-4">
-              CONTACT
-            </h4>
-            <ul className="space-y-3">
-              {settings?.contact_phone_enabled !== false && (
-                <li className="flex items-start gap-2.5 text-sm text-white/60">
-                  <Phone size={16} className="mt-0.5 shrink-0 text-primary-light" />
-                  <span>{settings?.phone || 'Customer Support'}</span>
-                </li>
-              )}
-              {settings?.contact_whatsapp_enabled !== false && settings?.whatsapp_number && (
-                <li className="flex items-start gap-2.5 text-sm text-white/60">
-                  <MessageCircle size={16} className="mt-0.5 shrink-0 text-primary-light" />
-                  <a href={`https://wa.me/${settings.whatsapp_number.replace(/\D/g, '').replace(/^0/, '88')}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary-light">{settings.whatsapp_number}</a>
-                </li>
-              )}
-              <li className="flex items-start gap-2.5 text-sm text-white/60">
-                <Mail size={16} className="mt-0.5 shrink-0 text-primary-light" />
-                <span>{settings?.email || 'support.ghrcha@gmail.com'}</span>
-              </li>
-              <li className="flex items-start gap-2.5 text-sm text-white/60">
-                <MapPin size={16} className="mt-0.5 shrink-0 text-primary-light" />
-                <span>{settings?.address_bn || 'Dhaka, Bangladesh'}</span>
-              </li>
-            </ul>
-          </div>
+        <div className="luna-footer-links">
+          {Object.entries(FOOTER_LINKS).map(([title, links]) => <div key={title}>
+            <h4>{title === 'QUICK LINKS' ? 'EXPLORE' : title === 'CUSTOMER SERVICE' ? 'HELP' : 'COLLECTIONS'}</h4>
+            <ul>{links.slice(0, title === 'CATEGORIES' ? 5 : 4).map(link => <li key={link.path}><Link to={link.path}>{link.label}</Link></li>)}</ul>
+          </div>)}
         </div>
+        {settings?.newsletter_enabled !== false && <div className="luna-footer-newsletter">
+          <h4>STAY IN THE GLOW</h4><p>নতুন পণ্য, যত্নের টিপস ও বিশেষ অফারের খবর পেতে যুক্ত থাকুন।</p>
+          <form onSubmit={handleSubscribe}><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your email address" aria-label="Your email address" /><button type="submit" aria-label="Subscribe"><ArrowRight size={17} /></button></form>
+          {subscribed && <p className="luna-subscribe-success">ধন্যবাদ! আপনার ইমেইল যুক্ত হয়েছে।</p>}
+        </div>}
       </div>
-
-      {/* Bottom */}
-      <div className="border-t border-white/10">
-        <div className="section-padding py-4 sm:py-5 text-center">
-          <p className="text-xs sm:text-sm text-white/50">
-            © {new Date().getFullYear()} {settings?.brand_name || 'Homemade Beauty Care'}. All Rights Reserved.
-          </p>
-        </div>
-      </div>
+      <div className="luna-footer-bottom section-padding"><span>© {new Date().getFullYear()} {settings?.brand_name || 'Homemade Beauty Care'}. All rights reserved.</span></div>
     </footer>
   );
 }

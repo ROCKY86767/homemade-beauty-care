@@ -12,7 +12,7 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="luna-about-page min-h-screen bg-white">
       {/* Hero */}
       <section className="relative h-[320px] overflow-hidden">
         <img

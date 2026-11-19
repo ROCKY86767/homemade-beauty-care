@@ -24,6 +24,8 @@ export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
+  const [reviewPopupOpen, setReviewPopupOpen] = useState(false);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
@@ -63,6 +65,7 @@ export default function ProductDetailPage() {
       setLoading(true);
       setProduct(null);
       setReviews([]);
+      setEditorialReviews([]);
       setRelated([]);
 
       try {
@@ -96,8 +99,9 @@ export default function ProductDetailPage() {
           console.error('Meta Pixel ViewContent error:', error);
         }
 
-        const [reviewResult, relatedResult] = await Promise.all([
+        const [reviewResult, editorialReviewResult, relatedResult] = await Promise.all([
           supabase.from('reviews').select('*').eq('product_id', prod.id).eq('is_approved', true).order('sort_order'),
+          supabase.from('homepage_editorial_reviews').select('*').eq('product_id', prod.id).eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
           supabase.from('products').select('*, category:categories(*)')
             .neq('id', prod.id)
             .eq('category_id', prod.category_id || '')
@@ -107,14 +111,17 @@ export default function ProductDetailPage() {
 
         if (!active) return;
         if (reviewResult.error) console.error('Product reviews load error:', reviewResult.error);
+        if (editorialReviewResult.error) console.error('Product editorial reviews load error:', editorialReviewResult.error);
         if (relatedResult.error) console.error('Related products load error:', relatedResult.error);
         setReviews(reviewResult.data || []);
+        setEditorialReviews(editorialReviewResult.data || []);
         setRelated(relatedResult.data || []);
       } catch (error) {
         if (active) {
           console.error('Product detail load error:', error);
           setProduct(null);
           setReviews([]);
+          setEditorialReviews([]);
           setRelated([]);
         }
       } finally {
@@ -231,7 +238,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="luna-product-detail min-h-screen bg-white">
       <SEO
         title={`${product.name_bn} - ${settings?.brand_name || 'Homemade Beauty Care'}`}
         description={product.short_description_bn || product.description_bn || undefined}
@@ -288,11 +295,11 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="section-padding py-5 sm:py-8">
+      <div className="luna-product-layout section-padding py-5 sm:py-8">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Images */}
           <div>
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream group">
+            <div className="luna-product-gallery relative aspect-square overflow-hidden rounded-2xl bg-cream group">
               <img
                 src={gallery[activeImage]}
                 alt={product.name_bn}
@@ -327,8 +334,8 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Right: Info */}
-          <div>
+          {/* Product information */}
+          <div className="luna-product-information">
             {product.category && (
               <Link to={`/category/${product.category.slug}`} className="text-sm text-primary font-medium">
                 {product.category.name_bn}
@@ -341,6 +348,9 @@ export default function ProductDetailPage() {
               <span className="text-sm text-gray-500">
                 {product.rating} | {product.review_count} Reviews
               </span>
+              <button type="button" onClick={() => setReviewPopupOpen(true)} className="rounded-full border border-primary/25 bg-white px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                রিভিউ দেখুন ({editorialReviews.length + reviews.length})
+              </button>
             </div>
 
             <div className="mt-5 flex items-center gap-3">
@@ -415,7 +425,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        <div id="reviews" className="mt-10 scroll-mt-24 border-t border-gray-100 pt-8">
+        <div id="reviews" className="luna-product-tabs mt-10 scroll-mt-24 border-t border-gray-100 pt-8">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {TABS.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-primary text-white' : 'bg-cream text-gray-600 hover:text-primary'}`}>
@@ -493,6 +503,27 @@ export default function ProductDetailPage() {
           </section>
         )}
       </div>
+
+      {reviewPopupOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/65 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={`${product.name_bn} এর রিভিউ`} onClick={() => setReviewPopupOpen(false)}>
+          <div className="relative flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-[#fffdf7] shadow-2xl" onClick={event => event.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 border-b border-[#e8e3d7] px-4 py-4 sm:px-6">
+              <div className="min-w-0"><p className="text-xs font-semibold tracking-wide text-primary">CUSTOMER REVIEWS</p><h2 className="mt-1 truncate text-lg font-bold text-ink sm:text-xl">{product.name_bn} এর রিভিউ</h2><p className="mt-0.5 text-xs text-gray-500">মোট {editorialReviews.length + reviews.length}টি রিভিউ</p></div>
+              <button type="button" onClick={() => setReviewPopupOpen(false)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0eee5] text-ink hover:bg-[#e7e2d5]" aria-label="রিভিউ বন্ধ করুন"><X size={21} /></button>
+            </div>
+            <div className="overflow-y-auto p-4 sm:p-6">
+              {editorialReviews.length === 0 && reviews.length === 0 ? <p className="rounded-xl border border-[#e8e3d7] bg-white p-6 text-center text-sm text-gray-500">এই পণ্যের জন্য এখনো কোনো রিভিউ যোগ করা হয়নি।</p> : <div className="space-y-3">
+                {editorialReviews.map(item => <article key={`editorial-${item.id}`} className="rounded-xl border border-[#e8e3d7] bg-white p-4">
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-semibold text-ink">{item.customer_name || item.title || 'ক্রেতা'}</p>{item.location && <p className="mt-0.5 text-xs text-gray-400">{item.location}</p>}</div><span className="shrink-0 text-sm tracking-wider text-[#b28b48]">{'★'.repeat(Math.min(5, Math.max(1, Number(item.rating || 5))))}{'☆'.repeat(5 - Math.min(5, Math.max(1, Number(item.rating || 5))))}</span></div>
+                  {item.title && <h3 className="mt-2 text-sm font-semibold text-primary">{item.title}</h3>}{item.review_text && <p className="mt-1 whitespace-pre-line text-sm leading-6 text-gray-600">{item.review_text}</p>}
+                  {Array.isArray(item.media_urls) && item.media_urls.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{item.media_urls.map((url: string, index: number) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={`${url}-${index}`} src={url} controls preload="metadata" playsInline className="max-h-48 w-full rounded-lg bg-black object-contain" /> : <a key={`${url}-${index}`} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg bg-gray-50"><img src={url} alt="রিভিউর ছবি" loading="lazy" className="max-h-48 w-full object-contain" /></a>)}</div>}
+                </article>)}
+                {reviews.map(review => <article key={`customer-${review.id}`} className="rounded-xl border border-[#e8e3d7] bg-white p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-ink">{review.customer_name}</p><div className="mt-1 flex items-center gap-2"><StarRating rating={review.rating} size={14} />{review.is_verified && <span className="text-[11px] text-primary">Verified purchase</span>}</div></div><span className="shrink-0 text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('bn-BD')}</span></div><p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-600">{review.review_bn}</p>{Array.isArray(review.media_urls) && review.media_urls.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{review.media_urls.map((url: string, index: number) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={`${url}-${index}`} src={url} controls preload="metadata" playsInline className="max-h-48 w-full rounded-lg bg-black object-contain" /> : <a key={`${url}-${index}`} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg bg-gray-50"><img src={url} alt="রিভিউর ছবি" loading="lazy" className="max-h-48 w-full object-contain" /></a>)}</div>}</article>)}
+              </div>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {imageZoomOpen && (
         <div className="fixed inset-0 z-[100] bg-black/80 p-4 flex items-center justify-center" onClick={() => setImageZoomOpen(false)}>

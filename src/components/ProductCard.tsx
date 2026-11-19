@@ -16,9 +16,9 @@ export default function ProductCard({ product, compactActions = false }: Product
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <div className="group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
-      <div className="relative aspect-square overflow-hidden bg-cream">
-        <Link to={`/product/${product.slug}`} className="block h-full w-full aspect-square">
+    <div className="luna-product-card group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
+      <div className="luna-product-image relative aspect-square overflow-hidden bg-cream">
+        <Link to={`/product/${product.slug}`} className="luna-product-image-link block h-full w-full aspect-square">
           <img
             src={product.image_url}
             alt={product.name_bn}
@@ -60,25 +60,29 @@ export default function ProductCard({ product, compactActions = false }: Product
           <Heart size={18} className={inWishlist ? 'fill-white' : ''} />
         </button>
 
-        <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
-          <button
-            onClick={() => addToCart(product)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-primary-dark active:scale-95"
-          >
-            <ShoppingCart size={compactActions ? 14 : 16} />
-            Add to Cart
-          </button>
+        <div className="absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
           <Link
             to={`/product/${product.slug}`}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"
-            aria-label="Quick view"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"
+            aria-label={`View ${product.name_bn}`}
+            title="View Product"
           >
-            <Eye size={18} className="text-ink" />
+            <Eye size={19} />
           </Link>
+          <button
+            type="button"
+            onClick={() => addToCart(product)}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-dark hover:scale-110 active:scale-95"
+            aria-label={`Add ${product.name_bn} to cart`}
+            title="Add to Cart"
+          >
+            <ShoppingCart size={17} />
+            <span className="whitespace-nowrap text-xs font-semibold">Add to Cart</span>
+          </button>
         </div>
       </div>
 
-      <div className="p-3 sm:p-4">
+      <div className="luna-product-info p-3 sm:p-4">
         <Link to={`/product/${product.slug}`}>
           <h3 className="font-display text-sm sm:text-base font-semibold text-ink transition-colors hover:text-primary line-clamp-1">
             {product.name_bn}
@@ -90,14 +94,14 @@ export default function ProductCard({ product, compactActions = false }: Product
           </p>
         )}
 
-        <div className="mt-2 flex items-center gap-2">
+        <div className="luna-product-rating mt-2 flex items-center gap-2">
           <StarRating rating={product.rating} size={14} />
           <span className="text-xs text-gray-400">
             {product.rating} ({product.review_count})
           </span>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="luna-product-price mt-3 flex items-center gap-2">
           <span className="text-base sm:text-lg font-bold text-ink">
             {formatPrice(product.price)}
           </span>

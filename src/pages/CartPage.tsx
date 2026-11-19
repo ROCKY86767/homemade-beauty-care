@@ -22,16 +22,16 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-cart-page min-h-screen bg-cream">
       <SEO title="কার্ট - Homemade Beauty Care" />
-      <div className="section-padding py-8">
-        <h1 className="font-display text-3xl font-bold text-dark mb-8">Your Cart</h1>
+      <div className="luna-cart-content section-padding py-8">
+        <div className="luna-cart-heading"><span className="luna-eyebrow">YOUR SELECTION</span><h1 className="font-display text-3xl font-bold text-dark mb-8">Your Cart</h1></div>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map(item => (
-              <div key={item.product.id} className="card p-4 flex gap-4 border border-gray-50">
+              <div key={item.product.id} className="luna-cart-item card p-4 flex gap-4 border border-gray-50">
                 <Link to={`/product/${item.product.slug}`} className="shrink-0">
                   <img
                     src={item.product.image_url}
@@ -106,7 +106,7 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="card p-6 border border-gray-50 sticky top-44">
+            <div className="luna-cart-summary card p-6 border border-gray-50 sticky top-44">
               <h2 className="font-display text-lg font-semibold text-ink mb-4">Order Summary</h2>
               <div className="space-y-3 pb-4 border-b border-gray-100">
                 <div className="flex justify-between text-sm">

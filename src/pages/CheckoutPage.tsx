@@ -876,10 +876,10 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-checkout-page min-h-screen bg-cream">
       <SEO title="Checkout - Homemade Beauty Care" />
 
-      <div className="section-padding py-8">
+      <div className="luna-checkout-content section-padding py-8">
 
         <div className="flex justify-end mb-4">
           <button type="button" onClick={() => setIsBangla(value => !value)} aria-label={isBangla ? 'Switch checkout to English' : 'Checkout page in Bangla'} className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/5">
@@ -910,11 +910,11 @@ export default function CheckoutPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="grid lg:grid-cols-3 gap-6"
+          className="luna-checkout-form grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] gap-5 sm:gap-6"
         >
 
           {/* LEFT */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="luna-checkout-main min-w-0 space-y-5 sm:space-y-6">
 
             {/* Customer Info */}
             <div className="card p-4 sm:p-6 border border-gray-50">
@@ -922,7 +922,7 @@ export default function CheckoutPage() {
                 {t('Customer Information', 'গ্রাহকের তথ্য')}
               </h2>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="luna-checkout-fields grid sm:grid-cols-2 gap-4">
 
                 {/* Name */}
                 <div>
@@ -1361,9 +1361,9 @@ export default function CheckoutPage() {
           </div>
 
           {/* RIGHT */}
-          <div className="lg:col-span-1">
+          <div className="luna-checkout-aside min-w-0">
 
-            <div className="card p-6 border border-gray-50 sticky top-44">
+            <div className="luna-checkout-summary card min-w-0 p-4 sm:p-6 border border-gray-50 lg:sticky lg:top-28">
 
               <h2 className="font-display text-lg font-semibold text-ink mb-4">
                 {t('Order Summary', 'অর্ডারের বিবরণ')}

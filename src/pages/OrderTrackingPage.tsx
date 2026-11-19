@@ -151,7 +151,7 @@ export default function OrderTrackingPage() {
     : -1;
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="luna-tracking-page min-h-screen bg-cream">
       <SEO title="অর্ডার ট্র্যাক - Homemade Beauty Care" />
 
       <div className="section-padding py-8">

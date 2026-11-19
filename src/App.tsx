@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
@@ -43,8 +43,32 @@ function PageLoader() {
   );
 }
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout({ children, settings }: { children: React.ReactNode; settings: SiteSettings | null }) {
   const location = useLocation();
+  const previousPathname = useRef(location.pathname);
+  const [showPageTransition, setShowPageTransition] = useState(false);
+
+  useLayoutEffect(() => {
+    const previousPath = previousPathname.current;
+    const nextPath = location.pathname;
+    previousPathname.current = nextPath;
+
+    const excludedPaths = ['/checkout', '/order-success', '/admin', '/login', '/reset-password'];
+    const isExcluded = (path: string) => excludedPaths.some((excluded) =>
+      path === excluded || path.startsWith(`${excluded}/`)
+    );
+
+    if (previousPath !== nextPath && !isExcluded(previousPath) && !isExcluded(nextPath)) {
+      setShowPageTransition(true);
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!showPageTransition) return;
+    const timeout = window.setTimeout(() => setShowPageTransition(false), 1000);
+    return () => window.clearTimeout(timeout);
+  }, [showPageTransition]);
+
   const isHairPackLanding = location.pathname === '/hairpack' || location.pathname === '/hair-pack';
   const isHomePage = location.pathname === '/';
   const [homePageLoading, setHomePageLoading] = useState(isHomePage);
@@ -59,7 +83,21 @@ function Layout({ children }: { children: React.ReactNode }) {
   }, [isHomePage]);
 
   return (
-    <div className="w-full min-w-0 min-h-screen flex flex-col overflow-x-clip">
+    <div className={`w-full min-w-0 min-h-screen flex flex-col overflow-x-clip ${!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/moderator') && !location.pathname.startsWith('/order-status-dashboard') ? 'hbc-luna-site' : ''}`}>
+      {showPageTransition && (
+        <div className="hbc-page-transition" aria-hidden="true">
+          <div className="hbc-page-transition-brand">
+            <img
+              src="/new-homemade-logo.png"
+              alt=""
+              width="72"
+              height="72"
+              decoding="async"
+            />
+            <span>Homemade Beauty Care</span>
+          </div>
+        </div>
+      )}
       {!isHairPackLanding && <Header />}
       <main className={`w-full min-w-0 min-h-[100svh] flex-1 ${isHairPackLanding ? '' : 'pb-16 lg:pb-0'}`}>
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
@@ -155,7 +193,7 @@ function AppContent() {
         <Route
           path="*"
           element={
-            <Layout>
+            <Layout settings={siteSettings}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/shop" element={<ShopPage />} />

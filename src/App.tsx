@@ -94,6 +94,7 @@ function Layout({ children, settings }: { children: React.ReactNode; settings: S
               height="72"
               decoding="async"
             />
+            <span>Homemade Beauty Care</span>
           </div>
         </div>
       )}

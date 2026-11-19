@@ -63,8 +63,10 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
       <div className="luna-footer-main section-padding py-12">
         <div className="luna-footer-brand">
           <img src={settings?.logo_url || "/new-homemade-logo.png"} alt={settings?.brand_name || "Homemade Beauty Care"} width={64} height={64} />
-          <h3>{settings?.brand_name || 'Homemade Beauty Care'}</h3>
-          <p>{settings?.footer_text_bn || 'প্রকৃতির যত্নে, আপনার সৌন্দর্যের ছোঁয়া'}</p>
+          <div className="luna-footer-brand-copy">
+            <h3>{settings?.brand_name || 'Homemade Beauty Care'}</h3>
+            <p>{settings?.footer_text_bn || 'চুল ও ত্বকের দৈনন্দিন যত্নকে আরও সহজ ও সুন্দর করার জন্য আমাদের যাত্রা।'}</p>
+          </div>
           {socials.length > 0 && <div className="luna-footer-socials">{socials.map(social => <a key={social.label} href={social.url || '#'} target="_blank" rel="noopener noreferrer" aria-label={social.label}><social.icon size={17} /></a>)}</div>}
         </div>
         <div className="luna-footer-links">

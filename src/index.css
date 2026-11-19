@@ -2473,18 +2473,30 @@ footer img {
 }
 .hbc-page-transition-brand {
   position: relative;
-  width: min(180px, 48vw);
-  max-height: 200px;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: min(340px, 88vw);
+  min-height: 84px;
+  overflow: visible;
   isolation: isolate;
   animation: hbcPageTransitionBrand 780ms cubic-bezier(.2,.75,.25,1) both;
 }
 .hbc-page-transition-brand img {
   display: block;
-  width: 100%;
-  height: auto;
-  max-height: 200px;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
+}
+.hbc-page-transition-brand span {
+  color: #263A2D;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(17px, 4.5vw, 23px);
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 .hbc-page-transition-brand::after {
   content: "";

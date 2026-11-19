@@ -2538,3 +2538,61 @@ footer img {
     animation-duration: 1ms;
   }
 }
+
+
+/* Mobile product-card actions: the legacy shop rule forced the overlay visible.
+   Drive visibility from the React is-visible state and keep the image tap target
+   below the action buttons. */
+@media (max-width: 639px) {
+  .hbc-luna-site .luna-product-image .luna-mobile-action-toggle {
+    display: block !important;
+    z-index: 1 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+  .hbc-luna-site .luna-product-image .luna-product-actions {
+    display: flex !important;
+    position: absolute !important;
+    inset: auto 12px 12px !important;
+    z-index: 30 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    opacity: 0 !important;
+    transform: translateY(8px) !important;
+    pointer-events: none !important;
+    transition: opacity 220ms ease, transform 220ms ease !important;
+  }
+  .hbc-luna-site .luna-product-image .luna-product-actions.is-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+  }
+  .hbc-luna-site .luna-product-image .luna-product-actions > a,
+  .hbc-luna-site .luna-product-image .luna-product-actions > button {
+    display: flex !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border-radius: 9999px !important;
+    pointer-events: auto !important;
+  }
+  .hbc-luna-site .luna-product-image .luna-product-actions > a {
+    background: #FFFCF9 !important;
+    color: #552D18 !important;
+  }
+  .hbc-luna-site .luna-product-image .luna-product-actions > button {
+    background: #552D18 !important;
+    color: #FFFCF9 !important;
+  }
+  .hbc-luna-site .luna-product-image .luna-product-actions svg {
+    display: block !important;
+    width: 19px !important;
+    height: 19px !important;
+  }
+}

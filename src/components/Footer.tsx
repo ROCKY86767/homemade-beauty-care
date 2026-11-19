@@ -57,6 +57,9 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
     setTimeout(() => setSubscribed(false), 3000);
   };
 
+  const contactPhone = settings?.phone?.trim() || '01999478203';
+  const whatsappNumber = settings?.whatsapp_number?.trim() || '01999478203';
+
   const socials = [
     { url: settings?.facebook_url, icon: Facebook, label: 'Facebook' },
     { url: settings?.instagram_url, icon: Instagram, label: 'Instagram' },
@@ -81,8 +84,8 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
         </div>
         <div className="luna-footer-contact">
           <h4>GET IN TOUCH</h4>
-          {settings?.contact_phone_enabled !== false && <p><Phone size={14} />{settings?.phone ? <a href={`tel:+${toBangladeshPhone(settings.phone)}`}>{settings.phone}</a> : 'Customer Support'}</p>}
-          {settings?.contact_whatsapp_enabled !== false && settings?.whatsapp_number && <p><MessageCircle size={14} /><a href={`https://wa.me/${toBangladeshPhone(settings.whatsapp_number)}`} target="_blank" rel="noopener noreferrer">{settings.whatsapp_number}</a></p>}
+          {settings?.contact_phone_enabled !== false && <p><Phone size={14} /><a href={`tel:+${toBangladeshPhone(contactPhone)}`} aria-label={`Call ${contactPhone}`}>{contactPhone}</a></p>}
+          {settings?.contact_whatsapp_enabled !== false && <p><MessageCircle size={14} /><a href={`https://wa.me/${toBangladeshPhone(whatsappNumber)}`} target="_blank" rel="noopener noreferrer" aria-label={`Chat on WhatsApp ${whatsappNumber}`}>{whatsappNumber}</a></p>}
           <p><Mail size={14} /><a href={`mailto:${settings?.email || 'support.ghrcha@gmail.com'}`}>{settings?.email || 'support.ghrcha@gmail.com'}</a></p>
           <p><MapPin size={14} /><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings?.address_bn || 'ঢাকা, বাংলাদেশ')}`} target="_blank" rel="noopener noreferrer">{settings?.address_bn || 'ঢাকা, বাংলাদেশ'}</a></p>
         </div>

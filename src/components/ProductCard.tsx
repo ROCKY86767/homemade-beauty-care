@@ -111,17 +111,10 @@ export default function ProductCard({ product, compactActions = false }: Product
           )}
         </div>
 
-        <div className="mt-2.5 sm:mt-3 flex gap-1.5 sm:gap-2 lg:hidden">
-          <button
-            onClick={() => addToCart(product)}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-primary font-medium text-white transition-all hover:bg-primary-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
-          >
-            <ShoppingCart size={16} />
-            Add
-          </button>
+        <div className="mt-2.5 sm:mt-3 lg:hidden">
           <Link
             to={`/product/${product.slug}`}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-accent font-medium text-white transition-all hover:bg-accent-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
+            className={`flex w-full items-center justify-center gap-1 rounded-full bg-accent font-medium text-white transition-all hover:bg-accent-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
           >
             <Zap size={compactActions ? 14 : 16} />
             Buy Now

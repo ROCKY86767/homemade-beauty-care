@@ -137,10 +137,10 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   };
 
   const FilterContent = () => (
-    <div className="space-y-5">
-      <div>
+    <div className="luna-filter-content space-y-5">
+      <div className="luna-filter-group">
         <h3 className="font-display text-sm font-semibold text-ink mb-2.5">ক্যাটাগরি</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="luna-filter-options flex flex-wrap gap-2">
           {categories.map(cat => {
             const selected = selectedCats.includes(cat.slug);
             return (
@@ -150,7 +150,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 onClick={() => toggleCat(cat.slug)}
                 disabled={!!categorySlug}
                 aria-pressed={selected}
-                className={`rounded-full border px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                className={`luna-filter-chip inline-flex min-h-9 items-center justify-center whitespace-nowrap leading-none rounded-full border px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                   selected
                     ? 'border-primary bg-primary text-white'
                     : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
@@ -163,9 +163,9 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
         </div>
       </div>
 
-      <div>
+      <div className="luna-filter-group">
         <h3 className="font-display text-sm font-semibold text-ink mb-2.5">দাম</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="luna-filter-options flex flex-wrap gap-2">
           {PRICE_FILTERS.map(option => {
             const selected = priceRange[0] === option.min && priceRange[1] === option.max;
             return (
@@ -174,7 +174,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 type="button"
                 onClick={() => setPriceRange([option.min, option.max])}
                 aria-pressed={selected}
-                className={`rounded-full border px-3 py-2 text-xs transition-colors ${
+                className={`luna-filter-chip inline-flex min-h-9 items-center justify-center whitespace-nowrap leading-none rounded-full border px-3 py-2 text-xs transition-colors ${
                   selected
                     ? 'border-primary bg-primary text-white'
                     : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
@@ -187,9 +187,9 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
         </div>
       </div>
 
-      <div>
+      <div className="luna-filter-group">
         <h3 className="font-display text-sm font-semibold text-ink mb-2.5">রেটিং</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="luna-filter-options flex flex-wrap gap-2">
           {[{ value: 0, label: 'সব রেটিং' }, { value: 3, label: '৩★ ও বেশি' }, { value: 4, label: '৪★ ও বেশি' }].map(option => (
             <button
               key={option.value}
@@ -208,7 +208,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
         </div>
       </div>
 
-      <label className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-3 py-3 cursor-pointer">
+      <label className="luna-filter-discount flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-3 py-3 cursor-pointer">
         <span className="text-sm font-medium text-ink">শুধু ছাড়ের পণ্য দেখুন</span>
         <input
           type="checkbox"

@@ -2158,3 +2158,97 @@ footer img {
     font-size: 10px !important;
   }
 }
+
+/* Tighten footer layout while keeping all remaining text comfortably readable. */
+.hbc-luna-site .luna-footer-main {
+  padding-top: 24px !important;
+  padding-bottom: 20px !important;
+  gap: 16px !important;
+  align-items: start !important;
+}
+.hbc-luna-site .luna-footer-links {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+.hbc-luna-site .luna-footer-links h4,
+.hbc-luna-site .luna-footer-contact h4,
+.hbc-luna-site .luna-footer-newsletter h4 {
+  margin-bottom: 7px !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+}
+.hbc-luna-site .luna-footer-links ul {
+  gap: 5px !important;
+}
+.hbc-luna-site .luna-footer-links a,
+.hbc-luna-site .luna-footer-contact p,
+.hbc-luna-site .luna-footer-contact a,
+.hbc-luna-site .luna-footer-brand p,
+.hbc-luna-site .luna-footer-newsletter p {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+.hbc-luna-site .luna-footer-contact p {
+  margin-bottom: 6px !important;
+  gap: 6px !important;
+}
+.hbc-luna-site .luna-footer-newsletter form {
+  margin-top: 7px !important;
+}
+.hbc-luna-site .luna-footer-newsletter input {
+  padding-block: 7px !important;
+  font-size: 12px !important;
+}
+.hbc-luna-site .luna-footer-bottom {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+@media (max-width: 1023px) {
+  .hbc-luna-site .luna-footer-main {
+    gap: 14px !important;
+  }
+}
+@media (max-width: 639px) {
+  .hbc-luna-site .luna-footer-main {
+    grid-template-columns: 1fr !important;
+    gap: 11px !important;
+    padding-top: 15px !important;
+    padding-bottom: 12px !important;
+  }
+  .hbc-luna-site .luna-footer-brand {
+    margin-bottom: 0 !important;
+  }
+  .hbc-luna-site .luna-footer-brand > .luna-footer-socials {
+    margin-top: 6px !important;
+  }
+  .hbc-luna-site .luna-footer-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  .hbc-luna-site .luna-footer-links h4,
+  .hbc-luna-site .luna-footer-contact h4,
+  .hbc-luna-site .luna-footer-newsletter h4 {
+    margin-bottom: 5px !important;
+    font-size: 12px !important;
+  }
+  .hbc-luna-site .luna-footer-links a,
+  .hbc-luna-site .luna-footer-contact p,
+  .hbc-luna-site .luna-footer-contact a,
+  .hbc-luna-site .luna-footer-brand p,
+  .hbc-luna-site .luna-footer-newsletter p {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+  .hbc-luna-site .luna-footer-links ul {
+    gap: 4px !important;
+  }
+  .hbc-luna-site .luna-footer-contact p {
+    margin-bottom: 4px !important;
+  }
+  .hbc-luna-site .luna-footer-bottom {
+    gap: 3px !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+  }
+}
+

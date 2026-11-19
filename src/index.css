@@ -2540,108 +2540,55 @@ footer img {
 }
 
 
-/* Mobile product-card actions: the legacy shop rule forced the overlay visible.
-   Drive visibility from the React is-visible state and keep the image tap target
-   below the action buttons. */
+
+/* Always-visible compact product actions on mobile.
+   Positioned in the image corner without changing the image dimensions or crop. */
 @media (max-width: 639px) {
-  .hbc-luna-site .luna-product-image .luna-mobile-action-toggle {
-    display: block !important;
-    z-index: 1 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
-  }
-  .hbc-luna-site .luna-product-image .luna-product-actions {
+  .hbc-luna-site .luna-product-card .luna-product-image > .luna-product-actions {
     display: flex !important;
     position: absolute !important;
-    inset: auto 12px 12px !important;
-    z-index: 30 !important;
+    top: 54px !important;
+    right: 9px !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 35 !important;
+    flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    opacity: 0 !important;
-    transform: translateY(8px) !important;
-    pointer-events: none !important;
-    transition: opacity 220ms ease, transform 220ms ease !important;
-  }
-  .hbc-luna-site .luna-product-image .luna-product-actions.is-visible {
+    justify-content: flex-start !important;
+    gap: 6px !important;
     opacity: 1 !important;
-    transform: translateY(0) !important;
+    visibility: visible !important;
+    transform: none !important;
     pointer-events: auto !important;
   }
-  .hbc-luna-site .luna-product-image .luna-product-actions > a,
-  .hbc-luna-site .luna-product-image .luna-product-actions > button {
+  .hbc-luna-site .luna-product-card .luna-product-image > .luna-product-actions > a,
+  .hbc-luna-site .luna-product-card .luna-product-image > .luna-product-actions > button {
     display: flex !important;
-    width: 44px !important;
-    min-width: 44px !important;
-    height: 44px !important;
-    flex: 0 0 44px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    flex: 0 0 30px !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
-    border-radius: 9999px !important;
+    border: 1px solid rgb(85 45 24 / 12%) !important;
+    border-radius: 50% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
     pointer-events: auto !important;
+    box-shadow: 0 1px 5px rgb(26 14 7 / 12%) !important;
   }
-  .hbc-luna-site .luna-product-image .luna-product-actions > a {
+  .hbc-luna-site .luna-product-card .luna-product-image > .luna-product-actions > a {
     background: #FFFCF9 !important;
     color: #552D18 !important;
   }
-  .hbc-luna-site .luna-product-image .luna-product-actions > button {
+  .hbc-luna-site .luna-product-card .luna-product-image > .luna-product-actions > button {
     background: #552D18 !important;
     color: #FFFCF9 !important;
   }
-  .hbc-luna-site .luna-product-image .luna-product-actions svg {
+  .hbc-luna-site .luna-product-card .luna-product-image > .luna-product-actions svg {
     display: block !important;
-    width: 19px !important;
-    height: 19px !important;
-  }
-}
-
-
-/* Final mobile action visibility override: beat the legacy :last-child rule. */
-@media (max-width: 639px) {
-  .hbc-luna-site .luna-product-card .luna-product-image > div.luna-product-actions {
-    opacity: 0 !important;
-    transform: translateY(8px) !important;
-    pointer-events: none !important;
-  }
-  .hbc-luna-site .luna-product-card .luna-product-image > div.luna-product-actions.is-visible {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    pointer-events: auto !important;
-  }
-}
-
-
-/* Final mobile product action fix: toggle from the image-card click handler. */
-@media (max-width: 639px) {
-  .luna-product-image > .luna-product-actions {
-    display: flex !important;
-    position: absolute !important;
-    inset: auto 12px 12px !important;
-    z-index: 30 !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    transform: translateY(8px) !important;
-    pointer-events: none !important;
-    transition: opacity 220ms ease, transform 220ms ease, visibility 220ms ease !important;
-  }
-  .luna-product-image[data-mobile-actions="visible"] > .luna-product-actions {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateY(0) !important;
-    pointer-events: auto !important;
-  }
-  .luna-product-image > .luna-product-actions > a,
-  .luna-product-image > .luna-product-actions > button {
-    display: flex !important;
-    width: 44px !important;
-    min-width: 44px !important;
-    height: 44px !important;
-    flex: 0 0 44px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-    pointer-events: auto !important;
+    width: 14px !important;
+    height: 14px !important;
   }
 }

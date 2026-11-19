@@ -22,14 +22,6 @@ export default function ProductCard({ product, compactActions = false }: Product
       <div className="luna-product-image relative aspect-square overflow-hidden bg-cream">
         <Link
           to={`/product/${product.slug}`}
-          onClick={(event) => {
-            if (window.matchMedia("(max-width: 639px)").matches) {
-              event.preventDefault();
-              setShowMobileActions((visible) => !visible);
-            }
-          }}
-          aria-label={`Tap to ${showMobileActions ? "hide" : "show"} product actions`}
-          aria-expanded={showMobileActions}
           className="luna-product-image-link block h-full w-full aspect-square"
         >
           <img
@@ -43,7 +35,15 @@ export default function ProductCard({ product, compactActions = false }: Product
           />
         </Link>
 
-        <div className="absolute left-3 top-3 flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={() => setShowMobileActions((visible) => !visible)}
+          aria-label={`Tap to ${showMobileActions ? "hide" : "show"} product actions`}
+          aria-expanded={showMobileActions}
+          className="luna-mobile-action-toggle absolute inset-0 z-[1] sm:hidden"
+        />
+
+        <div className="absolute left-3 top-3 z-20 flex flex-col gap-1.5">
           {discount > 0 && (
             <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-sm click-feedback ripple-click">
               -{discount}%
@@ -63,7 +63,7 @@ export default function ProductCard({ product, compactActions = false }: Product
 
         <button
           onClick={() => toggleWishlist(product.id)}
-          className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110 ${
+          className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110 ${
             inWishlist
               ? 'bg-accent text-white'
               : 'bg-white/90 text-ink hover:bg-accent hover:text-white'
@@ -73,7 +73,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           <Heart size={18} className={inWishlist ? 'fill-white' : ''} />
         </button>
 
-        <div className={`absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 transition-all duration-300 ${showMobileActions ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"} sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0`}>
+        <div className={`luna-product-actions absolute inset-x-3 bottom-3 z-30 flex items-center justify-center gap-2 transition-all duration-300 ${showMobileActions ? "is-visible opacity-100 translate-y-0" : "opacity-0 translate-y-2"} sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0`}>
           <Link
             to={`/product/${product.slug}`}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"

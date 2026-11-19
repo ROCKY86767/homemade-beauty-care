@@ -17,6 +17,7 @@ export default function HairPackLandingPage() {
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState('');
   const [editorialReviews, setEditorialReviews] = useState<any[]>([]);
+  const [showProductReviews, setShowProductReviews] = useState(false);
   const [selectedReviewImage, setSelectedReviewImage] = useState<string | null>(null);
   const [landingSettings, setLandingSettings] = useState<any>(null);
   const { addToCart } = useCart();
@@ -32,17 +33,27 @@ export default function HairPackLandingPage() {
     };
     const load = async () => {
       try {
-        const [productResult, siteSettings, reviewsResult, landingResult] = await Promise.all([
+        const [productResult, siteSettings, landingResult] = await Promise.all([
           supabase.from('products').select('*, category:categories(*)').eq('slug', 'ghorowa-hairpack').maybeSingle(),
           getSettings(),
-          supabase.from('homepage_editorial_reviews').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
           supabase.from('hairpack_landing_page_settings').select('*').eq('id', 1).maybeSingle(),
         ]);
         if (!active) return;
-        if (productResult.data) setProduct(productResult.data as Product);
+        if (productResult.data) {
+          setProduct(productResult.data as Product);
+          const { data: productReviewData, error: productReviewError } = await supabase
+            .from('homepage_editorial_reviews')
+            .select('*')
+            .eq('product_id', productResult.data.id)
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: false });
+          if (productReviewError) console.error('Hair Pack reviews load error:', productReviewError);
+          setEditorialReviews(productReviewData || []);
+        } else {
+          setEditorialReviews([]);
+        }
         setSettings(siteSettings);
-        if (reviewsResult.error) console.error('Hair Pack reviews load error:', reviewsResult.error);
-        setEditorialReviews(reviewsResult.data || []);
         setLandingSettings(landingResult.data || {});
       } catch (error) { console.error('Hair Pack landing load error:', error); }
       finally { if (active) setLoading(false); }
@@ -129,7 +140,7 @@ export default function HairPackLandingPage() {
             <p className="mt-3 max-w-lg text-base leading-8 text-white/90 sm:text-lg sm:leading-9">{(landingSettings?.hero_description?.trim() || description).split(/(ঘরোয়া হেয়ার প্যাক)/g).map((part: string, index: number) => part === 'ঘরোয়া হেয়ার প্যাক' ? <span key={index} className="inline-block text-2xl font-extrabold leading-tight text-[#f4d995] sm:text-3xl">{part}</span> : <span key={index}>{part}</span>)}</p>
             <div className="mt-4 flex flex-wrap items-center gap-2.5"><span className="text-3xl font-extrabold text-[#f4d995] sm:text-4xl">{formatPrice(product.price)}</span>{product.old_price && product.old_price > product.price && <><span className="text-sm text-white/55 line-through">{formatPrice(product.old_price)}</span><span className="rounded-full bg-[#e5c477] px-2.5 py-1 text-[11px] font-extrabold text-[#263b29]">{discount}% ছাড়</span></>}</div>
             {product.size_bn && <p className="mt-1 text-xs text-white/70">প্যাকের পরিমাণ: {product.size_bn}</p>}
-            <div className="mt-5 flex flex-wrap gap-2.5"><a href="#order-hairpack" className="hp-btn inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e5c477] px-5 text-sm font-extrabold text-[#263b29] shadow-lg hover:bg-[#f0d99e]"><ShoppingBag size={17} />{outOfStock ? 'স্টকে নেই' : (landingSettings?.primary_button_text || 'অর্ডার করতে চাই')}<ArrowRight size={16} /></a><a href="#hairpack-details" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-5 text-sm font-semibold text-white hover:bg-white/10">বিস্তারিত জানুন</a></div>
+            <div className="mt-5 flex flex-wrap gap-2.5"><a href="#order-hairpack" className="hp-btn inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e5c477] px-5 text-sm font-extrabold text-[#263b29] shadow-lg hover:bg-[#f0d99e]"><ShoppingBag size={17} />{outOfStock ? 'স্টকে নেই' : (landingSettings?.primary_button_text || 'অর্ডার করতে চাই')}<ArrowRight size={16} /></a><a href="#hairpack-details" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-5 text-sm font-semibold text-white hover:bg-white/10">বিস্তারিত জানুন</a><button type="button" onClick={() => setShowProductReviews(value => !value)} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e5c477]/70 bg-white/5 px-5 text-sm font-semibold text-[#f4d995] hover:bg-white/10">রিভিউ দেখুন ({editorialReviews.length})</button></div>
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-white/75 sm:text-xs"><span className="inline-flex items-center gap-1.5"><Truck size={14} className="text-[#e5c477]" /> সারা বাংলাদেশে ডেলিভারি</span><span className="inline-flex items-center gap-1.5"><CheckCircle2 size={14} className="text-[#e5c477]" /> সহজ অর্ডার</span></div>
           </div>
           <div className="order-1 lg:order-2"><div className="relative mx-auto max-w-[520px]"><div className="absolute -inset-2 rotate-2 rounded-[2rem] border border-[#e5c477]/35" /><div className="relative overflow-hidden rounded-[1.6rem] bg-[#e9e2d2] shadow-[0_24px_60px_rgba(0,0,0,.25)] sm:rounded-[2rem]"><img src={heroImage} alt={productName} width="900" height="800" fetchPriority="high" className="aspect-[1.12/1] w-full object-cover sm:aspect-[1.15/1]" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#17291d]/75 to-transparent px-4 pb-4 pt-14"><p className="hp-serif text-lg font-semibold text-white sm:text-xl">যত্ন হোক নিজের মতো</p></div></div>{product.stock > 0 && <div className="absolute -right-1 -top-3 flex items-center gap-1.5 rounded-full bg-[#fff5d8] px-3 py-2 text-[10px] font-bold text-[#315b32] shadow-lg sm:-right-3 sm:top-4 sm:text-xs"><CheckCircle2 size={14} /> অর্ডার নেওয়া হচ্ছে</div>}</div>
@@ -189,9 +200,9 @@ export default function HairPackLandingPage() {
         <details className="px-4 py-3.5"><summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-[#315b32]"><span>সম্পূর্ণ পণ্যের বিবরণ</span><ChevronDown size={17} className="hp-chevron transition-transform" /></summary><p className="whitespace-pre-line pt-2 text-sm leading-6 text-[#66715f]">{product.description_bn || description}</p></details>
       </div></div></section>}
 
-      {landingSettings?.show_editorial_reviews !== false && editorialReviews.length > 0 && <section className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9"><div className="mb-4"><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">CUSTOMER STORIES</p><h2 className="hp-serif mt-1.5 text-2xl font-semibold text-[#263b29] sm:text-3xl">{landingSettings?.reviews_heading || 'রিভিউ ও অভিজ্ঞতা'}</h2><p className="mt-1 text-sm text-[#687461]">{landingSettings?.reviews_description || 'আমাদের নির্বাচিত ছবি ও ভিডিও রিভিউ'}</p></div><div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
+      {showProductReviews && <section className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9"><div className="mb-4"><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">CUSTOMER STORIES</p><h2 className="hp-serif mt-1.5 text-2xl font-semibold text-[#263b29] sm:text-3xl">{landingSettings?.reviews_heading || 'রিভিউ ও অভিজ্ঞতা'}</h2><p className="mt-1 text-sm text-[#687461]">{landingSettings?.reviews_description || 'এই পণ্যের ক্রেতাদের রিভিউ ও অভিজ্ঞতা'}</p></div>{editorialReviews.length > 0 ? <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
         {editorialReviews.map(item => <article key={item.id} className="w-[72vw] max-w-[260px] shrink-0 snap-start overflow-hidden rounded-2xl border border-[#e5e3d8] bg-white shadow-sm">{Array.isArray(item.media_urls) && item.media_urls.length > 0 && <div className="space-y-2 bg-[#eeeee6] p-2">{item.media_urls.map((url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url) ? <video key={url} src={url} controls preload="metadata" playsInline className="max-h-[300px] w-full rounded-lg bg-black object-contain" /> : <button key={url} type="button" onClick={() => setSelectedReviewImage(url)} className="block w-full cursor-zoom-in" aria-label="রিভিউর ছবি বড় করে দেখুন"><img src={url} alt={item.title || item.customer_name || 'Customer review'} width="480" height="300" loading="lazy" decoding="async" className="max-h-[300px] w-full rounded-lg object-contain" /></button>)}</div>}<div className="p-3.5"><p className="text-sm text-[#b28b48]">{'★'.repeat(Math.min(5, Math.max(1, Number(item.rating || 5))))}{'☆'.repeat(5 - Math.min(5, Math.max(1, Number(item.rating || 5))))}</p><h3 className="mt-1 text-sm font-bold text-[#315b32]">{item.title || item.customer_name}</h3>{item.location && <p className="text-[11px] text-[#899080]">{item.location}</p>}{item.review_text && <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#65715e]">{item.review_text}</p>}</div></article>)}
-      </div></section>}
+      </div> : <p className="rounded-xl border border-[#e5e3d8] bg-white p-5 text-sm text-[#687461]">এই পণ্যের জন্য এখনো কোনো রিভিউ যোগ করা হয়নি।</p>}</section>}
 
       {landingSettings?.show_how_to_use !== false && <section className="bg-[#e9eee2] px-4 py-7 sm:px-6 sm:py-9"><div className="mx-auto grid max-w-5xl items-center gap-5 sm:grid-cols-[1fr_.8fr]"><div><p className="text-[10px] font-extrabold tracking-[.2em] text-[#a17c39]">HOW TO USE</p><h2 className="hp-serif mt-1.5 text-2xl font-semibold text-[#263b29] sm:text-3xl">{landingSettings?.how_to_use_heading || 'ব্যবহারবিধি জেনে নিন'}</h2><p className="mt-2 text-sm leading-6 text-[#687461]">{landingSettings?.how_to_use_description || 'পণ্যের প্যাকেট ও বিবরণে দেওয়া নির্দেশনা অনুসরণ করুন। প্রথমবার ব্যবহারের আগে অল্প জায়গায় পরীক্ষা করে নিন।'}</p>{product.how_to_use_bn && <p className="mt-3 whitespace-pre-line rounded-xl border border-[#dce3d5] bg-white/75 p-3 text-sm leading-6 text-[#40523d]">{product.how_to_use_bn}</p>}</div><div className="rounded-2xl bg-[#294b31] p-5 text-white sm:p-6"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e5c477] text-[#294b31]"><Flower2 size={20} /></span><h3 className="hp-serif mt-3 text-xl font-semibold">নিজের যত্নে একটু সময়</h3><p className="mt-2 text-sm leading-6 text-white/75">উপাদান ও ব্যবহারবিধি দেখে আপনার রুটিনের সঙ্গে মানানসই হলে অর্ডার করুন।</p><a href="#order-hairpack" className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#e5c477] px-4 py-2.5 text-sm font-bold text-[#263b29]">অর্ডার করতে চাই <ArrowRight size={15} /></a></div></div></section>}
 

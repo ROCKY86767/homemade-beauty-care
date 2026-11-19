@@ -2410,3 +2410,51 @@ footer img {
   flex: 0 0 100% !important;
   margin-top: 2px !important;
 }
+
+/* Footer brand layout requested: logo and brand name share the first row;
+   the Bengali description starts on the next row from the footer's left edge. */
+.hbc-luna-site footer .luna-footer-brand {
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto auto !important;
+  align-items: center !important;
+  column-gap: 12px !important;
+  row-gap: 8px !important;
+}
+.hbc-luna-site footer .luna-footer-brand > img {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  display: block !important;
+  width: 54px !important;
+  height: 54px !important;
+  max-height: 54px !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+.hbc-luna-site footer .luna-footer-brand-copy {
+  display: contents !important;
+}
+.hbc-luna-site footer .luna-footer-brand-copy > h3 {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  align-self: center !important;
+  margin: 0 !important;
+  color: #000 !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  overflow-wrap: normal !important;
+}
+.hbc-luna-site footer .luna-footer-brand-copy > p {
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  color: #000 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+.hbc-luna-site footer .luna-footer-brand > .luna-footer-socials {
+  grid-column: 1 / -1 !important;
+  grid-row: 3 !important;
+  margin-top: 2px !important;
+}

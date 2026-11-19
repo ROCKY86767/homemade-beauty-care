@@ -2688,3 +2688,56 @@ footer img {
     font-size: 12px !important;
   }
 }
+
+
+/* Arrange Shop All filter sections beside one another instead of stacking vertically. */
+.hbc-luna-site .luna-filter-content {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  column-gap: 18px !important;
+  row-gap: 18px !important;
+}
+.hbc-luna-site .luna-filter-content .luna-filter-group {
+  min-width: 0 !important;
+  align-self: start !important;
+}
+.hbc-luna-site .luna-filter-content .luna-filter-options {
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+.hbc-luna-site .luna-filter-content .luna-filter-discount {
+  align-self: start !important;
+  min-height: 42px !important;
+}
+@media (min-width: 1024px) {
+  .hbc-luna-site .luna-filter-row .luna-filter-content {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    column-gap: 16px !important;
+    row-gap: 12px !important;
+    align-items: center !important;
+  }
+}
+@media (max-width: 639px) {
+  .hbc-luna-site .luna-filter-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: 12px !important;
+    row-gap: 16px !important;
+  }
+  .hbc-luna-site .luna-filter-content .luna-filter-group {
+    gap: 8px !important;
+  }
+  .hbc-luna-site .luna-filter-content .luna-filter-options {
+    gap: 6px !important;
+  }
+  .hbc-luna-site .luna-filter-content .luna-filter-chip {
+    min-height: 34px !important;
+    padding: 7px 9px !important;
+    font-size: 11px !important;
+  }
+  .hbc-luna-site .luna-filter-content .luna-filter-discount {
+    grid-column: 1 / -1 !important;
+  }
+}

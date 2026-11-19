@@ -25,15 +25,6 @@ const FOOTER_LINKS = {
     { label: 'Delivery Information', path: '/delivery-information' },
     { label: 'Privacy Policy', path: '/privacy-policy' },
   ],
-  CATEGORIES: [
-    { label: 'Hair Care', path: '/category/hair-care' },
-    { label: 'Hair Oil', path: '/category/hair-oil' },
-    { label: 'Hair Pack', path: '/category/hair-pack' },
-    { label: 'Skin Care', path: '/category/skin-care' },
-    { label: 'Face Care', path: '/category/face-care' },
-    { label: 'Face Pack', path: '/category/face-pack' },
-    { label: 'Offers', path: '/offers' },
-  ],
 };
 
 export default function Footer({ hidden = false, waitForSettings = false }: { hidden?: boolean; waitForSettings?: boolean }) {

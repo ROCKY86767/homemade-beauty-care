@@ -19,7 +19,17 @@ export default function ProductCard({ product, compactActions = false }: Product
 
   return (
     <div className="luna-product-card group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
-      <div className="luna-product-image relative aspect-square overflow-hidden bg-cream">
+      <div
+        className="luna-product-image relative aspect-square overflow-hidden bg-cream"
+        data-mobile-actions={showMobileActions ? 'visible' : 'hidden'}
+        onClick={(event) => {
+          if (window.matchMedia('(min-width: 640px)').matches) return;
+          const target = event.target as HTMLElement;
+          if (target.closest('.luna-product-actions, button')) return;
+          event.preventDefault();
+          setShowMobileActions((visible) => !visible);
+        }}
+      >
         <Link
           to={`/product/${product.slug}`}
           className="luna-product-image-link block h-full w-full aspect-square"
@@ -34,14 +44,6 @@ export default function ProductCard({ product, compactActions = false }: Product
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </Link>
-
-        <button
-          type="button"
-          onClick={() => setShowMobileActions((visible) => !visible)}
-          aria-label={`Tap to ${showMobileActions ? "hide" : "show"} product actions`}
-          aria-expanded={showMobileActions}
-          className="luna-mobile-action-toggle absolute inset-0 z-[1] sm:hidden"
-        />
 
         <div className="absolute left-3 top-3 z-20 flex flex-col gap-1.5">
           {discount > 0 && (

@@ -6,7 +6,7 @@ import { getSettings, subscribeToSettings } from '@/lib/settings';
 import type { SiteSettings } from '@/lib/types';
 
 const toBangladeshPhone = (value: string) => {
-  const digits = value.replace(/\\D/g, '');
+  const digits = value.replace(/\D/g, '');
   if (digits.startsWith('880')) return digits;
   if (digits.startsWith('0')) return `880${digits.slice(1)}`;
   return digits;
@@ -91,7 +91,7 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
         <div className="luna-footer-contact">
           <h4>GET IN TOUCH</h4>
           {settings?.contact_phone_enabled !== false && <p><Phone size={14} />{settings?.phone ? <a href={`tel:+${toBangladeshPhone(settings.phone)}`}>{settings.phone}</a> : 'Customer Support'}</p>}
-          {settings?.contact_whatsapp_enabled !== false && settings?.whatsapp_number && <p><MessageCircle size={14} /><a href={`https://wa.me/${settings.whatsapp_number.replace(/\D/g, '').replace(/^0/, '88')}`} target="_blank" rel="noopener noreferrer">{settings.whatsapp_number}</a></p>}
+          {settings?.contact_whatsapp_enabled !== false && settings?.whatsapp_number && <p><MessageCircle size={14} /><a href={`https://wa.me/${toBangladeshPhone(settings.whatsapp_number)}`} target="_blank" rel="noopener noreferrer">{settings.whatsapp_number}</a></p>}
           <p><Mail size={14} /><a href={`mailto:${settings?.email || 'support.ghrcha@gmail.com'}`}>{settings?.email || 'support.ghrcha@gmail.com'}</a></p>
           <p><MapPin size={14} /><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings?.address_bn || 'ঢাকা, বাংলাদেশ')}`} target="_blank" rel="noopener noreferrer">{settings?.address_bn || 'ঢাকা, বাংলাদেশ'}</a></p>
         </div>

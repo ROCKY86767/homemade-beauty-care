@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Facebook, Instagram, Phone, Mail, MapPin, MessageCircle, Youtube } from 'lucide-react';
+import { ArrowRight, Facebook, Instagram, MessageCircle, Youtube } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getSettings, subscribeToSettings } from '@/lib/settings';
@@ -57,8 +57,6 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
     setTimeout(() => setSubscribed(false), 3000);
   };
 
-  const contactPhone = settings?.phone?.trim() || '01999478203';
-  const whatsappNumber = settings?.whatsapp_number?.trim() || '01999478203';
 
   const socials = [
     { url: settings?.facebook_url, icon: Facebook, label: 'Facebook' },
@@ -81,13 +79,6 @@ export default function Footer({ hidden = false, waitForSettings = false }: { hi
             <h4>{title === 'QUICK LINKS' ? 'EXPLORE' : title === 'CUSTOMER SERVICE' ? 'HELP' : 'COLLECTIONS'}</h4>
             <ul>{links.slice(0, title === 'CATEGORIES' ? 5 : 4).map(link => <li key={link.path}><Link to={link.path}>{link.label}</Link></li>)}</ul>
           </div>)}
-        </div>
-        <div className="luna-footer-contact">
-          <h4>GET IN TOUCH</h4>
-          {settings?.contact_phone_enabled !== false && <p><Phone size={14} /><a href={`tel:+${toBangladeshPhone(contactPhone)}`} aria-label={`Call ${contactPhone}`}>{contactPhone}</a></p>}
-          {settings?.contact_whatsapp_enabled !== false && <p><MessageCircle size={14} /><a href={`https://wa.me/${toBangladeshPhone(whatsappNumber)}`} target="_blank" rel="noopener noreferrer" aria-label={`Chat on WhatsApp ${whatsappNumber}`}>{whatsappNumber}</a></p>}
-          <p><Mail size={14} /><a href={`mailto:${settings?.email || 'support.ghrcha@gmail.com'}`}>{settings?.email || 'support.ghrcha@gmail.com'}</a></p>
-          <p><MapPin size={14} /><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings?.address_bn || 'ঢাকা, বাংলাদেশ')}`} target="_blank" rel="noopener noreferrer">{settings?.address_bn || 'ঢাকা, বাংলাদেশ'}</a></p>
         </div>
         {settings?.newsletter_enabled !== false && <div className="luna-footer-newsletter">
           <h4>STAY IN THE GLOW</h4><p>নতুন পণ্য, যত্নের টিপস ও বিশেষ অফারের খবর পেতে যুক্ত থাকুন।</p>

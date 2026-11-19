@@ -60,21 +60,24 @@ export default function ProductCard({ product, compactActions = false }: Product
           <Heart size={18} className={inWishlist ? 'fill-white' : ''} />
         </button>
 
-        <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
-          <button
-            onClick={() => addToCart(product)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-primary-dark active:scale-95"
-          >
-            <ShoppingCart size={compactActions ? 14 : 16} />
-            Add to Cart
-          </button>
+        <div className="absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
           <Link
             to={`/product/${product.slug}`}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"
-            aria-label="Quick view"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"
+            aria-label={`View ${product.name_bn}`}
+            title="View Product"
           >
-            <Eye size={18} className="text-ink" />
+            <Eye size={19} />
           </Link>
+          <button
+            type="button"
+            onClick={() => addToCart(product)}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-dark hover:scale-110 active:scale-95"
+            aria-label={`Add ${product.name_bn} to cart`}
+            title="Add to Cart"
+          >
+            <ShoppingCart size={18} />
+          </button>
         </div>
       </div>
 

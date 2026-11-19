@@ -2611,3 +2611,37 @@ footer img {
     pointer-events: auto !important;
   }
 }
+
+
+/* Final mobile product action fix: toggle from the image-card click handler. */
+@media (max-width: 639px) {
+  .luna-product-image > .luna-product-actions {
+    display: flex !important;
+    position: absolute !important;
+    inset: auto 12px 12px !important;
+    z-index: 30 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(8px) !important;
+    pointer-events: none !important;
+    transition: opacity 220ms ease, transform 220ms ease, visibility 220ms ease !important;
+  }
+  .luna-product-image[data-mobile-actions="visible"] > .luna-product-actions {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+  }
+  .luna-product-image > .luna-product-actions > a,
+  .luna-product-image > .luna-product-actions > button {
+    display: flex !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    pointer-events: auto !important;
+  }
+}

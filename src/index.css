@@ -2252,3 +2252,11 @@ footer img {
   }
 }
 
+
+
+/* Footer now has three content groups after moving GET IN TOUCH to the Contact page. */
+@media (min-width: 1024px) {
+  .hbc-luna-site .luna-footer-main {
+    grid-template-columns: 1.1fr 1.5fr 1.1fr !important;
+  }
+}

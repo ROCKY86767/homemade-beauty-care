@@ -2260,3 +2260,56 @@ footer img {
     grid-template-columns: 1.1fr 1.5fr 1.1fr !important;
   }
 }
+
+
+/* Fix LUNA desktop product actions: the earlier blanket hide rule was also
+   hiding the new View and Add to Cart controls on desktop. */
+@media (min-width: 640px) and (hover: hover) {
+  .hbc-luna-site .luna-product-image > div:last-child {
+    display: flex !important;
+    position: absolute !important;
+    inset: auto 12px 12px !important;
+    z-index: 3 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 9px !important;
+    opacity: 0 !important;
+    transform: translateY(8px) !important;
+    transition: opacity 220ms ease, transform 220ms ease !important;
+    pointer-events: none;
+  }
+  .hbc-luna-site .luna-product-card:hover .luna-product-image > div:last-child,
+  .hbc-luna-site .luna-product-card:focus-within .luna-product-image > div:last-child {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto;
+  }
+  .hbc-luna-site .luna-product-image > div:last-child > a,
+  .hbc-luna-site .luna-product-image > div:last-child > button {
+    display: flex !important;
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 3px 14px rgba(26,14,7,.18) !important;
+    font-size: 0 !important;
+    pointer-events: auto;
+  }
+  .hbc-luna-site .luna-product-image > div:last-child > a {
+    background: #FFFCF9 !important;
+    color: #552D18 !important;
+  }
+  .hbc-luna-site .luna-product-image > div:last-child > button {
+    background: #552D18 !important;
+    color: #FFFCF9 !important;
+  }
+  .hbc-luna-site .luna-product-image > div:last-child svg {
+    display: block !important;
+    width: 19px !important;
+    height: 19px !important;
+  }
+}

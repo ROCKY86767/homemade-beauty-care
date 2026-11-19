@@ -196,7 +196,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
               type="button"
               onClick={() => setMinRating(option.value)}
               aria-pressed={minRating === option.value}
-              className={`rounded-full border px-3 py-2 text-xs transition-colors ${
+              className={`luna-filter-chip rounded-full border px-3 py-2 text-xs transition-colors ${
                 minRating === option.value
                   ? 'border-primary bg-primary text-white'
                   : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'

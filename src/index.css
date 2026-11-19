@@ -2741,3 +2741,48 @@ footer img {
     grid-column: 1 / -1 !important;
   }
 }
+
+
+/* Final Shop All filter layout: one horizontal row, with swipe scrolling on phones. */
+.hbc-luna-site .luna-filter-content {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  gap: 16px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.hbc-luna-site .luna-filter-content > * {
+  min-width: 0 !important;
+  margin-top: 0 !important;
+}
+.hbc-luna-site .luna-filter-content .luna-filter-group {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.hbc-luna-site .luna-filter-content .luna-filter-options {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+.hbc-luna-site .luna-filter-content .luna-filter-discount {
+  width: 100% !important;
+}
+@media (max-width: 1023px) {
+  .hbc-luna-site .luna-filter-content {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 2px 0 10px !important;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hbc-luna-site .luna-filter-content > .luna-filter-group,
+  .hbc-luna-site .luna-filter-content > .luna-filter-discount {
+    flex: 0 0 210px !important;
+    width: 210px !important;
+    scroll-snap-align: start;
+  }
+}

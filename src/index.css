@@ -2608,143 +2608,9 @@ footer img {
 }
 
 
-/* Shop filters: keep every group and option visually separated on desktop and mobile. */
-.hbc-luna-site .luna-filter-content {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 20px !important;
-  min-width: 0 !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-group {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 9px !important;
-  min-width: 0 !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-group h3 {
-  display: block !important;
-  margin: 0 !important;
-  line-height: 1.4 !important;
-  white-space: normal !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-options {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 8px !important;
-  width: 100% !important;
-  min-width: 0 !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-chip {
-  display: inline-flex !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
-  min-width: max-content !important;
-  min-height: 36px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 8px 12px !important;
-  line-height: 1.25 !important;
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-  overflow-wrap: normal !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-discount {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  width: 100% !important;
-  min-height: 48px !important;
-  margin: 0 !important;
-  line-height: 1.4 !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-discount span {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  white-space: normal !important;
-  overflow-wrap: normal !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-discount input {
-  flex: 0 0 18px !important;
-  width: 18px !important;
-  height: 18px !important;
-  margin: 0 !important;
-}
-@media (max-width: 639px) {
-  .hbc-luna-site .luna-filter-content {
-    gap: 22px !important;
-  }
-  .hbc-luna-site .luna-filter-content .luna-filter-options {
-    gap: 8px !important;
-  }
-  .hbc-luna-site .luna-filter-content .luna-filter-chip {
-    min-height: 38px !important;
-    padding: 9px 12px !important;
-    font-size: 12px !important;
-  }
-}
 
-
-/* Arrange Shop All filter sections beside one another instead of stacking vertically. */
-.hbc-luna-site .luna-filter-content {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  align-items: start !important;
-  column-gap: 18px !important;
-  row-gap: 18px !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-group {
-  min-width: 0 !important;
-  align-self: start !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-options {
-  flex-direction: row !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  gap: 7px !important;
-}
-.hbc-luna-site .luna-filter-content .luna-filter-discount {
-  align-self: start !important;
-  min-height: 42px !important;
-}
-@media (min-width: 1024px) {
-  .hbc-luna-site .luna-filter-row .luna-filter-content {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    column-gap: 16px !important;
-    row-gap: 12px !important;
-    align-items: center !important;
-  }
-}
-@media (max-width: 639px) {
-  .hbc-luna-site .luna-filter-content {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    column-gap: 12px !important;
-    row-gap: 16px !important;
-  }
-  .hbc-luna-site .luna-filter-content .luna-filter-group {
-    gap: 8px !important;
-  }
-  .hbc-luna-site .luna-filter-content .luna-filter-options {
-    gap: 6px !important;
-  }
-  .hbc-luna-site .luna-filter-content .luna-filter-chip {
-    min-height: 34px !important;
-    padding: 7px 9px !important;
-    font-size: 11px !important;
-  }
-  .hbc-luna-site .luna-filter-content .luna-filter-discount {
-    grid-column: 1 / -1 !important;
-  }
-}
-
-
-/* Final Shop All filter layout: one horizontal row, with swipe scrolling on phones. */
-.hbc-luna-site .luna-filter-content {
+/* Shop All filters: correct page scope and horizontal layout. */
+.luna-shop-page .luna-filter-content {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   align-items: start !important;
@@ -2752,23 +2618,65 @@ footer img {
   width: 100% !important;
   min-width: 0 !important;
 }
-.hbc-luna-site .luna-filter-content > * {
+.luna-shop-page .luna-filter-content > * {
   min-width: 0 !important;
   margin-top: 0 !important;
 }
-.hbc-luna-site .luna-filter-content .luna-filter-group {
+.luna-shop-page .luna-filter-group {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
   min-width: 0 !important;
   width: 100% !important;
 }
-.hbc-luna-site .luna-filter-content .luna-filter-options {
-  display: flex !important;
-  flex-wrap: wrap !important;
+.luna-shop-page .luna-filter-group h3 {
+  margin: 0 !important;
+  line-height: 1.4 !important;
 }
-.hbc-luna-site .luna-filter-content .luna-filter-discount {
+.luna-shop-page .luna-filter-options {
+  display: flex !important;
+  flex-flow: row wrap !important;
+  align-items: center !important;
+  gap: 7px !important;
   width: 100% !important;
+  min-width: 0 !important;
+}
+.luna-shop-page .luna-filter-chip {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  min-height: 36px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 11px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+}
+.luna-shop-page .luna-filter-discount {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  margin: 0 !important;
+}
+.luna-shop-page .luna-filter-discount span {
+  min-width: 0 !important;
+  white-space: normal !important;
+}
+.luna-shop-page .luna-filter-discount input {
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
 }
 @media (max-width: 1023px) {
-  .hbc-luna-site .luna-filter-content {
+  .luna-shop-page .luna-filter-content {
     display: flex !important;
     flex-flow: row nowrap !important;
     align-items: flex-start !important;
@@ -2779,10 +2687,15 @@ footer img {
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
   }
-  .hbc-luna-site .luna-filter-content > .luna-filter-group,
-  .hbc-luna-site .luna-filter-content > .luna-filter-discount {
-    flex: 0 0 210px !important;
-    width: 210px !important;
+  .luna-shop-page .luna-filter-content > .luna-filter-group,
+  .luna-shop-page .luna-filter-content > .luna-filter-discount {
+    flex: 0 0 190px !important;
+    width: 190px !important;
     scroll-snap-align: start;
+  }
+  .luna-shop-page .luna-filter-chip {
+    min-height: 34px !important;
+    padding: 7px 9px !important;
+    font-size: 11px !important;
   }
 }

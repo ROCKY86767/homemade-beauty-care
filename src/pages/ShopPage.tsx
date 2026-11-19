@@ -38,6 +38,8 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   const [priceRange, setPriceRange] = useState<[number, number]>([0, Number.MAX_SAFE_INTEGER]);
   const [minRating, setMinRating] = useState(0);
   const [onlyDiscount, setOnlyDiscount] = useState(false);
+  const [shopPageImage, setShopPageImage] = useState<{ desktop_image_url: string | null; mobile_image_url: string | null } | null>(null);
+
 
   useEffect(() => {
     let active = true;
@@ -101,6 +103,33 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
     };
   }, [categorySlug, isOffers, isNewArrivals, query]);
 
+  useEffect(() => {
+    let active = true;
+    const isShopAllPage = !categorySlug && !isOffers && !isNewArrivals && !query;
+    if (!isShopAllPage) {
+      setShopPageImage(null);
+      return () => { active = false; };
+    }
+
+    supabase
+      .from('shop_page_settings')
+      .select('desktop_image_url, mobile_image_url')
+      .eq('id', 1)
+      .eq('is_active', true)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          console.error('Shop All image load error:', error);
+          setShopPageImage(null);
+          return;
+        }
+        setShopPageImage(data || null);
+      });
+
+    return () => { active = false; };
+  }, [categorySlug, isOffers, isNewArrivals, query]);
+
   const filtered = useMemo(() => {
     let result = [...products];
 
@@ -137,10 +166,10 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   };
 
   const FilterContent = () => (
-    <div className="space-y-5">
-      <div>
+    <div className="luna-filter-content space-y-5">
+      <div className="luna-filter-group">
         <h3 className="font-display text-sm font-semibold text-ink mb-2.5">ক্যাটাগরি</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="luna-filter-options flex flex-wrap gap-2">
           {categories.map(cat => {
             const selected = selectedCats.includes(cat.slug);
             return (
@@ -150,7 +179,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 onClick={() => toggleCat(cat.slug)}
                 disabled={!!categorySlug}
                 aria-pressed={selected}
-                className={`rounded-full border px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                className={`luna-filter-chip inline-flex min-h-9 items-center justify-center whitespace-nowrap leading-none rounded-full border px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                   selected
                     ? 'border-primary bg-primary text-white'
                     : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
@@ -163,9 +192,9 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
         </div>
       </div>
 
-      <div>
+      <div className="luna-filter-group">
         <h3 className="font-display text-sm font-semibold text-ink mb-2.5">দাম</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="luna-filter-options flex flex-wrap gap-2">
           {PRICE_FILTERS.map(option => {
             const selected = priceRange[0] === option.min && priceRange[1] === option.max;
             return (
@@ -174,7 +203,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 type="button"
                 onClick={() => setPriceRange([option.min, option.max])}
                 aria-pressed={selected}
-                className={`rounded-full border px-3 py-2 text-xs transition-colors ${
+                className={`luna-filter-chip inline-flex min-h-9 items-center justify-center whitespace-nowrap leading-none rounded-full border px-3 py-2 text-xs transition-colors ${
                   selected
                     ? 'border-primary bg-primary text-white'
                     : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
@@ -187,16 +216,16 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
         </div>
       </div>
 
-      <div>
+      <div className="luna-filter-group">
         <h3 className="font-display text-sm font-semibold text-ink mb-2.5">রেটিং</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="luna-filter-options flex flex-wrap gap-2">
           {[{ value: 0, label: 'সব রেটিং' }, { value: 3, label: '৩★ ও বেশি' }, { value: 4, label: '৪★ ও বেশি' }].map(option => (
             <button
               key={option.value}
               type="button"
               onClick={() => setMinRating(option.value)}
               aria-pressed={minRating === option.value}
-              className={`rounded-full border px-3 py-2 text-xs transition-colors ${
+              className={`luna-filter-chip rounded-full border px-3 py-2 text-xs transition-colors ${
                 minRating === option.value
                   ? 'border-primary bg-primary text-white'
                   : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
@@ -208,7 +237,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
         </div>
       </div>
 
-      <label className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-3 py-3 cursor-pointer">
+      <label className="luna-filter-discount flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-3 py-3 cursor-pointer">
         <span className="text-sm font-medium text-ink">শুধু ছাড়ের পণ্য দেখুন</span>
         <input
           type="checkbox"
@@ -230,10 +259,29 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
         </div>
       </div>
 
+      {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
+        <div className="section-padding pt-4">
+          <picture>
+            {shopPageImage.mobile_image_url && (
+              <source media="(max-width: 639px)" srcSet={shopPageImage.mobile_image_url} />
+            )}
+            <img
+              src={shopPageImage.desktop_image_url || shopPageImage.mobile_image_url || ''}
+              alt="Shop All collection"
+              loading="lazy"
+              decoding="async"
+              className={shopPageImage.mobile_image_url
+                ? "block w-full aspect-[9/11] sm:aspect-[16/5] rounded-2xl object-cover"
+                : "block w-full aspect-[16/7] sm:aspect-[16/5] rounded-2xl object-cover"}
+            />
+          </picture>
+        </div>
+      )}
+
       <div className="luna-shop-content section-padding py-6 sm:py-8">
         <div className="flex gap-8">
           {/* Desktop Sidebar */}
-          <aside className="luna-shop-sidebar hidden lg:block w-64 shrink-0">
+          <aside className="luna-shop-sidebar hidden">
             <div className="sticky top-44">
               <h2 className="font-display text-lg font-semibold text-ink mb-5 flex items-center gap-2">
                 <SlidersHorizontal size={18} /> Filters
@@ -244,7 +292,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
 
           {/* Main collection grid */}
           <div className="flex-1 min-w-0">
-            <div className="luna-filter-row hidden lg:grid"><FilterContent /></div>
+            <div className="luna-filter-row"><FilterContent /></div>
             <div className="luna-shop-toolbar flex items-center justify-between mb-5 sm:mb-6">
               <p className="text-sm text-gray-500">
                 <span className="font-semibold text-ink">{filtered.length}</span> products
@@ -317,7 +365,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                   ))}
                 </div>
               </div>
-              <FilterContent />
+              <div className="luna-filter-drawer-content"><FilterContent /></div>
               <button
                 onClick={() => setShowFilters(false)}
                 className="mt-6 w-full rounded-full bg-primary py-3 text-sm font-medium text-white"

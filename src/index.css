@@ -2606,3 +2606,145 @@ footer img {
     gap: 8px !important;
   }
 }
+
+
+
+/* Shop All filters: correct page scope and horizontal layout. */
+.luna-shop-page .luna-filter-content {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  gap: 16px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.luna-shop-page .luna-filter-content > * {
+  min-width: 0 !important;
+  margin-top: 0 !important;
+}
+.luna-shop-page .luna-filter-group {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.luna-shop-page .luna-filter-group h3 {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+.luna-shop-page .luna-filter-options {
+  display: flex !important;
+  flex-flow: row wrap !important;
+  align-items: center !important;
+  gap: 7px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.luna-shop-page .luna-filter-chip {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  min-height: 36px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 11px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+}
+.luna-shop-page .luna-filter-discount {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  margin: 0 !important;
+}
+.luna-shop-page .luna-filter-discount span {
+  min-width: 0 !important;
+  white-space: normal !important;
+}
+.luna-shop-page .luna-filter-discount input {
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+}
+@media (max-width: 1023px) {
+  .luna-shop-page .luna-filter-content {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 2px 0 10px !important;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .luna-shop-page .luna-filter-content > .luna-filter-group,
+  .luna-shop-page .luna-filter-content > .luna-filter-discount {
+    flex: 0 0 190px !important;
+    width: 190px !important;
+    scroll-snap-align: start;
+  }
+  .luna-shop-page .luna-filter-chip {
+    min-height: 34px !important;
+    padding: 7px 9px !important;
+    font-size: 11px !important;
+  }
+}
+
+
+/* Show the four shop filter groups in a single horizontal strip above products. */
+.luna-shop-page .luna-filter-row {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 0 18px !important;
+}
+.luna-shop-page .luna-filter-row > .luna-filter-content {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  gap: 14px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.luna-shop-page .luna-filter-row > .luna-filter-content > * {
+  min-width: 0 !important;
+}
+.luna-shop-page .luna-filter-drawer-content > .luna-filter-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 20px !important;
+  overflow: visible !important;
+}
+.luna-shop-page .luna-filter-drawer-content .luna-filter-group,
+.luna-shop-page .luna-filter-drawer-content .luna-filter-discount {
+  width: 100% !important;
+  flex: 0 0 auto !important;
+}
+@media (max-width: 1023px) {
+  .luna-shop-page .luna-filter-row > .luna-filter-content {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    gap: 12px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 2px 0 10px !important;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .luna-shop-page .luna-filter-row > .luna-filter-content > .luna-filter-group,
+  .luna-shop-page .luna-filter-row > .luna-filter-content > .luna-filter-discount {
+    flex: 0 0 190px !important;
+    width: 190px !important;
+    scroll-snap-align: start;
+  }
+}

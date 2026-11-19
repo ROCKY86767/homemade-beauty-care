@@ -5721,6 +5721,151 @@ function CouponsView() {
    BANNERS
 ========================================================= */
 
+function ShopAllImageSettings() {
+  const [settings, setSettings] = useState({
+    desktop_image_url: '',
+    mobile_image_url: '',
+    is_active: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<'desktop' | 'mobile' | null>(null);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error } = await supabase
+        .from('shop_page_settings')
+        .select('desktop_image_url, mobile_image_url, is_active')
+        .eq('id', 1)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) {
+        setSettings({
+          desktop_image_url: data.desktop_image_url || '',
+          mobile_image_url: data.mobile_image_url || '',
+          is_active: data.is_active ?? false,
+        });
+      }
+    } catch (err: any) {
+      setError(err.message || 'Shop All image settings load failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const uploadShopImage = async (event: React.ChangeEvent<HTMLInputElement>, type: 'desktop' | 'mobile') => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(type);
+    setError('');
+    setSaved(false);
+    try {
+      const url = await uploadImage(file, 'banners');
+      setSettings((previous) => ({
+        ...previous,
+        [type === 'desktop' ? 'desktop_image_url' : 'mobile_image_url']: url,
+      }));
+    } catch (err: any) {
+      setError(err.message || 'Image upload failed.');
+    } finally {
+      setUploading(null);
+      event.target.value = '';
+    }
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError('');
+    setSaved(false);
+    try {
+      if (!settings.desktop_image_url.trim() && !settings.mobile_image_url.trim() && settings.is_active) {
+        throw new Error('ছবি আপলোড করুন অথবা Shop All image OFF করুন।');
+      }
+      const { error } = await supabase.from('shop_page_settings').upsert({
+        id: 1,
+        desktop_image_url: settings.desktop_image_url.trim() || null,
+        mobile_image_url: settings.mobile_image_url.trim() || null,
+        is_active: settings.is_active,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' });
+      if (error) throw error;
+      setSaved(true);
+    } catch (err: any) {
+      setError(err.message || 'Shop All image settings save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="mb-6 rounded-xl border bg-white p-5 text-sm text-gray-500">Shop All image settings loading...</div>;
+
+  return (
+    <section className="mb-6 rounded-xl border border-gray-200 bg-white p-5">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900">Shop All Page Image</h2>
+        <p className="mt-1 text-sm text-gray-500">Shop All পেজের শিরোনামের নিচে এবং ফিল্টারের উপরে ব্যানার ছবি দেখাবে।</p>
+      </div>
+
+      <div className="mb-5 grid gap-3 rounded-lg bg-amber-50 p-4 text-sm text-amber-900 sm:grid-cols-2">
+        <div>
+          <p className="font-semibold">Desktop image size</p>
+          <p>1600 × 500 px (wide banner)</p>
+        </div>
+        <div>
+          <p className="font-semibold">Mobile image size</p>
+          <p>900 × 1100 px (portrait banner)</p>
+        </div>
+        <p className="sm:col-span-2 text-xs">JPG, PNG বা WebP ব্যবহার করুন। সর্বোচ্চ ফাইল সাইজ 5MB। আলাদা Mobile image না দিলে Desktop image-ই ব্যবহার হবে।</p>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        {(['desktop', 'mobile'] as const).map((type) => {
+          const key = type === 'desktop' ? 'desktop_image_url' : 'mobile_image_url';
+          const title = type === 'desktop' ? 'Desktop Banner' : 'Mobile Banner';
+          return (
+            <div key={type} className="min-w-0">
+              <label className="mb-2 block text-sm font-semibold text-gray-800">{title}</label>
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm hover:border-primary">
+                {uploading === type ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {uploading === type ? 'Uploading...' : 'Upload Image'}
+                <input type="file" accept="image/*" className="hidden" onChange={(event) => uploadShopImage(event, type)} disabled={uploading !== null} />
+              </label>
+              <input
+                value={settings[key]}
+                onChange={(event) => { setSettings((previous) => ({ ...previous, [key]: event.target.value })); setSaved(false); }}
+                placeholder="অথবা image URL দিন"
+                className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+              {settings[key] && (
+                <div className="mt-2 overflow-hidden rounded-lg border">
+                  <img src={settings[key]} alt={title + ' preview'} className="max-h-48 w-full object-contain bg-gray-50" />
+                  <button type="button" onClick={() => { setSettings((previous) => ({ ...previous, [key]: '' })); setSaved(false); }} className="w-full border-t px-3 py-2 text-xs text-red-600 hover:bg-red-50">Remove image</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+        <Checkbox label="Show image on Shop All page (ON/OFF)" checked={settings.is_active} onChange={(checked) => { setSettings((previous) => ({ ...previous, is_active: checked })); setSaved(false); }} />
+        <button type="button" onClick={save} disabled={saving || uploading !== null} className="btn-primary flex items-center gap-2 rounded-lg px-5 py-2.5">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Save Shop All Image
+        </button>
+      </div>
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {saved && <p className="mt-3 text-sm text-green-700">Shop All image settings saved successfully.</p>}
+    </section>
+  );
+}
+
 function BannersView() {
   const emptyForm = {
     small_text_bn: '',
@@ -5860,6 +6005,7 @@ function BannersView() {
 
   return (
     <div>
+      <ShopAllImageSettings />
       <PageHeader
         title="Homepage Banners"
         description="Add, schedule, reorder and manage responsive banners"

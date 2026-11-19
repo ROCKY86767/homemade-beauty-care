@@ -6,11 +6,18 @@ import type { Product, Category } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
 
 const SORT_OPTIONS = [
-  { value: 'newest', label: 'Newest' },
-  { value: 'price-low', label: 'Price: Low to High' },
-  { value: 'price-high', label: 'Price: High to Low' },
-  { value: 'popular', label: 'Popular' },
-  { value: 'rating', label: 'Best Rated' },
+  { value: 'newest', label: 'নতুন' },
+  { value: 'price-low', label: 'দাম: কম থেকে বেশি' },
+  { value: 'price-high', label: 'দাম: বেশি থেকে কম' },
+  { value: 'popular', label: 'জনপ্রিয়' },
+  { value: 'rating', label: 'ভালো রেটিং' },
+];
+
+const PRICE_FILTERS = [
+  { label: 'সব দাম', min: 0, max: Number.MAX_SAFE_INTEGER },
+  { label: '৳৫০০-এর কম', min: 0, max: 499 },
+  { label: '৳৫০০–৳১০০০', min: 500, max: 1000 },
+  { label: '৳১০০০-এর বেশি', min: 1001, max: Number.MAX_SAFE_INTEGER },
 ];
 
 interface ShopPageProps {
@@ -28,7 +35,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCats, setSelectedCats] = useState<string[]>(categorySlug ? [categorySlug] : []);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, Number.MAX_SAFE_INTEGER]);
   const [minRating, setMinRating] = useState(0);
   const [onlyDiscount, setOnlyDiscount] = useState(false);
 
@@ -130,78 +137,86 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   };
 
   const FilterContent = () => (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h3 className="font-display text-base font-semibold text-ink mb-3">Category</h3>
-        <div className="space-y-2">
-          {categories.map(cat => (
-            <label key={cat.id} className="flex items-center gap-2.5 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={selectedCats.includes(cat.slug)}
-                onChange={() => toggleCat(cat.slug)}
+        <h3 className="font-display text-sm font-semibold text-ink mb-2.5">ক্যাটাগরি</h3>
+        <div className="flex flex-wrap gap-2">
+          {categories.map(cat => {
+            const selected = selectedCats.includes(cat.slug);
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => toggleCat(cat.slug)}
                 disabled={!!categorySlug}
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              />
-              <span className="text-sm text-gray-600 group-hover:text-ink">{cat.name_bn}</span>
-            </label>
+                aria-pressed={selected}
+                className={`rounded-full border px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                  selected
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
+                }`}
+              >
+                {cat.name_bn}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-display text-sm font-semibold text-ink mb-2.5">দাম</h3>
+        <div className="flex flex-wrap gap-2">
+          {PRICE_FILTERS.map(option => {
+            const selected = priceRange[0] === option.min && priceRange[1] === option.max;
+            return (
+              <button
+                key={option.label}
+                type="button"
+                onClick={() => setPriceRange([option.min, option.max])}
+                aria-pressed={selected}
+                className={`rounded-full border px-3 py-2 text-xs transition-colors ${
+                  selected
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-display text-sm font-semibold text-ink mb-2.5">রেটিং</h3>
+        <div className="flex flex-wrap gap-2">
+          {[{ value: 0, label: 'সব রেটিং' }, { value: 3, label: '৩★ ও বেশি' }, { value: 4, label: '৪★ ও বেশি' }].map(option => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setMinRating(option.value)}
+              aria-pressed={minRating === option.value}
+              className={`rounded-full border px-3 py-2 text-xs transition-colors ${
+                minRating === option.value
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary'
+              }`}
+            >
+              {option.label}
+            </button>
           ))}
         </div>
       </div>
 
-      <div>
-        <h3 className="font-display text-base font-semibold text-ink mb-3">Price Range</h3>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={priceRange[0]}
-            onChange={e => setPriceRange([Number(e.target.value), priceRange[1]])}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="Min"
-          />
-          <span className="text-gray-400">—</span>
-          <input
-            type="number"
-            value={priceRange[1]}
-            onChange={e => setPriceRange([priceRange[0], Number(e.target.value)])}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="Max"
-          />
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-display text-base font-semibold text-ink mb-3">Rating</h3>
-        <div className="space-y-2">
-          {[4, 3, 0].map(r => (
-            <label key={r} className="flex items-center gap-2.5 cursor-pointer group">
-              <input
-                type="radio"
-                name="rating"
-                checked={minRating === r}
-                onChange={() => setMinRating(r)}
-                className="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
-              />
-              <span className="text-sm text-gray-600 group-hover:text-ink">
-                {r === 0 ? 'All Ratings' : `${r}★ & above`}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-display text-base font-semibold text-ink mb-3">Discount</h3>
-        <label className="flex items-center gap-2.5 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={onlyDiscount}
-            onChange={e => setOnlyDiscount(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-          />
-          <span className="text-sm text-gray-600 group-hover:text-ink">Only Discounted Products</span>
-        </label>
-      </div>
+      <label className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-3 py-3 cursor-pointer">
+        <span className="text-sm font-medium text-ink">শুধু ছাড়ের পণ্য দেখুন</span>
+        <input
+          type="checkbox"
+          checked={onlyDiscount}
+          onChange={e => setOnlyDiscount(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+        />
+      </label>
     </div>
   );
 

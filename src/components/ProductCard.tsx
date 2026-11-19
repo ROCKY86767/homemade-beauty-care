@@ -17,8 +17,13 @@ export default function ProductCard({ product, compactActions = false }: Product
 
   return (
     <div className="luna-product-card group card shimmer-on-hover overflow-hidden border border-gray-50 hover:border-primary/20 animate-reveal-scale">
-      <div className="luna-product-image relative aspect-square overflow-hidden bg-cream">
-        <Link to={`/product/${product.slug}`} className="luna-product-image-link block h-full w-full aspect-square">
+      <div
+        className="luna-product-image relative aspect-square overflow-hidden bg-cream"
+      >
+        <Link
+          to={`/product/${product.slug}`}
+          className="luna-product-image-link block h-full w-full aspect-square"
+        >
           <img
             src={product.image_url}
             alt={product.name_bn}
@@ -30,7 +35,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           />
         </Link>
 
-        <div className="absolute left-3 top-3 flex flex-col gap-1.5">
+        <div className="absolute left-3 top-3 z-20 flex flex-col gap-1.5">
           {discount > 0 && (
             <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-sm click-feedback ripple-click">
               -{discount}%
@@ -50,7 +55,7 @@ export default function ProductCard({ product, compactActions = false }: Product
 
         <button
           onClick={() => toggleWishlist(product.id)}
-          className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110 ${
+          className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110 ${
             inWishlist
               ? 'bg-accent text-white'
               : 'bg-white/90 text-ink hover:bg-accent hover:text-white'
@@ -60,7 +65,7 @@ export default function ProductCard({ product, compactActions = false }: Product
           <Heart size={18} className={inWishlist ? 'fill-white' : ''} />
         </button>
 
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
+        <div className="luna-product-actions absolute inset-x-3 bottom-3 z-30 flex items-center justify-center gap-2 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
           <Link
             to={`/product/${product.slug}`}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md transition-all hover:bg-cream hover:scale-110 active:scale-95"
@@ -77,7 +82,6 @@ export default function ProductCard({ product, compactActions = false }: Product
             title="Add to Cart"
           >
             <ShoppingCart size={17} />
-            <span className="whitespace-nowrap text-xs font-semibold">Add to Cart</span>
           </button>
         </div>
       </div>
@@ -112,17 +116,10 @@ export default function ProductCard({ product, compactActions = false }: Product
           )}
         </div>
 
-        <div className="mt-2.5 sm:mt-3 flex gap-1.5 sm:gap-2 lg:hidden">
-          <button
-            onClick={() => addToCart(product)}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-primary font-medium text-white transition-all hover:bg-primary-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
-          >
-            <ShoppingCart size={16} />
-            Add
-          </button>
+        <div className="mt-2.5 sm:mt-3 lg:hidden">
           <Link
             to={`/product/${product.slug}`}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-full bg-accent font-medium text-white transition-all hover:bg-accent-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
+            className={`flex w-full items-center justify-center gap-1 rounded-full bg-accent font-medium text-white transition-all hover:bg-accent-dark active:scale-95 ${compactActions ? "py-1.5 sm:py-2 text-[11px] sm:text-xs" : "py-2 sm:py-2.5 text-xs sm:text-sm"} click-feedback`}
           >
             <Zap size={compactActions ? 14 : 16} />
             Buy Now

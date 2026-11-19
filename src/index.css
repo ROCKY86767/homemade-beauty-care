@@ -2485,8 +2485,9 @@ footer img {
 }
 .hbc-page-transition-brand img {
   display: block;
-  width: 72px;
-  height: 72px;
+  width: min(180px, 48vw);
+  height: auto;
+  max-height: 200px;
   object-fit: contain;
 }
 @keyframes hbcPageTransitionFade {

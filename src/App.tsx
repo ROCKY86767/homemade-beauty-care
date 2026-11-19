@@ -88,13 +88,12 @@ function Layout({ children, settings }: { children: React.ReactNode; settings: S
         <div className="hbc-page-transition" aria-hidden="true">
           <div className="hbc-page-transition-brand">
             <img
-              src={settings?.logo_url || '/new-homemade-logo.png'}
+              src="/new-homemade-logo.png"
               alt=""
               width="72"
               height="72"
               decoding="async"
             />
-            <span>{settings?.brand_name || 'Homemade Beauty Care'}</span>
           </div>
         </div>
       )}

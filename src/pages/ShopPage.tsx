@@ -244,7 +244,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
 
           {/* Main collection grid */}
           <div className="flex-1 min-w-0">
-            <div className="luna-filter-row hidden lg:grid"><FilterContent /></div>
+            <div className="luna-filter-row"><FilterContent /></div>
             <div className="luna-shop-toolbar flex items-center justify-between mb-5 sm:mb-6">
               <p className="text-sm text-gray-500">
                 <span className="font-semibold text-ink">{filtered.length}</span> products
@@ -317,7 +317,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                   ))}
                 </div>
               </div>
-              <FilterContent />
+              <div className="luna-filter-drawer-content"><FilterContent /></div>
               <button
                 onClick={() => setShowFilters(false)}
                 className="mt-6 w-full rounded-full bg-primary py-3 text-sm font-medium text-white"

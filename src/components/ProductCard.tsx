@@ -76,7 +76,8 @@ export default function ProductCard({ product, compactActions = false }: Product
             aria-label={`Add ${product.name_bn} to cart`}
             title="Add to Cart"
           >
-            <ShoppingCart size={18} />
+            <ShoppingCart size={17} />
+            <span className="whitespace-nowrap text-xs font-semibold">Add to Cart</span>
           </button>
         </div>
       </div>

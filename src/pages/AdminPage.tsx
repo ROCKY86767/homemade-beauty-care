@@ -5809,7 +5809,7 @@ function ShopAllImageSettings() {
     <section className="mb-6 rounded-xl border border-gray-200 bg-white p-5">
       <div className="mb-4">
         <h2 className="text-lg font-bold text-gray-900">Shop All Page Image</h2>
-        <p className="mt-1 text-sm text-gray-500">Shop All পেজের শিরোনামের নিচে এবং ফিল্টারের উপরে ব্যানার ছবি দেখাবে।</p>
+        <p className="mt-1 text-sm text-gray-500">Shop All পেজে শিরোনাম যে অংশে আছে, ছবিটি সেই পুরো অংশের ব্যাকগ্রাউন্ড হিসেবে দেখাবে।</p>
       </div>
 
       <div className="mb-5 grid gap-3 rounded-lg bg-amber-50 p-4 text-sm text-amber-900 sm:grid-cols-2">

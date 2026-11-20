@@ -252,7 +252,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   return (
     <div className="luna-shop-page min-h-screen bg-white">
       {/* Shop heading with optional Shop All background image */}
-      <div className={`luna-shop-heading relative isolate overflow-hidden bg-cream ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'aspect-[9/11] sm:aspect-[16/5]' : 'py-7 sm:py-10'}`}>
+      <div className={`luna-shop-heading relative isolate overflow-hidden bg-cream ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? shopPageImage.mobile_image_url ? 'aspect-[9/11] sm:aspect-[16/5]' : 'aspect-[16/7] sm:aspect-[16/5]' : 'py-7 sm:py-10'}`}>
         {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
           <>
             <picture className="absolute inset-0 -z-20 block h-full w-full">

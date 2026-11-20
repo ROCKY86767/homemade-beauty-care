@@ -251,32 +251,33 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
 
   return (
     <div className="luna-shop-page min-h-screen bg-white">
-      {/* Banner */}
-      <div className="luna-shop-heading bg-cream py-7 sm:py-10">
-        <div className="section-padding text-center">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-dark">{pageTitle}</h1>
-          {pageDesc && <p className="mt-2 text-gray-500 max-w-xl mx-auto">{pageDesc}</p>}
+      {/* Shop heading with optional Shop All background image */}
+      <div className={`luna-shop-heading relative isolate overflow-hidden bg-cream ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'aspect-[9/11] sm:aspect-[16/5]' : 'py-7 sm:py-10'}`}>
+        {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
+          <>
+            <picture className="absolute inset-0 -z-20 block h-full w-full">
+              {shopPageImage.mobile_image_url && (
+                <source media="(max-width: 639px)" srcSet={shopPageImage.mobile_image_url} />
+              )}
+              <img
+                src={shopPageImage.desktop_image_url || shopPageImage.mobile_image_url || ''}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                decoding="async"
+                className="block h-full w-full object-cover"
+              />
+            </picture>
+            <div className="absolute inset-0 -z-10 bg-black/30" />
+          </>
+        )}
+        <div className="section-padding flex h-full min-h-full items-center justify-center py-7 text-center sm:py-10">
+          <div>
+            <h1 className={`font-display text-2xl font-bold sm:text-3xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-white drop-shadow-md' : 'text-dark'}`}>{pageTitle}</h1>
+            {pageDesc && <p className={`mx-auto mt-2 max-w-xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-white drop-shadow-sm' : 'text-gray-500'}`}>{pageDesc}</p>}
+          </div>
         </div>
       </div>
-
-      {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
-        <div className="section-padding pt-4">
-          <picture>
-            {shopPageImage.mobile_image_url && (
-              <source media="(max-width: 639px)" srcSet={shopPageImage.mobile_image_url} />
-            )}
-            <img
-              src={shopPageImage.desktop_image_url || shopPageImage.mobile_image_url || ''}
-              alt="Shop All collection"
-              loading="lazy"
-              decoding="async"
-              className={shopPageImage.mobile_image_url
-                ? "block w-full aspect-[9/11] sm:aspect-[16/5] rounded-2xl object-cover"
-                : "block w-full aspect-[16/7] sm:aspect-[16/5] rounded-2xl object-cover"}
-            />
-          </picture>
-        </div>
-      )}
 
       <div className="luna-shop-content section-padding py-6 sm:py-8">
         <div className="flex gap-8">

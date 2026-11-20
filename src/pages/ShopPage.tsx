@@ -252,10 +252,10 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   return (
     <div className="luna-shop-page min-h-screen bg-white">
       {/* Shop heading with optional Shop All background image */}
-      <div className={`luna-shop-heading relative isolate overflow-hidden bg-cream ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? shopPageImage.mobile_image_url ? 'aspect-[9/11] sm:aspect-[16/5]' : 'aspect-[16/7] sm:aspect-[16/5]' : 'py-7 sm:py-10'}`}>
+      <div className={`luna-shop-heading relative isolate overflow-hidden bg-cream ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? shopPageImage.mobile_image_url ? 'aspect-[18/11] sm:aspect-[32/5]' : 'aspect-[32/7] sm:aspect-[32/5]' : 'py-7 sm:py-10'}`}>
         {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
           <>
-            <picture className="absolute inset-0 -z-20 block h-full w-full">
+            <picture className="absolute inset-0 z-0 block h-full w-full">
               {shopPageImage.mobile_image_url && (
                 <source media="(max-width: 639px)" srcSet={shopPageImage.mobile_image_url} />
               )}
@@ -268,13 +268,13 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 className="block h-full w-full object-cover"
               />
             </picture>
-            <div className="absolute inset-0 -z-10 bg-black/30" />
+            <div className="absolute inset-0 z-10 bg-black/40" />
           </>
         )}
-        <div className="section-padding flex h-full min-h-full items-center justify-center py-7 text-center sm:py-10">
+        <div className="section-padding relative z-20 flex h-full min-h-full -translate-y-2 items-center justify-center py-3 text-center sm:py-5">
           <div>
-            <h1 className={`font-display text-2xl font-bold sm:text-3xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-white drop-shadow-md' : 'text-dark'}`}>{pageTitle}</h1>
-            {pageDesc && <p className={`mx-auto mt-2 max-w-xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-white drop-shadow-sm' : 'text-gray-500'}`}>{pageDesc}</p>}
+            <h1 className={`font-display text-2xl font-bold sm:text-3xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-[#D4AF37] drop-shadow-md' : 'text-dark'}`}>{pageTitle}</h1>
+            {pageDesc && <p className={`mx-auto mt-2 max-w-xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-[#F2D58A] drop-shadow-sm' : 'text-gray-500'}`}>{pageDesc}</p>}
           </div>
         </div>
       </div>

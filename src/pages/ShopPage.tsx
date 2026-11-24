@@ -265,7 +265,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 aria-hidden="true"
                 loading="eager"
                 decoding="async"
-                className="block h-full w-full object-cover"
+                className="block h-full w-full object-contain"
               />
             </picture>
             <div className="absolute inset-0 z-10 bg-black/40" />

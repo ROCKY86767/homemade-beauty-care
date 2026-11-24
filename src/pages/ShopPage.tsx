@@ -271,7 +271,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
             <div className="absolute inset-0 z-10 bg-black/40" />
           </>
         )}
-        <div className="section-padding relative z-20 flex h-full min-h-full -translate-y-2 items-center justify-center py-3 text-center sm:py-5">
+        <div className="section-padding relative z-20 flex h-full min-h-full items-start justify-center pt-2 pb-0 text-center sm:pt-3">
           <div>
             <h1 className={`font-display text-2xl font-bold sm:text-3xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-[#D4AF37] drop-shadow-md' : 'text-dark'}`}>{pageTitle}</h1>
             {pageDesc && <p className={`mx-auto mt-2 max-w-xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-[#F2D58A] drop-shadow-sm' : 'text-gray-500'}`}>{pageDesc}</p>}

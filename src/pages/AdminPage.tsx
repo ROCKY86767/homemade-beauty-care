@@ -1911,6 +1911,7 @@ function ProductsView() {
               <label className="block text-sm font-medium mb-2">
                 Product Image
               </label>
+              <p className="mb-2 text-xs text-gray-500">Recommended image size: 1200 × 1200 px (square).</p>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <label className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border cursor-pointer hover:bg-gray-50">
@@ -2568,6 +2569,7 @@ function CategoriesView() {
               <label className="block text-sm font-medium mb-2">
                 Category Image
               </label>
+              <p className="mb-2 text-xs text-gray-500">Recommended image size: 1000 × 1250 px (4:5 portrait).</p>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <label className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border cursor-pointer hover:bg-gray-50">
@@ -4886,7 +4888,7 @@ function ReviewsView() {
                   {uploadingMediaReview === review.id ? 'Uploading…' : 'ছবি/ভিডিও আপলোড'}
                   <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" disabled={uploadingMediaReview === review.id} className="sr-only" onChange={event => { void addReviewMedia(review, event.currentTarget.files); event.currentTarget.value = ''; }} />
                 </label>
-                <p className="mt-1 text-xs text-gray-500">সর্বোচ্চ ৫০টি মিডিয়া · একাধিকবারে আপলোড করতে পারবেন · প্রতিটি ৩০ MB পর্যন্ত</p>
+                <p className="mt-1 text-xs text-gray-500">ছবির প্রস্তাবিত সাইজ: 1080 × 1350 px (4:5 portrait)। ভিডিওর জন্য নির্দিষ্ট dimension নেই। সর্বোচ্চ ৫০টি মিডিয়া · প্রতিটি ৩০ MB পর্যন্ত।</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
@@ -5815,11 +5817,11 @@ function ShopAllImageSettings() {
       <div className="mb-5 grid gap-3 rounded-lg bg-amber-50 p-4 text-sm text-amber-900 sm:grid-cols-2">
         <div>
           <p className="font-semibold">Desktop image size</p>
-          <p>1600 × 500 px (wide banner)</p>
+          <p>1920 × 188 px (Desktop)</p>
         </div>
         <div>
           <p className="font-semibold">Mobile image size</p>
-          <p>900 × 1100 px (portrait banner)</p>
+          <p>900 × 344 px (Mobile)</p>
         </div>
         <p className="sm:col-span-2 text-xs">JPG, PNG বা WebP ব্যবহার করুন। সর্বোচ্চ ফাইল সাইজ 5MB। আলাদা Mobile image না দিলে Desktop image-ই ব্যবহার হবে।</p>
       </div>
@@ -6042,6 +6044,7 @@ function BannersView() {
                 return (
                   <div key={type}>
                     <label className="block text-sm font-medium mb-2">{type === 'desktop' ? 'Desktop Banner Image' : 'Mobile Banner Image'}</label>
+                    <p className="mb-2 text-xs text-gray-500">{type === 'desktop' ? 'Recommended size: 1200 × 1500 px (portrait).' : 'Recommended size: 1200 × 960 px (landscape).'}</p>
                     <div className="flex flex-col gap-2">
                       <label className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border cursor-pointer">
                         {uploading === type ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
@@ -7035,6 +7038,7 @@ function HomepageComboSettingsView() {
 
         <div>
           <label className="block text-sm font-medium mb-1.5">Combo Image</label>
+          <p className="mb-2 text-xs text-gray-500">Recommended image size: 1200 × 600 px (landscape, 2:1).</p>
           <div className="grid lg:grid-cols-[220px_1fr] gap-4 items-start">
             <div className="aspect-[4/3] overflow-hidden rounded-xl border bg-gray-50">
               {form.combo_offer_image_url ? <img src={form.combo_offer_image_url} alt="Combo offer preview" className="h-full w-full object-cover" /> : <div className="h-full flex items-center justify-center text-sm text-gray-400">No custom image</div>}
@@ -7168,6 +7172,7 @@ function QuickResponsesView() {
           <TextArea label="Message" value={message} onChange={setMessage} />
           <div>
             <label className="mb-1.5 block text-sm font-medium">Picture (optional)</label>
+            <p className="mb-2 text-xs text-gray-500">Recommended image size: 1080 × 1080 px (square).</p>
             <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} className="block w-full text-sm" />
             {image && <p className="mt-1 text-xs text-gray-500 truncate">{image.name}</p>}
           </div>

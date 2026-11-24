@@ -186,8 +186,8 @@ export default function AdminSettingsCenter({ initialSection = 'general', standa
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Site / Brand Name" value={form.brand_name} onChange={v => set('brand_name', v)} />
             <Field label="Tagline" value={form.brand_tagline_bn} onChange={v => set('brand_tagline_bn', v)} />
-            <Field label="Logo URL" value={form.logo_url} onChange={v => set('logo_url', v)} />
-            <Field label="Favicon URL" value={form.favicon_url} onChange={v => set('favicon_url', v)} />
+            <Field label="Logo URL" value={form.logo_url} onChange={v => set('logo_url', v)} help="Recommended size: 600 × 200 px (transparent PNG, horizontal logo)." />
+            <Field label="Favicon URL" value={form.favicon_url} onChange={v => set('favicon_url', v)} help="Recommended size: 512 × 512 px (square PNG)." />
             <Field label="Admin / Support Email" value={form.email} onChange={v => set('email', v)} type="email" />
             <Field label="Phone" value={form.phone} onChange={v => set('phone', v)} />
             <Field label="Language" value={form.site_language} onChange={v => set('site_language', v)} />
@@ -299,7 +299,7 @@ export default function AdminSettingsCenter({ initialSection = 'general', standa
           <Field label="Default SEO Site Title" value={form.seo_site_title} onChange={v => set('seo_site_title', v)} />
           <Area label="Default Meta Description" value={form.seo_meta_description} onChange={v => set('seo_meta_description', v)} />
           <Field label="Canonical URL" value={form.seo_canonical_url} onChange={v => set('seo_canonical_url', v)} help="Example: https://yourdomain.com" />
-          <Field label="Open Graph Image URL" value={form.seo_og_image_url} onChange={v => set('seo_og_image_url', v)} />
+          <Field label="Open Graph Image URL" value={form.seo_og_image_url} onChange={v => set('seo_og_image_url', v)} help="Recommended size: 1200 × 630 px (1.91:1 social sharing image)." />
           <Toggle label="Noindex website" checked={!!form.seo_noindex} onChange={v => set('seo_noindex', v)} help="Keep OFF for a public production store." />
         </div>}
 

@@ -5815,11 +5815,11 @@ function ShopAllImageSettings() {
       <div className="mb-5 grid gap-3 rounded-lg bg-amber-50 p-4 text-sm text-amber-900 sm:grid-cols-2">
         <div>
           <p className="font-semibold">Desktop image size</p>
-          <p>1600 × 500 px (wide banner)</p>
+          <p>1920 × 300 px (wide, short banner)</p>
         </div>
         <div>
           <p className="font-semibold">Mobile image size</p>
-          <p>900 × 1100 px (portrait banner)</p>
+          <p>900 × 550 px (mobile banner)</p>
         </div>
         <p className="sm:col-span-2 text-xs">JPG, PNG বা WebP ব্যবহার করুন। সর্বোচ্চ ফাইল সাইজ 5MB। আলাদা Mobile image না দিলে Desktop image-ই ব্যবহার হবে।</p>
       </div>

@@ -252,10 +252,10 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
   return (
     <div className="luna-shop-page min-h-screen bg-white">
       {/* Shop heading with optional Shop All background image */}
-      <div className={`luna-shop-heading ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'has-shop-image' : ''} relative isolate overflow-hidden bg-cream ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? shopPageImage.mobile_image_url ? 'aspect-[18/11] sm:aspect-[32/5]' : 'aspect-[32/7] sm:aspect-[32/5]' : 'py-7 sm:py-10'}`}>
+      <div className={`luna-shop-heading ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'has-shop-image relative isolate overflow-hidden bg-cream' : 'relative isolate overflow-hidden bg-cream py-7 sm:py-10'}`}>
         {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
           <>
-            <picture className="absolute inset-0 z-0 block h-full w-full">
+            <picture className="relative z-0 block h-auto w-full">
               {shopPageImage.mobile_image_url && (
                 <source media="(max-width: 639px)" srcSet={shopPageImage.mobile_image_url} />
               )}
@@ -265,13 +265,13 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 aria-hidden="true"
                 loading="eager"
                 decoding="async"
-                className="block h-full w-full object-contain"
+                className="block h-auto w-full object-contain"
               />
             </picture>
             <div className="absolute inset-0 z-10 bg-black/40" />
           </>
         )}
-        <div className="section-padding relative z-20 flex h-full min-h-full items-start justify-center pt-2 pb-0 text-center sm:pt-3">
+        <div className={`section-padding z-20 flex items-start justify-center pt-2 pb-0 text-center sm:pt-3 ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'absolute inset-0' : 'relative'}`}>
           <div>
             <h1 className={`font-display text-2xl font-bold sm:text-3xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-[#D4AF37] drop-shadow-md' : 'text-dark'}`}>{pageTitle}</h1>
             {pageDesc && <p className={`mx-auto mt-2 max-w-xl ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'text-[#F2D58A] drop-shadow-sm' : 'text-gray-500'}`}>{pageDesc}</p>}

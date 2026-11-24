@@ -1458,6 +1458,7 @@ footer img {
 .hbc-luna-site .luna-testimonial>div{display:flex;flex-direction:column;gap:4px;font-size:11px}
 .hbc-luna-site .luna-testimonial>div span{color:#9A8678}
 .hbc-luna-site .luna-shop-heading{background:#F5EDE7!important;padding:55px 0 42px!important}
+.hbc-luna-site .luna-shop-heading.has-shop-image{padding:0!important}
 .hbc-luna-site .luna-shop-heading .section-padding{text-align:left!important}
 .hbc-luna-site .luna-shop-heading h1{font-family:'Playfair Display','Hind Siliguri',serif!important;font-size:clamp(36px,5vw,58px)!important;font-weight:500!important}
 .hbc-luna-site .luna-shop-heading p{margin-top:12px!important;color:#806B5C!important;font-size:13px!important}

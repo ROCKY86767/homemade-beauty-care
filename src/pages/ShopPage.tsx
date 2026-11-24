@@ -255,7 +255,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
       <div className={`luna-shop-heading ${shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) ? 'has-shop-image relative isolate overflow-hidden bg-cream' : 'relative isolate overflow-hidden bg-cream py-7 sm:py-10'}`}>
         {shopPageImage && (shopPageImage.desktop_image_url || shopPageImage.mobile_image_url) && (
           <>
-            <picture className="relative z-0 block h-auto w-full">
+            <picture className="relative z-0 block aspect-[900/275] w-full overflow-hidden sm:aspect-[1920/150]">
               {shopPageImage.mobile_image_url && (
                 <source media="(max-width: 639px)" srcSet={shopPageImage.mobile_image_url} />
               )}
@@ -265,7 +265,7 @@ export default function ShopPage({ categorySlug, isOffers, isNewArrivals }: Shop
                 aria-hidden="true"
                 loading="eager"
                 decoding="async"
-                className="block h-auto w-full object-contain"
+                className="absolute inset-0 block h-full w-full object-cover"
               />
             </picture>
             <div className="absolute inset-0 z-10 bg-black/40" />

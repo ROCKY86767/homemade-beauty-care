@@ -22,7 +22,7 @@ export default function HearReply({ value }: { value: string }) {
     window.open(currentUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const toggleSpeech = () => {
+  const toggleSpeechUnsafe = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
       setError('এই ব্রাউজারে ভয়েস চালানোর সুবিধা নেই। Chrome-এ চেষ্টা করুন।');
       return;
@@ -109,6 +109,19 @@ export default function HearReply({ value }: { value: string }) {
 
     synth.resume();
     synth.speak(utterance);
+  };
+
+
+  const toggleSpeech = () => {
+    try { toggleSpeechUnsafe(); }
+    catch (caught) {
+      activeRef.current = false;
+      utteranceRef.current = null;
+      setSpeaking(false);
+      const detail = caught instanceof Error ? caught.message : 'unknown error';
+      console.error('Live chat speech playback error:', caught);
+      setError(`ভয়েস চালু করা যায়নি: ${detail}`);
+    }
   };
 
   return (

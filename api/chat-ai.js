@@ -139,7 +139,7 @@ function buildFallbackResponse(question, productContext, settings, history = [])
     return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
   if (matchedProduct && benefitIntent && matchedProduct.benefits) {
-    add((matchedProduct.name_bn || matchedProduct.name_en) + ' এর ডেটাবেসে উল্লেখিত উপকারিতা:', String(matchedProduct.benefits).slice(0, 900), 'ফলাফল ব্যক্তি ও চুলের অবস্থাভেদে ভিন্ন হতে পারে।');
+    add(String(matchedProduct.benefits).slice(0, 900), 'ফলাফল ব্যক্তি ও চুলের অবস্থাভেদে ভিন্ন হতে পারে।');
     return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
   }
   const offerIntent = /\b(?:offer|offers|discount|sale|promo|promotion|deal)\b/i.test(q) || has('অফার', 'ছাড়', 'ছাড়', 'ডিসকাউন্ট', 'কম্বো', 'kono offer', 'kon offer', 'offer ache', 'offer ase', 'offer ase naki', 'kono discount');

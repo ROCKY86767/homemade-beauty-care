@@ -372,56 +372,60 @@ export default async function handler(req, res) {
     }
     }
 
-    stage = 'product catalog';
-    let products = [];
-    let productsAvailable = false;
-    let productsResponse = null;
-    try { productsResponse = await fetchWithTimeout(
-      baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&is_active=eq.true&order=created_at.desc&limit=100',
-      { headers },
-      SUPABASE_TIMEOUT_MS
-    ); } catch (catalogError) { console.warn('Product catalog request failed', { message: String(catalogError && catalogError.message || catalogError).slice(0, 160) }); }
-    if (productsResponse && productsResponse.ok) { products = await productsResponse.json(); productsAvailable = Array.isArray(products); }
-    else console.warn('Product catalog unavailable', { status: productsResponse && productsResponse.status });
-
-    stage = 'site settings';
-    let settingsResponse = null;
-    try { settingsResponse = await fetchWithTimeout(
-      baseUrl + '/rest/v1/site_settings?select=brand_name,brand_tagline_bn,phone,whatsapp_number,email,address_bn,delivery_inside_dhaka,delivery_outside_dhaka,free_delivery_threshold,free_delivery_enabled,free_delivery_minimum,cod_enabled,online_payment_enabled,announcement_bn,combo_offer_enabled,combo_offer_title,combo_offer_description,combo_offer_original_price,combo_offer_price,combo_offer_image_url,combo_offer_button_text,combo_offer_button_link,currency&id=eq.1&limit=1',
-      { headers },
-      SUPABASE_TIMEOUT_MS
-    ); } catch (settingsError) { console.warn('Site settings request failed', { message: String(settingsError && settingsError.message || settingsError).slice(0, 160) }); }
-    const settingsRows = settingsResponse && settingsResponse.ok ? await settingsResponse.json() : [];
-    const settingsAvailable = Array.isArray(settingsRows) && settingsRows.length > 0;
-    const siteSettings = settingsAvailable ? settingsRows[0] : {};
-
-    // Load customer-visible Hairpack landing page controls; never read admin/private tables.
-    let landingPageContext = {};
-    try {
-      const landingResponse = await fetchWithTimeout(
+    stage = 'live catalog and business settings';
+    const [productsResponse, settingsResponse, landingResponse] = await Promise.all([
+      fetchWithTimeout(
+        baseUrl + '/rest/v1/products?select=name_en,name_bn,slug,short_description_bn,description_bn,benefits_bn,how_to_use_bn,ingredients_bn,who_is_it_for_bn,storage_bn,price,old_price,stock,is_on_sale,image_url,size_bn&is_active=eq.true&order=created_at.desc&limit=100',
+        { headers },
+        SUPABASE_TIMEOUT_MS
+      ).catch((error) => {
+        console.warn('Product catalog request failed', { message: String(error && error.message || error).slice(0, 160) });
+        return null;
+      }),
+      fetchWithTimeout(
+        baseUrl + '/rest/v1/site_settings?select=brand_name,brand_tagline_bn,phone,whatsapp_number,email,address_bn,delivery_inside_dhaka,delivery_outside_dhaka,free_delivery_threshold,free_delivery_enabled,free_delivery_minimum,cod_enabled,online_payment_enabled,announcement_bn,combo_offer_enabled,combo_offer_title,combo_offer_description,combo_offer_original_price,combo_offer_price,combo_offer_image_url,combo_offer_button_text,combo_offer_button_link,currency&id=eq.1&limit=1',
+        { headers },
+        SUPABASE_TIMEOUT_MS
+      ).catch((error) => {
+        console.warn('Site settings request failed', { message: String(error && error.message || error).slice(0, 160) });
+        return null;
+      }),
+      fetchWithTimeout(
         baseUrl + '/rest/v1/hairpack_landing_page_settings?select=*&id=eq.1&limit=1',
         { headers },
         2500
-      );
-      if (landingResponse.ok) {
-        const landingRows = await landingResponse.json();
-        if (Array.isArray(landingRows) && landingRows[0]) {
-          const row = landingRows[0];
-          const allowedKeys = [
-            'is_enabled','hero_eyebrow','hero_title','hero_description','primary_button_text','secondary_button_text',
-            'show_benefits','show_how_to_use','show_editorial_reviews','show_faq','show_whatsapp','show_sticky_order_bar',
-            'reviews_heading','reviews_description','benefits_heading','how_to_use_heading','show_trust_strip',
-            'show_product_info','show_contact_section','show_order_section','benefits_description','how_to_use_description',
-            'order_heading','order_description','contact_heading','contact_description','trust_one_title','trust_one_description',
-            'trust_two_title','trust_two_description','trust_three_title','trust_three_description'
-          ];
-          landingPageContext = Object.fromEntries(allowedKeys.filter((key) => row[key] !== undefined).map((key) => [key, row[key]]));
-        }
-      } else {
-        console.warn('Public landing page settings unavailable', { status: landingResponse.status });
-      }
-    } catch (landingError) {
-      console.warn('Public landing page settings request failed', { message: String(landingError && landingError.message || landingError).slice(0, 160) });
+      ).catch((error) => {
+        console.warn('Public landing page settings request failed', { message: String(error && error.message || error).slice(0, 160) });
+        return null;
+      }),
+    ]);
+
+    const [productRows, settingsRows, landingRows] = await Promise.all([
+      productsResponse && productsResponse.ok ? productsResponse.json().catch(() => []) : Promise.resolve([]),
+      settingsResponse && settingsResponse.ok ? settingsResponse.json().catch(() => []) : Promise.resolve([]),
+      landingResponse && landingResponse.ok ? landingResponse.json().catch(() => []) : Promise.resolve([]),
+    ]);
+    const products = Array.isArray(productRows) ? productRows : [];
+    const productsAvailable = Array.isArray(productRows) && Boolean(productsResponse && productsResponse.ok);
+    if (!productsAvailable) console.warn('Product catalog unavailable', { status: productsResponse && productsResponse.status });
+
+    const settingsAvailable = Array.isArray(settingsRows) && settingsRows.length > 0;
+    const siteSettings = settingsAvailable ? settingsRows[0] : {};
+
+    let landingPageContext = {};
+    if (Array.isArray(landingRows) && landingRows[0]) {
+      const row = landingRows[0];
+      const allowedKeys = [
+        'is_enabled','hero_eyebrow','hero_title','hero_description','primary_button_text','secondary_button_text',
+        'show_benefits','show_how_to_use','show_editorial_reviews','show_faq','show_whatsapp','show_sticky_order_bar',
+        'reviews_heading','reviews_description','benefits_heading','how_to_use_heading','show_trust_strip',
+        'show_product_info','show_contact_section','show_order_section','benefits_description','how_to_use_description',
+        'order_heading','order_description','contact_heading','contact_description','trust_one_title','trust_one_description',
+        'trust_two_title','trust_two_description','trust_three_title','trust_three_description'
+      ];
+      landingPageContext = Object.fromEntries(allowedKeys.filter((key) => row[key] !== undefined).map((key) => [key, row[key]]));
+    } else if (landingResponse && !landingResponse.ok) {
+      console.warn('Public landing page settings unavailable', { status: landingResponse.status });
     }
     const publicPageContext = PUBLIC_PAGE_KNOWLEDGE.map((page) => ({ page: page.page, url: page.url, content: page.content }));
     const origin = 'https://homemade-beauty-care.vercel.app';
@@ -499,6 +503,14 @@ export default async function handler(req, res) {
       settings_available: settingsAvailable,
       products_available: productsAvailable,
     };
+
+    // Serve known product, price, stock, delivery, offer and order questions without waiting for Gemini.
+    // Unknown or nuanced questions continue to the AI flow below.
+    const fastReply = buildFallbackResponse(latestMessage.message, productContext, publicBusinessContext, history);
+    if (fastReply && fastReply.handoff !== true) {
+      console.info('Fast deterministic chat reply served');
+      return res.status(200).json(fastReply);
+    }
 
     const systemPrompt = [
       'তুমি Homemade Beauty Care-এর লাইভ-চ্যাট কাস্টমার কেয়ার ও সেলস সহকারী। বাংলা, বাংলিশ, ইংরেজি এবং বানান ভুল বুঝবে। স্বাভাবিক, সংক্ষিপ্ত, ভদ্র বাংলায় উত্তর দেবে; প্রতিটি customer প্রশ্নের উত্তর প্রয়োজন অনুযায়ী ১, ২ অথবা ৩টি আলাদা ছোট chat message-এ দেবে—প্রতিটি প্রশ্নে ৩টি message বাধ্যতামূলক নয়। সাধারণ ও সরাসরি প্রশ্নের উত্তর ১টি message-এই সম্পূর্ণ হলে ১টিই দেবে; অতিরিক্ত তথ্য দরকার হলে ২টি, আর জটিল/একাধিক বিষয় বা অর্ডার-সংক্রান্ত ব্যাখ্যায় সত্যিই প্রয়োজন হলে সর্বোচ্চ ৩টি দেবে। শুধু message সংখ্যা বাড়ানোর জন্য উত্তর ভাগ করবে না, অপ্রয়োজনীয় কথা যোগ করবে না বা একই কথা পুনরাবৃত্তি করবে না। প্রতিটি message আলাদা replies array item হবে, যাতে আলাদা chat bubble হিসেবে পাঠানো যায়। প্রথম message-এ সরাসরি প্রশ্নের উত্তর, পরের message থাকলে তাতে শুধু দরকারি অতিরিক্ত তথ্য, আর শেষ message থাকলে প্রাসঙ্গিক ও স্বাভাবিক next step দেবে। একই প্রশ্ন বারবার করবে না এবং প্রতিবার customer-এর নাম ধরে ডাকবে না।',

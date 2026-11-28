@@ -39,11 +39,12 @@ export default function HearReply({ value }: { value: string }) {
     }
 
     const text = value
-      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/\[\[NEXT_MESSAGE\]\]/g, ' ')
+      .replace(/!\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1')
+      .replace(/\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1')
+      .replace(/https?:\\/\\/\\S+/g, '')
+      .replace(/\\[\\[NEXT_MESSAGE\\]\\]/g, ' ')
       .replace(/[*_#`]/g, '')
+      .replace(/\\s+/g, ' ')
       .trim();
 
     if (!text) {
@@ -51,64 +52,95 @@ export default function HearReply({ value }: { value: string }) {
       return;
     }
 
+    // Keep each utterance short: some browser speech engines truncate long utterances.
+    const chunks: string[] = [];
+    const sentences = text.match(/[^।!?]+[।!?]?/g) || [text];
+    let current = '';
+    const maxChunkLength = 180;
+
+    const pushWords = (sentence: string) => {
+      const words = sentence.trim().split(/\\s+/);
+      for (const word of words) {
+        if (!word) continue;
+        if (!current) {
+          current = word;
+        } else if ((current + ' ' + word).length <= maxChunkLength) {
+          current += ' ' + word;
+        } else {
+          chunks.push(current);
+          current = word;
+        }
+      }
+    };
+
+    for (const sentence of sentences) {
+      const part = sentence.trim();
+      if (!part) continue;
+      if (!current || (current + ' ' + part).length <= maxChunkLength) {
+        current = current ? current + ' ' + part : part;
+      } else {
+        chunks.push(current);
+        current = '';
+        pushWords(part);
+      }
+    }
+    if (current) chunks.push(current);
+
+    if (chunks.length === 0) {
+      setError('শোনার মতো লেখা নেই।');
+      return;
+    }
+
     setError('');
     activeRef.current = true;
     setSpeaking(false);
-    // Do not cancel the browser speech queue here: Chrome can cancel the new utterance too.
-    // Use one utterance and let the browser start it from the direct click event.
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'bn-BD';
-    utterance.rate = 0.88;
-    utterance.pitch = 1;
-    utteranceRef.current = utterance;
 
-    const chooseVoice = () => {
-      const voices = synth.getVoices();
-      const voice = voices.find(v => /^bn([_-]|$)/i.test(v.lang))
-        || voices.find(v => /^en([_-]|$)/i.test(v.lang))
-        || voices[0];
-      if (voice) {
-        utterance.voice = voice;
-        // Some desktop speech engines stay silent if the requested locale has no installed voice.
-        utterance.lang = voice.lang || 'bn-BD';
+    const voices = synth.getVoices();
+    const bengaliVoice = voices.find(v => /^bn([_-]|$)/i.test(v.lang));
+
+    const speakChunk = (index: number) => {
+      if (!activeRef.current) return;
+      if (index >= chunks.length) {
+        activeRef.current = false;
+        utteranceRef.current = null;
+        setSpeaking(false);
+        return;
       }
-    };
-    chooseVoice();
 
-    utterance.onstart = () => {
-      if (utteranceRef.current !== utterance) return;
-      setSpeaking(true);
-      setError('');
-    };
-    utterance.onend = () => {
-      if (utteranceRef.current !== utterance) return;
-      activeRef.current = false;
-      utteranceRef.current = null;
-      setSpeaking(false);
-    };
-    utterance.onerror = (event) => {
-      if (utteranceRef.current !== utterance) return;
-      activeRef.current = false;
-      utteranceRef.current = null;
-      setSpeaking(false);
-      const reason = (event as SpeechSynthesisErrorEvent).error;
-      if (reason === 'canceled' || reason === 'interrupted') return;
-      setError(reason === 'not-allowed'
-        ? 'ব্রাউজার ভয়েস চালাতে বাধা দিচ্ছে (not-allowed)।'
-        : `ভয়েস চালু হয়নি: ${reason || 'unknown'}। Chrome-এর sound ও voice settings পরীক্ষা করুন।`);
-    };
+      const utterance = new SpeechSynthesisUtterance(chunks[index]);
+      utterance.lang = bengaliVoice?.lang || 'bn-BD';
+      utterance.rate = 0.88;
+      utterance.pitch = 1;
+      if (bengaliVoice) utterance.voice = bengaliVoice;
+      utteranceRef.current = utterance;
 
-    // Load voice list when the browser supplies it asynchronously.
-    if (synth.getVoices().length === 0) {
-      const onVoicesChanged = () => {
-        chooseVoice();
-        synth.removeEventListener?.('voiceschanged', onVoicesChanged);
+      utterance.onstart = () => {
+        if (utteranceRef.current !== utterance) return;
+        setSpeaking(true);
+        setError('');
       };
-      synth.addEventListener?.('voiceschanged', onVoicesChanged);
-    }
+      utterance.onend = () => {
+        if (utteranceRef.current !== utterance || !activeRef.current) return;
+        speakChunk(index + 1);
+      };
+      utterance.onerror = (event) => {
+        if (utteranceRef.current !== utterance) return;
+        activeRef.current = false;
+        utteranceRef.current = null;
+        setSpeaking(false);
+        const reason = (event as SpeechSynthesisErrorEvent).error;
+        if (reason === 'canceled' || reason === 'interrupted') return;
+        setError(reason === 'not-allowed'
+          ? 'ব্রাউজার ভয়েস চালাতে বাধা দিচ্ছে (not-allowed)।'
+          : `ভয়েস চালু হয়নি: ${reason || 'unknown'}। Chrome-এর sound ও voice settings পরীক্ষা করুন।`);
+      };
 
+      synth.speak(utterance);
+    };
+
+    // Start the first short chunk directly from the click gesture.
     synth.resume();
-    synth.speak(utterance);
+    speakChunk(0);
   };
 
 

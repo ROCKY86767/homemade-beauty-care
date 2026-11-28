@@ -39,12 +39,12 @@ export default function HearReply({ value }: { value: string }) {
     }
 
     const text = value
-      .replace(/!\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1')
-      .replace(/\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1')
-      .replace(/https?:\\/\\/\\S+/g, '')
-      .replace(/\\[\\[NEXT_MESSAGE\\]\\]/g, ' ')
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\[\[NEXT_MESSAGE\]\]/g, ' ')
       .replace(/[*_#`]/g, '')
-      .replace(/\\s+/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
 
     if (!text) {
@@ -59,7 +59,7 @@ export default function HearReply({ value }: { value: string }) {
     const maxChunkLength = 180;
 
     const pushWords = (sentence: string) => {
-      const words = sentence.trim().split(/\\s+/);
+      const words = sentence.trim().split(/\s+/);
       for (const word of words) {
         if (!word) continue;
         if (!current) {

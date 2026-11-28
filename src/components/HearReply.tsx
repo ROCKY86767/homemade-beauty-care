@@ -98,9 +98,13 @@ export default function HearReply({ value }: { value: string }) {
     // Queue all short utterances during the original click event. This is more
     // reliable in Chrome than starting each next chunk from an onend callback.
     const voices = synth.getVoices();
-    const voice = voices.find(v => /^bn([_-]|$)/i.test(v.lang))
-      || voices.find(v => /^en([_-]|$)/i.test(v.lang))
-      || voices[0];
+    const bengaliVoice = voices.find(v => /^bn([_-]|$)/i.test(v.lang));
+    if (!bengaliVoice) {
+      activeRef.current = false;
+      setSpeaking(false);
+      setError('আপনার ডিভাইসে বাংলা Text-to-Speech voice পাওয়া যায়নি। Android হলে Settings থেকে বাংলা Speech/Google Speech Services voice install করে আবার চেষ্টা করুন।');
+      return;
+    }
 
     let remaining = chunks.length;
     activeRef.current = true;
@@ -108,10 +112,10 @@ export default function HearReply({ value }: { value: string }) {
 
     chunks.forEach((chunk, index) => {
       const utterance = new SpeechSynthesisUtterance(chunk);
-      utterance.lang = voice?.lang || 'bn-BD';
+      utterance.lang = bengaliVoice.lang;
       utterance.rate = 0.88;
       utterance.pitch = 1;
-      if (voice) utterance.voice = voice;
+      utterance.voice = bengaliVoice;
       if (index === 0) utteranceRef.current = utterance;
 
       utterance.onstart = () => {

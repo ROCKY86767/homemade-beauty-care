@@ -1,8 +1,25 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Component, lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 
 const LazyLiveChatCustomer = lazy(() => import('./LiveChatCustomer'));
 
 export { ChatAdminView } from './ChatAdminView';
+
+class LiveChatErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.error('Live chat component error:', error, info); }
+  render() {
+    if (this.state.hasError) return (
+      <div role="status" className="fixed right-2 bottom-36 z-[70] w-[min(290px,calc(100vw-2rem))] rounded-xl border border-brand-border bg-white p-3 text-xs text-gray-700 shadow-xl sm:right-5 sm:bottom-20">
+        <p>Live Chat সাময়িকভাবে চালু করা যাচ্ছে না। ওয়েবসাইট ব্যবহার চালিয়ে যেতে পারবেন।</p>
+        <button type="button" onClick={() => this.setState({ hasError: false })} className="mt-2 rounded-lg bg-primary px-3 py-1.5 text-white">আবার চেষ্টা করুন</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
 
 export default function LiveChat() {
   const [shouldMount, setShouldMount] = useState(false);
@@ -56,9 +73,11 @@ export default function LiveChat() {
         </svg>
       </button>
       {shouldMount && (
-        <Suspense fallback={null}>
-          <LazyLiveChatCustomer initialOpen={openOnMount} onReady={handleReady} />
-        </Suspense>
+        <LiveChatErrorBoundary>
+          <Suspense fallback={null}>
+            <LazyLiveChatCustomer initialOpen={openOnMount} onReady={handleReady} />
+          </Suspense>
+        </LiveChatErrorBoundary>
       )}
     </>
   );

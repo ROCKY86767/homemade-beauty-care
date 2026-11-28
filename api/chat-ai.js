@@ -92,6 +92,13 @@ function buildFallbackResponse(question, productContext, settings, history = [])
     /(?:^|\D)\d{2,5}\s*(?:taka|tk|টাকা)(?![a-z])/i.test(q) ||
     /(?:কম দামে|কমে হলে|দাম কম|কম টাকা|discount|ডিসকাউন্ট)/i.test(q)
   );
+  const resultGuaranteeIntent = /(?:\\b(?:kaj|kaaj)\\s+na\\s+korle\\b|\\b(?:result|folafol)\\s+na\\s+(?:pele|hole)\\b|\\b(?:money\\s*back|guarantee|refund)\\b)/i.test(q) || has('কাজ না করলে', 'কাজ না হলে', 'কাজ না করলে কি', 'ফলাফল না পেলে', 'ফল না পেলে', 'রেজাল্ট না পেলে', 'টাকা ফেরত', 'টাকা ফেরত পাব', 'টাকা ফেরত দিবেন', 'রিফান্ড পাব');
+  if (resultGuaranteeIntent) {
+    add('আমাদের Return & Refund Policy অনুযায়ী, শুধু প্রত্যাশিত ফলাফল না পাওয়ার কারণে পণ্য ফেরত বা টাকা রিফান্ড প্রযোজ্য নয়। কারণ ব্যক্তিভেদে ফলাফল ভিন্ন হতে পারে।');
+    add('তবে ডেলিভারির সময় পণ্য ক্ষতিগ্রস্ত হলে, ভুল পণ্য পাঠানো হলে, অথবা গ্রহণের ৩ মাসের মধ্যে পণ্যের মেয়াদ শেষ হলে Policy অনুযায়ী প্রমাণ সাপেক্ষে রিটার্ন বা রিফান্ডের ব্যবস্থা রয়েছে।');
+    add('সম্পূর্ণ নিয়ম: https://homemade-beauty-care.vercel.app/returns-refunds');
+    return { reply: replies.join(' '), replies: replies.slice(0, 3), orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false };
+  }
   if (bargainIntent && matchedProduct && quantity && quantity <= 100) {
     const offered = q.match(/(?:^|\D)(\d{2,5})(?!\d)\s*(?:taka|tk|টাকা)/i);
     const offeredPrice = offered ? Number(offered[1]) : null;

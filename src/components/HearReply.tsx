@@ -95,52 +95,54 @@ export default function HearReply({ value }: { value: string }) {
     activeRef.current = true;
     setSpeaking(false);
 
+    // Queue all short utterances during the original click event. This is more
+    // reliable in Chrome than starting each next chunk from an onend callback.
     const voices = synth.getVoices();
-    const bengaliVoice = voices.find(v => /^bn([_-]|$)/i.test(v.lang));
+    const voice = voices.find(v => /^bn([_-]|$)/i.test(v.lang))
+      || voices.find(v => /^en([_-]|$)/i.test(v.lang))
+      || voices[0];
 
-    const speakChunk = (index: number) => {
-      if (!activeRef.current) return;
-      if (index >= chunks.length) {
-        activeRef.current = false;
-        utteranceRef.current = null;
-        setSpeaking(false);
-        return;
-      }
+    let remaining = chunks.length;
+    activeRef.current = true;
+    setSpeaking(true);
 
-      const utterance = new SpeechSynthesisUtterance(chunks[index]);
-      utterance.lang = bengaliVoice?.lang || 'bn-BD';
+    chunks.forEach((chunk, index) => {
+      const utterance = new SpeechSynthesisUtterance(chunk);
+      utterance.lang = voice?.lang || 'bn-BD';
       utterance.rate = 0.88;
       utterance.pitch = 1;
-      if (bengaliVoice) utterance.voice = bengaliVoice;
-      utteranceRef.current = utterance;
+      if (voice) utterance.voice = voice;
+      if (index === 0) utteranceRef.current = utterance;
 
       utterance.onstart = () => {
-        if (utteranceRef.current !== utterance) return;
-        setSpeaking(true);
-        setError('');
+        if (activeRef.current) setSpeaking(true);
       };
       utterance.onend = () => {
-        if (utteranceRef.current !== utterance || !activeRef.current) return;
-        speakChunk(index + 1);
+        if (!activeRef.current) return;
+        remaining -= 1;
+        if (remaining === 0) {
+          activeRef.current = false;
+          utteranceRef.current = null;
+          setSpeaking(false);
+        }
       };
       utterance.onerror = (event) => {
-        if (utteranceRef.current !== utterance) return;
-        activeRef.current = false;
-        utteranceRef.current = null;
-        setSpeaking(false);
+        if (!activeRef.current) return;
         const reason = (event as SpeechSynthesisErrorEvent).error;
         if (reason === 'canceled' || reason === 'interrupted') return;
+        activeRef.current = false;
+        utteranceRef.current = null;
+        synth.cancel();
+        setSpeaking(false);
         setError(reason === 'not-allowed'
           ? 'ব্রাউজার ভয়েস চালাতে বাধা দিচ্ছে (not-allowed)।'
           : `ভয়েস চালু হয়নি: ${reason || 'unknown'}। Chrome-এর sound ও voice settings পরীক্ষা করুন।`);
       };
 
       synth.speak(utterance);
-    };
+    });
 
-    // Start the first short chunk directly from the click gesture.
     synth.resume();
-    speakChunk(0);
   };
 
 

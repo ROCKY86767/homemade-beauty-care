@@ -310,6 +310,70 @@ export default async function handler(req, res) {
     const refundIntent = productNotWorkingComplaint
       || /(?:refund|return|money\\s*back|tk\\s*ferot|taka\\s*ferot|taka\\s*back|tk\\s*back|refund\\s*pabo|return\\s*niben)/i.test(latestQuestion)
       || /রিফান্ড|রিটার্ন|টাকা ফেরত|টাকা ফেরত দেন|টাকা ফেরত পাব|পণ্য ফেরত|ফেরত পাব|কাজ না করলে|কাজ না করে|ফল না পেলে|ফলাফল না পেলে|কাজ না করলে টাকা|পছন্দ না হলে/.test(latestQuestion);
+    if (productNotWorkingComplaint) {
+      // Verify the order using the phone saved on this authenticated guest-chat conversation.
+      // If the customer shared a phone number in chat, prefer the most recent one.
+      const conversationResponse = await fetchWithTimeout(baseUrl + '/rest/v1/rpc/get_guest_chat_conversation', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ p_visitor_token: visitorToken, p_conversation_id: conversationId }),
+      }, SUPABASE_TIMEOUT_MS);
+      let conversation = null;
+      if (conversationResponse.ok) {
+        const conversationData = await conversationResponse.json();
+        conversation = Array.isArray(conversationData) ? conversationData[0] : conversationData;
+      }
+
+      const toEnglishDigits = (value) => String(value || '').replace(/[০-৯]/g, (digit) => '০১২৩৪৫৬৭৮৯'.indexOf(digit));
+      const normalizeMobile = (value) => {
+        let digits = toEnglishDigits(value).replace(/[^0-9]/g, '');
+        if (digits.startsWith('008801')) digits = '0' + digits.slice(5);
+        else if (digits.startsWith('8801')) digits = '0' + digits.slice(3);
+        else if (digits.length === 10 && digits.startsWith('1')) digits = '0' + digits;
+        return /^01[3-9][0-9]{8}$/.test(digits) ? digits : '';
+      };
+      let orderMobile = '';
+      for (const message of [...history].reverse()) {
+        if (message.sender_type !== 'customer' || typeof message.message !== 'string') continue;
+        const candidates = toEnglishDigits(message.message).match(/(?:\\+?88)?0?1[3-9](?:[\\s-]?[0-9]){8}/g) || [];
+        for (const candidate of candidates) {
+          orderMobile = normalizeMobile(candidate);
+          if (orderMobile) break;
+        }
+        if (orderMobile) break;
+      }
+      if (!orderMobile) orderMobile = normalizeMobile(conversation?.customer_mobile);
+
+      if (!orderMobile) {
+        const reply = 'আপনার Hair Pack অর্ডারটি আগে যাচাই করে নিতে চাই। অনুগ্রহ করে অর্ডার করার সময় যে মোবাইল নম্বরটি দিয়েছিলেন, সেটি লিখবেন?';
+        return res.status(200).json({ reply, replies: [reply], orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false });
+      }
+
+      const orderLookupResponse = await fetchWithTimeout(baseUrl + '/rest/v1/rpc/lookup_guest_chat_orders', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ p_visitor_token: visitorToken, p_conversation_id: conversationId, p_mobile: orderMobile }),
+      }, SUPABASE_TIMEOUT_MS);
+      if (!orderLookupResponse.ok) {
+        console.error('Guest chat order verification failed:', orderLookupResponse.status);
+        const reply = 'আপনার অর্ডারটি এখনই যাচাই করা যাচ্ছে না। অনুগ্রহ করে একটু পরে আবার চেষ্টা করুন অথবা অ্যাডমিনকে জানান।';
+        return res.status(200).json({ reply, replies: [reply], orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: true });
+      }
+      const matchedOrders = await orderLookupResponse.json();
+      if (!Array.isArray(matchedOrders) || matchedOrders.length === 0) {
+        const reply = 'এই চ্যাটে পাওয়া মোবাইল নম্বর দিয়ে কোনো অর্ডার খুঁজে পাইনি। অর্ডার করার সময় অন্য নম্বর ব্যবহার করে থাকলে সেটি লিখে দিন, আমি আবার যাচাই করছি।';
+        return res.status(200).json({ reply, replies: [reply], orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false });
+      }
+
+      const replies = [
+        'আপনার দেওয়া মোবাইল নম্বর দিয়ে আমাদের অর্ডার রেকর্ডে অর্ডার পাওয়া গেছে। বিষয়টি জানানোর জন্য ধন্যবাদ, Hair Pack ব্যবহার করেও প্রত্যাশিত ফল না পাওয়ায় আমরা দুঃখিত।',
+        'আমাদের Return & Refund Policy অনুযায়ী, শুধু প্রত্যাশিত ফলাফল না পাওয়ার কারণে পণ্য ফেরত বা টাকা রিফান্ড প্রযোজ্য নয়; ফলাফল ব্যক্তি ও চুলের অবস্থাভেদে ভিন্ন হতে পারে।',
+        'তবুও আপনার সমস্যাটি বুঝে সাহায্য করতে চাই। কতদিন ব্যবহার করেছেন এবং কী সমস্যা হচ্ছে জানালে আমাদের টিম বিষয়টি দেখে পরামর্শ দিতে পারবে। বিস্তারিত Policy: https://homemade-beauty-care.vercel.app/returns-refunds'
+      ];
+      console.info('Hair Pack complaint matched and order phone verified');
+      return res.status(200).json({ reply: replies.join(' '), replies, orderReady: false, productName: null, quantity: null, unitPrice: null, handoff: false });
+    }
+
     if (refundIntent) {
       const replies = productNotWorkingComplaint ? [
         'আপনার Hair Pack ব্যবহার করেও প্রত্যাশিত ফল না পাওয়ায় আমরা দুঃখিত। আপনার অভিজ্ঞতাটা আমাদের জানানোর জন্য ধন্যবাদ।',

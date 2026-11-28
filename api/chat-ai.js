@@ -306,10 +306,16 @@ export default async function handler(req, res) {
     const latestMessage = history[history.length - 1];
     // Answer return/refund questions from the published Returns & Refunds policy.
     const latestQuestion = String(latestMessage.message || '').toLowerCase();
-    const refundIntent = /(?:refund|return|money\s*back|tk\s*ferot|taka\s*ferot|taka\s*back|tk\s*back|refund\s*pabo|return\s*niben)/i.test(latestQuestion)
+    const productNotWorkingComplaint = /\\b(?:hair\\s*pack|hairpack|pack)\\b.{0,45}\\b(?:kaj|kaaj)\\s+(?:kore\\s+)?(?:ni|nai|na|koreni|hoyni|hoy\\s+nai)|\\b(?:kaj|kaaj)\\s+(?:kore\\s+)?(?:ni|nai|na|koreni|hoyni|hoy\\s+nai).{0,45}\\b(?:hair\\s*pack|hairpack|pack)\\b|\\b(?:kaj|kaaj)\\s+(?:hocche|hochche|hoy)\\s+na|কাজ\\s*(?:করেনি|করে\\s*নি|করে\\s*নাই|হয়নি|হয়নি|হচ্ছে\\s*না|করছে\\s*না)/i.test(latestQuestion);
+    const refundIntent = productNotWorkingComplaint
+      || /(?:refund|return|money\\s*back|tk\\s*ferot|taka\\s*ferot|taka\\s*back|tk\\s*back|refund\\s*pabo|return\\s*niben)/i.test(latestQuestion)
       || /রিফান্ড|রিটার্ন|টাকা ফেরত|টাকা ফেরত দেন|টাকা ফেরত পাব|পণ্য ফেরত|ফেরত পাব|কাজ না করলে|কাজ না করে|ফল না পেলে|ফলাফল না পেলে|কাজ না করলে টাকা|পছন্দ না হলে/.test(latestQuestion);
     if (refundIntent) {
-      const replies = [
+      const replies = productNotWorkingComplaint ? [
+        'আপনার Hair Pack ব্যবহার করেও প্রত্যাশিত ফল না পাওয়ায় আমরা দুঃখিত। আপনার অভিজ্ঞতাটা আমাদের জানানোর জন্য ধন্যবাদ।',
+        'আমাদের Return & Refund Policy অনুযায়ী, শুধু প্রত্যাশিত ফলাফল না পাওয়ার কারণে পণ্য ফেরত বা টাকা রিফান্ড প্রযোজ্য নয়; ফলাফল ব্যক্তি ও চুলের অবস্থাভেদে ভিন্ন হতে পারে।',
+        'তবুও আপনার সমস্যাটি বুঝে সাহায্য করতে চাই। কতদিন ব্যবহার করেছেন এবং কী সমস্যা হচ্ছে জানালে আমাদের টিম বিষয়টি দেখে পরামর্শ দিতে পারবে। বিস্তারিত Policy: https://homemade-beauty-care.vercel.app/returns-refunds'
+      ] : [
         'শুধু প্রত্যাশিত ফলাফল না পেলে পণ্য ফেরত বা টাকা রিফান্ড প্রযোজ্য নয়।',
         'তবে ডেলিভারির সময় পণ্য ক্ষতিগ্রস্ত হলে বা ভুল পণ্য পেলে ফেরত দিতে পারবেন; ৩ মাসের মধ্যে মেয়াদ শেষ হলে প্রমাণ সাপেক্ষে পূর্ণ রিফান্ড দেওয়া হয়।',
         'বিস্তারিত নিয়ম দেখুন: https://homemade-beauty-care.vercel.app/returns-refunds — আপনার ক্ষেত্রে সমস্যা হলে অর্ডার নম্বরসহ অ্যাডমিনকে জানান।'
